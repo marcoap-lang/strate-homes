@@ -1,4 +1,5 @@
 import { AuthStatusBadge } from "@/components/ui/AuthStatusBadge";
+import { WorkspaceStatusBadge } from "@/components/ui/WorkspaceStatusBadge";
 
 const navItems = ["Overview", "Properties", "Leads", "Agents", "Branding", "Settings"];
 
@@ -25,8 +26,9 @@ export function AdminShell() {
               <p className="text-sm uppercase tracking-[0.3em] text-white/40">Workspace</p>
               <h2 className="mt-3 text-3xl font-semibold">Operations overview</h2>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               <AuthStatusBadge />
+              <WorkspaceStatusBadge />
               <a href="/" className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/80 transition hover:bg-white/5">
                 Public site
               </a>

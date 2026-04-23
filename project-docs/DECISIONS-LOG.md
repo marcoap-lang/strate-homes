@@ -191,3 +191,29 @@ La creación del perfil de app debe ser consistente y automática, sin depender 
 - menor riesgo de usuarios autenticados sin `profile`
 - mejor base para futuras políticas y joins por identidad
 - el flujo Auth queda más robusto incluso antes de implementar RLS completo
+
+---
+
+### Decisión
+Resolver el workspace activo con una estrategia híbrida: preferir `profiles.default_workspace_id` en servidor y permitir override efímero en cliente.
+
+### Motivo
+La app necesita una resolución estable en SSR y una forma simple de soportar usuarios con varios workspaces sin diseñar todavía una UX completa de selector persistente sincronizado al backend.
+
+### Consecuencias
+- SSR puede renderizar con una noción consistente de workspace activo
+- usuarios con un solo workspace funcionan sin pasos extra
+- usuarios con varios workspaces podrán requerir una capa UX posterior para cambio explícito y persistencia mejor resuelta
+
+---
+
+### Decisión
+Forzar en base de datos solo las consistencias multiworkspace más claras y baratas: `property -> agent` y `property_image -> property`.
+
+### Motivo
+Estas reglas son estructuralmente correctas, fáciles de validar con triggers y previenen errores serios de integridad sin esperar a RLS completa.
+
+### Consecuencias
+- se reduce el riesgo de cruzar entidades entre workspaces por accidente
+- la base gana integridad real antes de abrir escritura desde UI
+- otras reglas de autorización fina siguen quedando para RLS y capa app
