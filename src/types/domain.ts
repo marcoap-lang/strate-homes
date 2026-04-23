@@ -30,6 +30,8 @@ export interface Workspace {
   updatedAt: string;
 }
 
+export type WorkspaceRole = "owner" | "admin" | "agent" | "staff";
+
 export interface Profile {
   id: string;
   fullName?: string | null;
@@ -38,6 +40,18 @@ export interface Profile {
   avatarUrl?: string | null;
   defaultWorkspaceId?: string | null;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WorkspaceMember {
+  id: string;
+  workspaceId: string;
+  profileId: string;
+  role: WorkspaceRole;
+  isActive: boolean;
+  invitedBy?: string | null;
+  joinedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }

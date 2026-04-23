@@ -126,3 +126,68 @@ La galería de propiedades es núcleo del producto y debe quedar resuelta desde 
 - el modelo soporta múltiples imágenes, orden y cover image
 - Storage queda preparado sin mezclar binarios con la tabla principal de propiedades
 - la futura integración UI/backend será más directa
+
+---
+
+### Decisión
+Validar el esquema remoto actual antes de entrar al bloque de Auth + RLS.
+
+### Motivo
+Antes de modelar seguridad y membresías conviene confirmar que la base estructural remota realmente coincide con la arquitectura mínima esperada y no trae drift respecto a la migración versionada.
+
+### Consecuencias
+- se reduce riesgo de construir RLS sobre una base inconsistente
+- el siguiente bloque puede enfocarse en autorización en lugar de reabrir fundamentos del inventario
+- la verificación remota se vuelve parte explícita de la disciplina del proyecto
+
+---
+
+### Decisión
+Aceptar por ahora ciertas consistencias multiworkspace a nivel aplicación/documentación y no forzarlas todavía con constraints complejos en SQL.
+
+### Motivo
+Reglas como “el `agent_id` de una propiedad debe pertenecer al mismo workspace” son correctas, pero endurecerlas en este momento puede meter más complejidad de la necesaria antes de cerrar membresías, roles y flujo real de escritura.
+
+### Consecuencias
+- la base sigue siendo válida para el bloque actual
+- queda una deuda estructural concreta antes de habilitar operaciones reales
+- el siguiente diseño de Auth + RLS debe decidir si esas reglas vivirán en constraints, triggers o capa de aplicación
+
+---
+
+### Decisión
+Definir la pertenencia multiworkspace con una tabla explícita `workspace_members` en lugar de inferir membresía desde `agents`.
+
+### Motivo
+La pertenencia organizacional y el rol comercial/público no son la misma cosa. Un usuario puede pertenecer a un workspace sin necesariamente ser un agente visible, y un agente puede requerir configuración operativa distinta de la simple membresía.
+
+### Consecuencias
+- `workspace_members` se vuelve el pivote natural para Auth + RLS
+- `agents` queda enfocado en capa operativa/pública
+- la arquitectura soporta mejor workspaces con staff administrativo y no solo agentes
+
+---
+
+### Decisión
+Definir un set mínimo de roles iniciales: `owner`, `admin`, `agent`, `staff`.
+
+### Motivo
+Hace falta una base clara pero pequeña para empezar autorización y segmentación operativa sin introducir jerarquías excesivas desde el día uno.
+
+### Consecuencias
+- el siguiente bloque de RLS ya tiene una taxonomía estable de roles
+- el producto puede diferenciar gobierno del workspace, operación comercial y apoyo interno
+- se deja espacio para granularidad futura sin romper el modelo inicial
+
+---
+
+### Decisión
+Sincronizar `profiles` desde `auth.users` mediante triggers de base de datos.
+
+### Motivo
+La creación del perfil de app debe ser consistente y automática, sin depender de que la UI recuerde crear registros auxiliares después del signup o login.
+
+### Consecuencias
+- menor riesgo de usuarios autenticados sin `profile`
+- mejor base para futuras políticas y joins por identidad
+- el flujo Auth queda más robusto incluso antes de implementar RLS completo

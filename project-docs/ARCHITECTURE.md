@@ -94,31 +94,42 @@ Convención base:
 - la configuración visual pública se resuelve por workspace o por perfil agente según contexto
 
 ## Autenticación
-Autenticación prevista con Supabase Auth.
+Autenticación base integrada con Supabase Auth.
 
 Capas:
-- autenticación: identidad del usuario
-- autorización: acceso por workspace y rol
+- autenticación: identidad del usuario en `auth.users`
+- perfil de aplicación: `public.profiles`
+- pertenencia organizacional: `public.workspace_members`
+- capa operativa/pública comercial: `public.agents`
 - visibilidad pública: páginas públicas accesibles sin login
 
-Futuro cercano:
+Estado actual:
+- la app ya tiene cliente base de Supabase para server/browser
+- el layout raíz hidrata sesión inicial cuando existe
+- todavía no se implementan guards completos ni RLS
+
+Siguiente capa:
 - middleware para rutas privadas
 - guards por rol
 - políticas RLS en Supabase
+- selección de workspace activo por usuario
 
 ## Modelo inicial de datos en Supabase
 Este bloque implementa únicamente la base mínima necesaria para arrancar el inventario y la operación inicial, sin intentar resolver todavía CRM completo, membresías multiworkspace avanzadas ni automatización.
 
-### Entidades incluidas en la primera migración
+### Entidades incluidas en la base estructural actual
 - `workspaces`
 - `profiles`
+- `workspace_members`
 - `agents`
 - `properties`
 - `property_images`
 
 ### Relaciones base
 - `profiles.id` referencia `auth.users.id` para mantener a Supabase Auth como fuente de identidad.
-- `profiles.default_workspace_id` permite resolver un contexto inicial por usuario sin modelar aún membresías complejas.
+- `profiles.default_workspace_id` permite resolver un contexto inicial por usuario.
+- `workspace_members.workspace_id` conecta perfiles con workspaces.
+- `workspace_members.profile_id` define la pertenencia del usuario al workspace.
 - `agents.workspace_id` conecta cada agente a un workspace.
 - `agents.profile_id` conecta opcionalmente al agente con un usuario autenticado.
 - `properties.workspace_id` asegura aislamiento del inventario por workspace.
@@ -127,10 +138,10 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `property_images.workspace_id` replica el contexto de workspace para facilitar trazabilidad y futuras políticas.
 
 ### Decisiones de alcance para este bloque
-- No se crea todavía `workspace_members`.
+- Ya existe `workspace_members` como base mínima de pertenencia multiworkspace.
 - No se crean todavía tablas de `leads`, `visits`, `notes`, `pipeline` o actividad comercial.
-- No se implementan aún políticas RLS; solo se deja el modelo listo para agregarlas en el siguiente bloque de seguridad/auth.
-- No se acopla todavía la UI a lecturas/escrituras reales; la app puede seguir usando mocks mientras se estabiliza el contrato de datos.
+- No se implementan aún políticas RLS completas; solo se deja el modelo listo para agregarlas en el siguiente bloque.
+- No se acopla todavía la UI a lecturas/escrituras reales del negocio; la app puede seguir usando mocks mientras se estabiliza el contrato de datos.
 
 ### Diseño de entidades mínimas
 #### `workspaces`
@@ -159,6 +170,28 @@ Campos clave:
 - `default_workspace_id`
 - `is_active`
 - timestamps
+
+#### `workspace_members`
+Tabla base de pertenencia entre perfiles autenticados y workspaces.
+
+Campos clave:
+- `id`
+- `workspace_id`
+- `profile_id`
+- `role`
+- `is_active`
+- `invited_by`
+- `joined_at`
+- timestamps
+
+Restricción relevante:
+- unicidad por `(workspace_id, profile_id)`
+
+Roles mínimos iniciales:
+- `owner`
+- `admin`
+- `agent`
+- `staff`
 
 #### `agents`
 Capa operativa y pública mínima del agente. Se separa de `profiles` porque no todo agente visible requiere exponer toda la identidad privada, y en el futuro puede haber relaciones más complejas entre cuenta, rol y presencia pública.
@@ -222,6 +255,21 @@ Campos clave:
 - `is_cover`
 - timestamps
 
+### Flujo base de creación y sincronización de perfiles
+Flujo adoptado en esta etapa:
+1. Supabase Auth crea el usuario en `auth.users`.
+2. Un trigger `on_auth_user_created` ejecuta `handle_new_user_profile()`.
+3. Esa función crea o sincroniza el registro correspondiente en `public.profiles`.
+4. Un trigger `on_auth_user_updated` sincroniza cambios básicos de `email` y `phone` desde `auth.users` hacia `profiles`.
+5. La pertenencia organizacional vive aparte en `workspace_members`.
+6. La relación con presencia comercial/pública vive aparte en `agents`.
+
+Esto separa con claridad:
+- identidad autenticada
+- perfil de app
+- pertenencia a workspace
+- rol operativo/público del agente
+
 ### Storage inicial
 Se crea el bucket público `property-images` como punto de partida para galerías de propiedades.
 
@@ -231,6 +279,54 @@ Se crea el bucket público `property-images` como punto de partida para galería
 - trigger compartido `set_updated_at()` para consistencia.
 - checks básicos para slugs, códigos de país/moneda y valores no negativos.
 - índices en llaves foráneas y campos de consulta obvia del MVP.
+
+## Verificación estructural del esquema remoto
+Se verificó el proyecto remoto de Supabase enlazado a Strate Homes contra la migración inicial aplicada.
+
+### Resultado general
+La estructura remota en schema `public` coincide con la migración base del proyecto para este bloque.
+
+Validación realizada:
+- migración aplicada vía `supabase db push`
+- inspección posterior con `supabase db pull --schema public --linked`
+- resultado relevante: `No schema changes found`
+
+Eso confirma, para el alcance actual, que el esquema remoto y la definición versionada están alineados.
+
+### Tablas estructurales confirmadas
+- `public.workspaces`
+- `public.profiles`
+- `public.agents`
+- `public.properties`
+- `public.property_images`
+
+### Elementos estructurales confirmados
+- PKs UUID en todas las tablas principales
+- FK `profiles.id -> auth.users.id`
+- FK `profiles.default_workspace_id -> workspaces.id`
+- FK `agents.workspace_id -> workspaces.id`
+- FK `agents.profile_id -> profiles.id`
+- FK `properties.workspace_id -> workspaces.id`
+- FK `properties.agent_id -> agents.id`
+- FK `property_images.workspace_id -> workspaces.id`
+- FK `property_images.property_id -> properties.id`
+- timestamps `created_at` + `updated_at` en todas las tablas del bloque
+- trigger `set_updated_at()` aplicado a las cinco tablas principales
+- índices iniciales para llaves foráneas y consultas obvias del MVP
+- bucket `property-images` preparado en Storage
+
+### Huecos detectados, pero intencionalmente fuera de alcance
+Estos puntos no son fallas del esquema actual; son pendientes deliberados antes del siguiente bloque:
+- no hay políticas RLS aún
+- no existe todavía selección explícita de workspace activo en UX
+- no existe constraint que garantice que `properties.agent_id` pertenezca al mismo `workspace_id` de la propiedad
+- no existe constraint que garantice que `property_images.workspace_id` coincida con el `workspace_id` de su propiedad
+- no se definió aún unicidad para `public_code`
+- no existe aún tabla de branding/settings por workspace
+- no existe todavía invitación/aceptación formal de miembros
+
+### Lectura arquitectónica
+La base está bien para arrancar Auth + RLS, pero la siguiente capa ya no debería posponerse mucho. El mayor hueco real no está en inventario ni propiedades, sino en membresía/autorización y consistencia multiworkspace.
 
 ## Manejo de propiedades
 Entidad property preparada para soportar:
