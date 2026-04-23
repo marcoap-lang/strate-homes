@@ -7,7 +7,7 @@
 
 ## Último bloque completado
 
-✅ Flujo mínimo de alta/acceso real para usuario inicial
+✅ Registro/login real + onboarding inicial
 
 ## Bloque actual
 
@@ -48,6 +48,8 @@
 ### Auth y membresías
 
 - ✅ Supabase Auth base
+- ✅ Registro con correo + contraseña
+- ✅ Login con correo + contraseña
 - ✅ Sync auth.users -> profiles
 - ✅ workspace_members
 - ✅ Roles base

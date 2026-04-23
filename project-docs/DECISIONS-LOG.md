@@ -244,3 +244,16 @@ El sistema ya tenía auth base, pero el flujo real se rompía en el punto más i
 - el primer usuario puede quedar habilitado sin intervención manual en base de datos
 - `/admin` deja de romper en primer acceso
 - el producto gana un onboarding inicial mínimo sin comprometer todavía la arquitectura de invitaciones futura
+
+---
+
+### Decisión
+Reemplazar el magic link como acceso principal por registro/login con correo + contraseña, manteniendo Supabase Auth como backend.
+
+### Motivo
+Strate Homes necesitaba una experiencia de producto más clara, predecible y premium en producción. El magic link servía para pruebas, pero no era la puerta correcta para un SaaS operativo ni ayudaba a controlar bien redirects en producción.
+
+### Consecuencias
+- el acceso principal ya se siente como producto real y no como flujo provisional
+- el onboarding inicial queda mejor encadenado con la creación del primer workspace
+- sigue siendo necesario revisar en Supabase las redirect URLs y la URL pública principal de producción

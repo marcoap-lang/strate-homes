@@ -5,41 +5,69 @@ import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import { bootstrapInitialOwnerAction, type BootstrapOwnerState } from "@/app/admin/actions";
+import { getAuthRedirectUrl, getReadableAuthError } from "@/lib/auth";
 
 const initialBootstrapState: BootstrapOwnerState = { success: false, message: "" };
+
+type AuthMode = "login" | "register";
 
 export function AdminAccessClient() {
   const { user, isLoading } = useSupabaseAuth();
   const { activeWorkspace, isLoading: workspaceLoading } = useActiveWorkspace();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const [mode, setMode] = useState<AuthMode>("login");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [fullName, setFullName] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bootstrapState, bootstrapAction, bootstrapPending] = useActionState(bootstrapInitialOwnerAction, initialBootstrapState);
 
-  async function handleMagicLink(event: React.FormEvent<HTMLFormElement>) {
+  async function handleAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSubmitting(true);
     setError(null);
     setMessage(null);
 
-    const redirectTo = `${window.location.origin}/admin`;
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: redirectTo,
-      },
-    });
+    const redirectTo = getAuthRedirectUrl();
 
-    if (error) {
-      setError(error.message);
+    if (mode === "register") {
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+          data: {
+            full_name: fullName,
+            name: fullName,
+          },
+        },
+      });
+
+      if (error) {
+        setError(getReadableAuthError(error.message));
+        setIsSubmitting(false);
+        return;
+      }
+
+      setMessage("Tu cuenta fue creada. Si tu proyecto pide confirmación por correo, revisa tu inbox. Después podrás entrar al admin.");
       setIsSubmitting(false);
       return;
     }
 
-    setMessage("Revisa tu correo. Te envié un magic link para entrar al admin.");
-    setIsSubmitting(false);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(getReadableAuthError(error.message));
+      setIsSubmitting(false);
+      return;
+    }
+
+    window.location.href = "/admin";
   }
 
   async function handleSignOut() {
@@ -49,23 +77,54 @@ export function AdminAccessClient() {
 
   if (isLoading || workspaceLoading) {
     return (
-      <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-6 text-sm text-white/60">
-        Verificando acceso al admin...
+      <div className="rounded-[2rem] border border-white/10 bg-black/20 p-8 text-sm text-white/60">
+        Preparando acceso a Strate Homes...
       </div>
     );
   }
 
   if (!user) {
     return (
-      <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-        <div className="rounded-[1.75rem] border border-white/10 bg-black/20 p-6">
-          <p className="text-xs uppercase tracking-[0.2em] text-white/40">Acceso</p>
-          <h3 className="mt-2 text-2xl font-semibold text-white">Entrar al admin</h3>
-          <p className="mt-4 max-w-xl text-sm leading-7 text-white/65">
-            El admin real vive en <span className="font-medium text-white">/admin</span>. Para entrar, inicia sesión con el correo autorizado en Supabase Auth.
+      <div className="grid gap-6 xl:grid-cols-[1.05fr_0.95fr]">
+        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-8 shadow-[0_20px_80px_rgba(0,0,0,0.25)]">
+          <p className="text-xs uppercase tracking-[0.24em] text-white/40">Strate Homes Admin</p>
+          <h3 className="mt-3 text-3xl font-semibold text-white">Acceso privado para operar tu inventario</h3>
+          <p className="mt-4 max-w-2xl text-sm leading-7 text-white/65">
+            Entra con tu cuenta para administrar propiedades reales, mantener tu workspace activo y operar Strate Homes como producto, no como demo.
           </p>
 
-          <form onSubmit={handleMagicLink} className="mt-6 space-y-4">
+          <div className="mt-6 inline-flex rounded-full border border-white/10 bg-white/5 p-1 text-sm">
+            <button
+              type="button"
+              onClick={() => setMode("login")}
+              className={`rounded-full px-4 py-2 transition ${mode === "login" ? "bg-white text-zinc-950" : "text-white/65 hover:text-white"}`}
+            >
+              Iniciar sesión
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("register")}
+              className={`rounded-full px-4 py-2 transition ${mode === "register" ? "bg-white text-zinc-950" : "text-white/65 hover:text-white"}`}
+            >
+              Crear cuenta
+            </button>
+          </div>
+
+          <form onSubmit={handleAuth} className="mt-6 space-y-4">
+            {mode === "register" ? (
+              <label className="space-y-2 text-sm text-white/80">
+                <span className="block text-xs uppercase tracking-[0.2em] text-white/40">Nombre</span>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(event) => setFullName(event.target.value)}
+                  className="w-full max-w-xl rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                  placeholder="Tu nombre o nombre comercial"
+                />
+              </label>
+            ) : null}
+
             <label className="space-y-2 text-sm text-white/80">
               <span className="block text-xs uppercase tracking-[0.2em] text-white/40">Correo</span>
               <input
@@ -78,6 +137,18 @@ export function AdminAccessClient() {
               />
             </label>
 
+            <label className="space-y-2 text-sm text-white/80">
+              <span className="block text-xs uppercase tracking-[0.2em] text-white/40">Contraseña</span>
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                className="w-full max-w-xl rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-white/30"
+                placeholder="Mínimo 6 caracteres"
+              />
+            </label>
+
             {message ? <p className="rounded-2xl bg-emerald-500/15 px-4 py-3 text-sm text-emerald-200">{message}</p> : null}
             {error ? <p className="rounded-2xl bg-rose-500/15 px-4 py-3 text-sm text-rose-200">{error}</p> : null}
 
@@ -86,17 +157,18 @@ export function AdminAccessClient() {
               disabled={isSubmitting}
               className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60"
             >
-              {isSubmitting ? "Enviando link..." : "Enviar magic link"}
+              {isSubmitting ? "Procesando..." : mode === "login" ? "Entrar al admin" : "Crear cuenta"}
             </button>
           </form>
         </div>
 
-        <div className="rounded-[1.75rem] border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-7 text-white/60">
-          <p className="font-medium text-white">Notas de acceso</p>
+        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-8 text-sm leading-7 text-white/60">
+          <p className="font-medium text-white">Ruta del producto</p>
           <ul className="mt-4 space-y-2">
+            <li>• Acceso principal: <span className="text-white">correo + contraseña</span></li>
             <li>• Ruta correcta del admin: <span className="text-white">/admin</span></li>
-            <li>• Si tu usuario existe pero no pertenece a un workspace, no podrás operar propiedades.</li>
-            <li>• El workspace activo determina qué propiedades ves y editas.</li>
+            <li>• Primer acceso: onboarding para crear workspace inicial</li>
+            <li>• Supabase Auth sigue siendo el backend de autenticación</li>
           </ul>
         </div>
       </div>
@@ -106,10 +178,11 @@ export function AdminAccessClient() {
   if (!activeWorkspace?.workspaceId) {
     return (
       <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
-        <div className="rounded-[1.75rem] border border-amber-400/20 bg-amber-400/10 p-6 text-sm leading-7 text-amber-100">
-          <p className="font-medium">Primer acceso o usuario todavía no habilitado.</p>
-          <p className="mt-3">
-            Tu sesión ya existe, pero todavía no hay un workspace activo resuelto para este usuario. Para el primer acceso, puedes crear tu workspace inicial aquí mismo y quedar habilitado como <span className="text-white">owner</span>.
+        <div className="rounded-[2rem] border border-amber-400/20 bg-amber-400/10 p-8 text-sm leading-7 text-amber-100">
+          <p className="text-xs uppercase tracking-[0.24em] text-amber-100/70">Primer acceso</p>
+          <h3 className="mt-3 text-2xl font-semibold text-white">Activa tu espacio de trabajo inicial</h3>
+          <p className="mt-4 max-w-2xl">
+            Tu cuenta ya existe. Solo falta crear tu workspace inicial para habilitar Strate Homes y dejarte como owner del primer espacio operativo.
           </p>
 
           <form action={bootstrapAction} className="mt-6 space-y-4">
@@ -140,7 +213,7 @@ export function AdminAccessClient() {
 
             <div className="flex flex-wrap gap-3">
               <button disabled={bootstrapPending} className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60">
-                {bootstrapPending ? "Habilitando..." : "Crear workspace inicial y habilitar acceso"}
+                {bootstrapPending ? "Configurando..." : "Crear workspace y continuar"}
               </button>
               <button type="button" onClick={handleSignOut} className="rounded-full border border-amber-200/30 px-4 py-2 text-xs transition hover:bg-amber-200/10">
                 Cerrar sesión
@@ -149,13 +222,13 @@ export function AdminAccessClient() {
           </form>
         </div>
 
-        <div className="rounded-[1.75rem] border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-7 text-white/60">
-          <p className="font-medium text-white">Estados cubiertos</p>
+        <div className="rounded-[2rem] border border-white/10 bg-black/20 p-8 text-sm leading-7 text-white/60">
+          <p className="font-medium text-white">Qué está pasando</p>
           <ul className="mt-4 space-y-2">
-            <li>• sin sesión → login por magic link</li>
-            <li>• primer acceso → creación de workspace inicial</li>
-            <li>• sin workspace/member → mensaje claro + acción de habilitación</li>
-            <li>• acceso listo → entrada directa al CRUD</li>
+            <li>• tu cuenta ya está autenticada</li>
+            <li>• todavía no existe workspace activo</li>
+            <li>• este paso crea tu primer workspace</li>
+            <li>• quedas habilitado automáticamente como <span className="text-white">owner</span></li>
           </ul>
         </div>
       </div>
@@ -163,15 +236,16 @@ export function AdminAccessClient() {
   }
 
   return (
-    <div className="rounded-[1.75rem] border border-emerald-400/20 bg-emerald-500/10 p-6 text-sm leading-7 text-emerald-100">
-      <p className="font-medium">Acceso listo.</p>
-      <p className="mt-3">
+    <div className="rounded-[2rem] border border-emerald-400/20 bg-emerald-500/10 p-8 text-sm leading-7 text-emerald-100">
+      <p className="text-xs uppercase tracking-[0.24em] text-emerald-100/70">Acceso listo</p>
+      <h3 className="mt-3 text-2xl font-semibold text-white">Tu espacio ya está operativo</h3>
+      <p className="mt-4">
         Sesión activa como <span className="text-white">{user.email ?? user.id}</span> en el workspace
         <span className="text-white"> {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}</span>.
       </p>
-      <div className="mt-5 flex flex-wrap gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         <a href="/admin" className="rounded-full bg-white px-4 py-2 text-xs font-medium text-zinc-950 transition hover:bg-zinc-200">
-          Entrar al CRUD
+          Entrar al admin
         </a>
         <button onClick={handleSignOut} className="rounded-full border border-emerald-200/30 px-4 py-2 text-xs transition hover:bg-emerald-200/10">
           Cerrar sesión
