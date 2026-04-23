@@ -5,7 +5,7 @@ import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import { bootstrapInitialOwnerAction, type BootstrapOwnerState } from "@/app/admin/actions";
-import { getAuthRedirectUrl, getReadableAuthError } from "@/lib/auth";
+import { getAuthRedirectUrl, getReadableAuthError, getReadableSignupResult } from "@/lib/auth";
 
 const initialBootstrapState: BootstrapOwnerState = { success: false, message: "" };
 
@@ -33,7 +33,7 @@ export function AdminAccessClient() {
     const redirectTo = getAuthRedirectUrl();
 
     if (mode === "register") {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -51,7 +51,23 @@ export function AdminAccessClient() {
         return;
       }
 
-      setMessage("Tu cuenta fue creada. Si tu proyecto pide confirmación por correo, revisa tu inbox. Después podrás entrar al admin.");
+      const result = getReadableSignupResult({
+        hasSession: Boolean(data.session),
+        hasUser: Boolean(data.user),
+        identitiesCount: data.user?.identities?.length ?? 0,
+      });
+
+      if (result.kind === "signed-in") {
+        window.location.href = "/admin";
+        return;
+      }
+
+      if (result.kind === "existing-user") {
+        setMode("login");
+        setPassword("");
+      }
+
+      setMessage(result.message);
       setIsSubmitting(false);
       return;
     }
