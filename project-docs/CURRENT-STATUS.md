@@ -1,7 +1,7 @@
 # Strate Homes — CURRENT-STATUS
 
 ## Estado general
-Fase 1 avanzada, con proyecto remoto real en Supabase, Auth base lista, workspace activo mínimo resuelto y RLS inicial por workspace ya aplicada.
+Fase 1 avanzada, con proyecto remoto real en Supabase y admin de propiedades ya funcional sobre datos reales del workspace activo.
 
 ## Qué ya está hecho
 - Repositorio base creado con Next.js + TypeScript + Tailwind.
@@ -29,33 +29,37 @@ Fase 1 avanzada, con proyecto remoto real en Supabase, Auth base lista, workspac
 - RLS base aplicada en `profiles`, `workspace_members`, `agents`, `properties` y `property_images`.
 - Helper functions de autorización por workspace/rol agregadas en base de datos.
 - Validación estructural posterior al push: sin drift detectado contra el remoto.
+- Admin conectado a Supabase real para listar propiedades del workspace activo.
+- Creación, edición y cambio de estatus de propiedades funcionando desde admin.
+- Gestión básica de imágenes funcionando mediante registros en `property_images`.
+- Validaciones mínimas de captura activas en formularios principales.
 
 ## Qué está en curso
-- terminar de aterrizar la noción de workspace activo en flujos reales de admin
+- mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
-- refinar componentes reutilizables
-- expandir admin shell hacia navegación funcional
+- refinar componentes reutilizables del admin
 - preparar base de páginas públicas de agente y empresa
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
-2. definir si la consistencia restante multiworkspace vivirá en más triggers SQL o en capa app
+2. mejorar la gestión real de imágenes más allá del registro manual de `storage_path`
 3. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
-4. definir componentes UI compartidos de forma más formal
-5. crear páginas públicas de agente y empresa
-6. expandir shell admin con secciones reales
+4. crear páginas públicas de agente y empresa
+5. expandir shell admin con siguientes módulos reales sin abrir CRM todavía
+6. refinar componentes UI compartidos del admin
 
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
 - La base mínima de aislamiento ya existe.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
+- La gestión de imágenes todavía depende de registrar `storage_path` manualmente; no hay uploader real aún.
 
 ## Riesgos a vigilar
 - escalar sin documentar decisiones
 - dejar ambigua la resolución del workspace activo en usuarios multiworkspace
 - asumir que la RLS mínima ya cubre autorización fina cuando todavía no cubre todo el producto
+- que la gestión manual de imágenes se vuelva cuello de botella operativo si no se mejora pronto
 - olvidar políticas futuras para `workspaces` y dominios nuevos
-- sobrecargar el dashboard con demasiadas métricas antes de tiempo
 - añadir complejidad visual sin necesidad real
 - perder el hilo de continuidad si no se actualiza esta documentación
 

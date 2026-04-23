@@ -3,7 +3,7 @@ import { WorkspaceStatusBadge } from "@/components/ui/WorkspaceStatusBadge";
 
 const navItems = ["Overview", "Properties", "Leads", "Agents", "Branding", "Settings"];
 
-export function AdminShell() {
+export function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen bg-zinc-950 text-white">
       <div className="mx-auto grid max-w-7xl gap-6 px-6 py-8 lg:grid-cols-[260px_1fr] lg:px-8">
@@ -24,7 +24,7 @@ export function AdminShell() {
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <p className="text-sm uppercase tracking-[0.3em] text-white/40">Workspace</p>
-              <h2 className="mt-3 text-3xl font-semibold">Operations overview</h2>
+              <h2 className="mt-3 text-3xl font-semibold">Property operations</h2>
             </div>
             <div className="flex flex-wrap items-center gap-3">
               <AuthStatusBadge />
@@ -34,18 +34,7 @@ export function AdminShell() {
               </a>
             </div>
           </div>
-          <div className="mt-8 grid gap-4 md:grid-cols-3">
-            {[
-              ["Active properties", "128"],
-              ["Open leads", "42"],
-              ["Assigned agents", "8"],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-[1.5rem] border border-white/10 bg-black/20 p-5">
-                <p className="text-sm text-white/45">{label}</p>
-                <p className="mt-3 text-2xl font-semibold">{value}</p>
-              </div>
-            ))}
-          </div>
+          <div className="mt-8">{children}</div>
         </section>
       </div>
     </div>
