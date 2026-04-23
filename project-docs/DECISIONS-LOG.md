@@ -217,3 +217,17 @@ Estas reglas son estructuralmente correctas, fáciles de validar con triggers y 
 - se reduce el riesgo de cruzar entidades entre workspaces por accidente
 - la base gana integridad real antes de abrir escritura desde UI
 - otras reglas de autorización fina siguen quedando para RLS y capa app
+
+---
+
+### Decisión
+Implementar una RLS mínima por workspace basada en `workspace_members` y `workspace_role`, sin intentar todavía autorización exhaustiva para todo el producto.
+
+### Motivo
+El proyecto ya necesitaba aislamiento real de lectura/escritura entre workspaces, pero todavía no conviene endurecer todas las superficies del sistema antes de que existan más flujos reales y más tablas de negocio.
+
+### Consecuencias
+- miembros activos del workspace ya quedan aislados de otros workspaces
+- roles `owner`/`admin` controlan `agents`
+- roles `owner`/`admin`/`agent` pueden operar `properties` y `property_images`
+- todavía quedarán políticas futuras cuando entren más módulos y casos límite
