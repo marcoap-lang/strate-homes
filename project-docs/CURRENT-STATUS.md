@@ -1,7 +1,7 @@
 # Strate Homes — CURRENT-STATUS
 
 ## Estado general
-Fase 1 avanzada, con admin real funcional y acceso al admin ya más claro y usable para el entorno desplegado.
+Fase 1 avanzada, con flujo mínimo real de alta/acceso ya resuelto para el usuario inicial dentro del admin.
 
 ## Qué ya está hecho
 - Repositorio base creado con Next.js + TypeScript + Tailwind.
@@ -36,6 +36,8 @@ Fase 1 avanzada, con admin real funcional y acceso al admin ya más claro y usab
 - Ruta de entrada al admin confirmada en `/admin`.
 - Acceso al admin mejorado con entrada visible desde navbar y estados claros para sesión/workspace.
 - Login básico por magic link preparado en la vista de acceso al admin.
+- Primer acceso resuelto: si el usuario tiene sesión pero no tiene workspace/member, puede crear su workspace inicial y quedar habilitado como owner.
+- `/admin` ya no rompe cuando el usuario todavía no está completamente habilitado.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -46,7 +48,7 @@ Fase 1 avanzada, con admin real funcional y acceso al admin ya más claro y usab
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
 2. mejorar la gestión real de imágenes más allá del registro manual de `storage_path`
-3. validar en producción con usuario real el flujo login → acceso → CRUD
+3. validar en producción con usuario real el flujo login → habilitación inicial → CRUD
 4. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 5. expandir shell admin con siguientes módulos reales sin abrir CRM todavía
 6. refinar componentes UI compartidos del admin
@@ -55,7 +57,7 @@ Fase 1 avanzada, con admin real funcional y acceso al admin ya más claro y usab
 - No hay blockers técnicos críticos en este bloque.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
 - La gestión de imágenes todavía depende de registrar `storage_path` manualmente; no hay uploader real aún.
-- Falta validar con usuario real en producción que el membership y el acceso queden entendibles de punta a punta.
+- Falta validar con usuario real en producción que el flujo completo de habilitación inicial quede redondo de punta a punta.
 
 ## Riesgos a vigilar
 - escalar sin documentar decisiones

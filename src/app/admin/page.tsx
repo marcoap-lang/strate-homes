@@ -1,13 +1,20 @@
 import { AdminShell } from "@/components/ui/AdminShell";
 import { AdminAccessGate } from "@/components/ui/AdminAccessGate";
-import { getAdminPropertiesData } from "@/lib/admin-properties-data";
+import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
+import { getAdminAccessState } from "@/lib/admin-access";
 
 export default async function AdminPage() {
-  const { activeWorkspace, properties, agents } = await getAdminPropertiesData();
+  const access = await getAdminAccessState();
 
   return (
     <AdminShell>
-      <AdminAccessGate activeWorkspace={activeWorkspace} properties={properties} agents={agents} />
+      {access.kind === "no-session" ? (
+        <AdminAccessClient />
+      ) : access.kind === "ready" ? (
+        <AdminAccessGate activeWorkspace={access.activeWorkspace} properties={access.properties} agents={access.agents} />
+      ) : (
+        <AdminAccessClient />
+      )}
     </AdminShell>
   );
 }

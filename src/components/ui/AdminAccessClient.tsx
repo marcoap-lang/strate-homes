@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
+import { bootstrapInitialOwnerAction, type BootstrapOwnerState } from "@/app/admin/actions";
+
+const initialBootstrapState: BootstrapOwnerState = { success: false, message: "" };
 
 export function AdminAccessClient() {
   const { user, isLoading } = useSupabaseAuth();
@@ -13,6 +16,7 @@ export function AdminAccessClient() {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bootstrapState, bootstrapAction, bootstrapPending] = useActionState(bootstrapInitialOwnerAction, initialBootstrapState);
 
   async function handleMagicLink(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -101,14 +105,59 @@ export function AdminAccessClient() {
 
   if (!activeWorkspace?.workspaceId) {
     return (
-      <div className="rounded-[1.75rem] border border-amber-400/20 bg-amber-400/10 p-6 text-sm leading-7 text-amber-100">
-        <p className="font-medium">Tu sesión sí existe, pero no hay workspace activo.</p>
-        <p className="mt-3">
-          Esto normalmente significa que tu usuario todavía no tiene `workspace_members` activos o no tiene `default_workspace_id` resoluble. Antes de usar el admin, hay que asignarte un workspace.
-        </p>
-        <button onClick={handleSignOut} className="mt-5 rounded-full border border-amber-200/30 px-4 py-2 text-xs transition hover:bg-amber-200/10">
-          Cerrar sesión
-        </button>
+      <div className="grid gap-6 xl:grid-cols-[1fr_0.9fr]">
+        <div className="rounded-[1.75rem] border border-amber-400/20 bg-amber-400/10 p-6 text-sm leading-7 text-amber-100">
+          <p className="font-medium">Primer acceso o usuario todavía no habilitado.</p>
+          <p className="mt-3">
+            Tu sesión ya existe, pero todavía no hay un workspace activo resuelto para este usuario. Para el primer acceso, puedes crear tu workspace inicial aquí mismo y quedar habilitado como <span className="text-white">owner</span>.
+          </p>
+
+          <form action={bootstrapAction} className="mt-6 space-y-4">
+            <label className="space-y-2 text-sm text-amber-50">
+              <span className="block text-xs uppercase tracking-[0.2em] text-amber-100/70">Nombre del workspace</span>
+              <input
+                name="workspaceName"
+                required
+                defaultValue="Strate Homes"
+                className="w-full max-w-xl rounded-2xl border border-amber-100/20 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-100/40"
+              />
+            </label>
+
+            <label className="space-y-2 text-sm text-amber-50">
+              <span className="block text-xs uppercase tracking-[0.2em] text-amber-100/70">Slug (opcional)</span>
+              <input
+                name="workspaceSlug"
+                placeholder="strate-homes"
+                className="w-full max-w-xl rounded-2xl border border-amber-100/20 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-amber-100/40"
+              />
+            </label>
+
+            {bootstrapState.message ? (
+              <p className={`rounded-2xl px-4 py-3 text-sm ${bootstrapState.success ? "bg-emerald-500/15 text-emerald-100" : "bg-rose-500/15 text-rose-100"}`}>
+                {bootstrapState.message}
+              </p>
+            ) : null}
+
+            <div className="flex flex-wrap gap-3">
+              <button disabled={bootstrapPending} className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60">
+                {bootstrapPending ? "Habilitando..." : "Crear workspace inicial y habilitar acceso"}
+              </button>
+              <button type="button" onClick={handleSignOut} className="rounded-full border border-amber-200/30 px-4 py-2 text-xs transition hover:bg-amber-200/10">
+                Cerrar sesión
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-dashed border-white/10 bg-black/20 p-6 text-sm leading-7 text-white/60">
+          <p className="font-medium text-white">Estados cubiertos</p>
+          <ul className="mt-4 space-y-2">
+            <li>• sin sesión → login por magic link</li>
+            <li>• primer acceso → creación de workspace inicial</li>
+            <li>• sin workspace/member → mensaje claro + acción de habilitación</li>
+            <li>• acceso listo → entrada directa al CRUD</li>
+          </ul>
+        </div>
       </div>
     );
   }

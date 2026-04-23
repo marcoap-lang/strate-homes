@@ -231,3 +231,16 @@ El proyecto ya necesitaba aislamiento real de lectura/escritura entre workspaces
 - roles `owner`/`admin` controlan `agents`
 - roles `owner`/`admin`/`agent` pueden operar `properties` y `property_images`
 - todavía quedarán políticas futuras cuando entren más módulos y casos límite
+
+---
+
+### Decisión
+Resolver el onboarding inicial del primer usuario dentro de `/admin`, permitiendo crear el workspace inicial y autoasignar rol `owner` cuando aún no existan memberships activas.
+
+### Motivo
+El sistema ya tenía auth base, pero el flujo real se rompía en el punto más importante: un usuario podía autenticarse y seguir sin quedar operativo dentro del producto. Antes de invitaciones formales, hacía falta un camino mínimo y usable.
+
+### Consecuencias
+- el primer usuario puede quedar habilitado sin intervención manual en base de datos
+- `/admin` deja de romper en primer acceso
+- el producto gana un onboarding inicial mínimo sin comprometer todavía la arquitectura de invitaciones futura

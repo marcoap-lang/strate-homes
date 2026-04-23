@@ -7,7 +7,7 @@
 
 ## Último bloque completado
 
-✅ Acceso usable al admin
+✅ Flujo mínimo de alta/acceso real para usuario inicial
 
 ## Bloque actual
 
@@ -52,6 +52,7 @@
 - ✅ workspace_members
 - ✅ Roles base
 - ✅ Workspace activo base
+- ✅ Habilitación mínima de owner inicial
 - ⬜ Selector explícito de workspace activo
 
 ### Seguridad multiworkspace

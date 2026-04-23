@@ -4,12 +4,22 @@ import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
+export type BootstrapOwnerState = {
+  success: boolean;
+  message: string;
+};
+
 export type PropertyFormState = {
   success: boolean;
   message: string;
 };
 
 const INITIAL_STATE: PropertyFormState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_BOOTSTRAP_STATE: BootstrapOwnerState = {
   success: false,
   message: "",
 };
@@ -53,6 +63,84 @@ async function getWorkspaceContext() {
   }
 
   return { supabase, activeWorkspace };
+}
+
+export async function bootstrapInitialOwnerAction(
+  _prevState: BootstrapOwnerState = INITIAL_BOOTSTRAP_STATE,
+  formData: FormData,
+): Promise<BootstrapOwnerState> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return { success: false, message: "Necesitas iniciar sesión primero." };
+    }
+
+    const workspaceName = formData.get("workspaceName")?.toString().trim() ?? "";
+
+    if (workspaceName.length < 3) {
+      return { success: false, message: "El nombre del workspace debe tener al menos 3 caracteres." };
+    }
+
+    const workspaceSlug = slugify(formData.get("workspaceSlug")?.toString() || workspaceName);
+
+    const { count } = await supabase
+      .from("workspace_members")
+      .select("id", { count: "exact", head: true })
+      .eq("profile_id", user.id)
+      .eq("is_active", true);
+
+    if ((count ?? 0) > 0) {
+      return { success: false, message: "Tu usuario ya tiene memberships activas. Recarga el admin." };
+    }
+
+    const { data: workspace, error: workspaceError } = await supabase
+      .from("workspaces")
+      .insert({
+        name: workspaceName,
+        slug: workspaceSlug,
+        brand_name: workspaceName,
+      })
+      .select("id, name")
+      .single();
+
+    if (workspaceError || !workspace) {
+      return { success: false, message: workspaceError?.message ?? "No se pudo crear el workspace inicial." };
+    }
+
+    const { error: membershipError } = await supabase.from("workspace_members").insert({
+      workspace_id: workspace.id,
+      profile_id: user.id,
+      role: "owner",
+      is_active: true,
+      joined_at: new Date().toISOString(),
+      invited_by: user.id,
+    });
+
+    if (membershipError) {
+      return { success: false, message: membershipError.message };
+    }
+
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .update({ default_workspace_id: workspace.id })
+      .eq("id", user.id);
+
+    if (profileError) {
+      return { success: false, message: profileError.message };
+    }
+
+    revalidatePath("/admin");
+    return { success: true, message: `Workspace inicial creado: ${workspace.name}. Ya puedes usar el admin.` };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo habilitar el usuario inicial.",
+    };
+  }
 }
 
 export async function createPropertyAction(
