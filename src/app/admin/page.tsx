@@ -1,5 +1,5 @@
 import { AdminShell } from "@/components/ui/AdminShell";
-import { AdminPropertiesManager } from "@/components/ui/AdminPropertiesManager";
+import { AdminAccessGate } from "@/components/ui/AdminAccessGate";
 import { getAdminPropertiesData } from "@/lib/admin-properties-data";
 
 export default async function AdminPage() {
@@ -7,7 +7,7 @@ export default async function AdminPage() {
 
   return (
     <AdminShell>
-      <AdminPropertiesManager workspaceName={activeWorkspace.workspaceName} properties={properties} agents={agents} />
+      <AdminAccessGate activeWorkspace={activeWorkspace} properties={properties} agents={agents} />
     </AdminShell>
   );
 }

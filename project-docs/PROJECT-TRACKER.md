@@ -7,7 +7,7 @@
 
 ## Último bloque completado
 
-✅ CRUD real de propiedades en admin
+✅ Acceso usable al admin
 
 ## Bloque actual
 
@@ -64,6 +64,7 @@
 
 - ✅ Shell admin
 - ✅ CRUD real de propiedades
+- ✅ Acceso claro al admin
 - 🟨 Gestión básica de imágenes
 - ⬜ Filtros admin
 

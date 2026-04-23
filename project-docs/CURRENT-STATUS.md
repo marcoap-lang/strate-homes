@@ -1,7 +1,7 @@
 # Strate Homes — CURRENT-STATUS
 
 ## Estado general
-Fase 1 avanzada, con proyecto remoto real en Supabase y admin de propiedades ya funcional sobre datos reales del workspace activo.
+Fase 1 avanzada, con admin real funcional y acceso al admin ya más claro y usable para el entorno desplegado.
 
 ## Qué ya está hecho
 - Repositorio base creado con Next.js + TypeScript + Tailwind.
@@ -33,26 +33,29 @@ Fase 1 avanzada, con proyecto remoto real en Supabase y admin de propiedades ya 
 - Creación, edición y cambio de estatus de propiedades funcionando desde admin.
 - Gestión básica de imágenes funcionando mediante registros en `property_images`.
 - Validaciones mínimas de captura activas en formularios principales.
+- Ruta de entrada al admin confirmada en `/admin`.
+- Acceso al admin mejorado con entrada visible desde navbar y estados claros para sesión/workspace.
+- Login básico por magic link preparado en la vista de acceso al admin.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
+- validar flujo real de login/admin sobre producción con usuario miembro final
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
-- preparar base de páginas públicas de agente y empresa
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
 2. mejorar la gestión real de imágenes más allá del registro manual de `storage_path`
-3. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
-4. crear páginas públicas de agente y empresa
+3. validar en producción con usuario real el flujo login → acceso → CRUD
+4. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 5. expandir shell admin con siguientes módulos reales sin abrir CRM todavía
 6. refinar componentes UI compartidos del admin
 
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
-- La base mínima de aislamiento ya existe.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
 - La gestión de imágenes todavía depende de registrar `storage_path` manualmente; no hay uploader real aún.
+- Falta validar con usuario real en producción que el membership y el acceso queden entendibles de punta a punta.
 
 ## Riesgos a vigilar
 - escalar sin documentar decisiones
