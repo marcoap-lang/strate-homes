@@ -106,6 +106,132 @@ Futuro cercano:
 - guards por rol
 - políticas RLS en Supabase
 
+## Modelo inicial de datos en Supabase
+Este bloque implementa únicamente la base mínima necesaria para arrancar el inventario y la operación inicial, sin intentar resolver todavía CRM completo, membresías multiworkspace avanzadas ni automatización.
+
+### Entidades incluidas en la primera migración
+- `workspaces`
+- `profiles`
+- `agents`
+- `properties`
+- `property_images`
+
+### Relaciones base
+- `profiles.id` referencia `auth.users.id` para mantener a Supabase Auth como fuente de identidad.
+- `profiles.default_workspace_id` permite resolver un contexto inicial por usuario sin modelar aún membresías complejas.
+- `agents.workspace_id` conecta cada agente a un workspace.
+- `agents.profile_id` conecta opcionalmente al agente con un usuario autenticado.
+- `properties.workspace_id` asegura aislamiento del inventario por workspace.
+- `properties.agent_id` asigna opcionalmente una propiedad a un agente responsable.
+- `property_images.property_id` conecta la galería con cada propiedad.
+- `property_images.workspace_id` replica el contexto de workspace para facilitar trazabilidad y futuras políticas.
+
+### Decisiones de alcance para este bloque
+- No se crea todavía `workspace_members`.
+- No se crean todavía tablas de `leads`, `visits`, `notes`, `pipeline` o actividad comercial.
+- No se implementan aún políticas RLS; solo se deja el modelo listo para agregarlas en el siguiente bloque de seguridad/auth.
+- No se acopla todavía la UI a lecturas/escrituras reales; la app puede seguir usando mocks mientras se estabiliza el contrato de datos.
+
+### Diseño de entidades mínimas
+#### `workspaces`
+Representa la unidad operativa principal. Puede mapear a agente individual, equipo o inmobiliaria.
+
+Campos clave:
+- `id`
+- `name`
+- `slug`
+- `legal_name`
+- `brand_name`
+- `brand_primary_color`
+- `brand_accent_color`
+- `is_active`
+- timestamps
+
+#### `profiles`
+Representa el perfil privado del usuario autenticado. Vive alineado a `auth.users`.
+
+Campos clave:
+- `id`
+- `full_name`
+- `email`
+- `phone`
+- `avatar_url`
+- `default_workspace_id`
+- `is_active`
+- timestamps
+
+#### `agents`
+Capa operativa y pública mínima del agente. Se separa de `profiles` porque no todo agente visible requiere exponer toda la identidad privada, y en el futuro puede haber relaciones más complejas entre cuenta, rol y presencia pública.
+
+Campos clave:
+- `id`
+- `workspace_id`
+- `profile_id` opcional
+- `slug`
+- `display_name`
+- `title`
+- `bio`
+- canales de contacto básicos
+- `is_public`
+- `is_active`
+- timestamps
+
+Restricción relevante:
+- unicidad por `(workspace_id, slug)`
+
+#### `properties`
+Inventario mínimo con foco en publicación y operación inmobiliaria temprana.
+
+Campos clave:
+- `id`
+- `workspace_id`
+- `agent_id` opcional
+- `title`
+- `slug`
+- `public_code`
+- `description`
+- `property_type`
+- `status`
+- `operation_type`
+- `is_featured`
+- ubicación resumida y campos básicos de dirección
+- precio y moneda
+- atributos físicos esenciales
+- `published_at`
+- timestamps
+
+Enums iniciales:
+- `property_status`: `draft`, `active`, `pending`, `sold`, `rented`, `archived`
+- `operation_type`: `sale`, `rent`, `both`
+- `property_type`: `house`, `apartment`, `land`, `office`, `commercial`, `warehouse`, `building`, `development`, `mixed_use`
+
+Restricción relevante:
+- unicidad por `(workspace_id, slug)`
+
+#### `property_images`
+Tabla de metadatos para imágenes alojadas en Supabase Storage.
+
+Campos clave:
+- `id`
+- `workspace_id`
+- `property_id`
+- `storage_bucket`
+- `storage_path`
+- `alt_text`
+- `sort_order`
+- `is_cover`
+- timestamps
+
+### Storage inicial
+Se crea el bucket público `property-images` como punto de partida para galerías de propiedades.
+
+### Convenciones técnicas adoptadas en la migración
+- UUIDs generados con `gen_random_uuid()`.
+- timestamps en UTC con `created_at` y `updated_at`.
+- trigger compartido `set_updated_at()` para consistencia.
+- checks básicos para slugs, códigos de país/moneda y valores no negativos.
+- índices en llaves foráneas y campos de consulta obvia del MVP.
+
 ## Manejo de propiedades
 Entidad property preparada para soportar:
 - casas

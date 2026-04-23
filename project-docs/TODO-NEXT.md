@@ -1,18 +1,18 @@
 # Strate Homes — TODO-NEXT
 
 ## Prioridad alta
-1. Definir y documentar esquema inicial de datos para Supabase.
-2. Crear páginas públicas base de agente y empresa.
-3. Expandir el shell del admin con navegación y secciones reales.
-4. Diseñar componentes reutilizables formales para cards, métricas, tablas y formularios.
-5. Añadir sistema inicial de tokens de branding por workspace.
-6. Registrar el contrato de datos para propiedades y leads.
+1. Validar la migración inicial de Supabase en entorno local y dejar documentado el flujo operativo (`db reset` / `db push`).
+2. Diseñar y documentar `workspace_members`, roles iniciales y estrategia base de Auth + RLS.
+3. Crear páginas públicas base de agente y empresa.
+4. Expandir el shell del admin con navegación y secciones reales.
+5. Diseñar componentes reutilizables formales para cards, métricas, tablas y formularios.
+6. Añadir sistema inicial de tokens de branding por workspace.
 
 ## Prioridad media
-7. Definir estados del pipeline comercial y reglas básicas de transición.
-8. Diseñar modelo de eventos/actividad para trazabilidad comercial.
-9. Preparar strategy doc para Auth + RLS + roles.
-10. Diseñar estructura de media gallery y assets de propiedades.
+7. Registrar contrato de datos siguiente para leads y CRM ligero.
+8. Definir estados del pipeline comercial y reglas básicas de transición.
+9. Diseñar modelo de eventos/actividad para trazabilidad comercial.
+10. Diseñar estructura de media gallery y assets de propiedades más allá del metadata inicial.
 11. Definir esquema para featured blocks configurables.
 
 ## Prioridad baja por ahora
@@ -26,7 +26,9 @@ Si se retoma este proyecto en otra sesión, ejecutar en este orden:
 2. leer `project-docs/CURRENT-STATUS.md`
 3. leer `project-docs/ARCHITECTURE.md`
 4. leer `project-docs/DECISIONS-LOG.md`
-5. abrir el código de `src/` y continuar con páginas públicas de agente/empresa + Supabase data model
+5. revisar `supabase/migrations/` y `src/types/domain.ts`
+6. validar migración local de Supabase
+7. continuar con Auth + RLS + membresías o, si se decide aplazar seguridad, seguir con páginas públicas de agente/empresa
 
 ## Criterio práctico de continuidad
 No continuar con nuevas áreas sin actualizar:

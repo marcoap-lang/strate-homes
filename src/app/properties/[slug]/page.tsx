@@ -18,19 +18,19 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <div className="h-[28rem] rounded-[1.5rem] bg-white/45 backdrop-blur-sm" />
             </div>
             <h1 className="mt-8 text-4xl font-semibold tracking-tight sm:text-5xl">{property.title}</h1>
-            <p className="mt-3 text-lg text-zinc-600">{property.location}</p>
+            <p className="mt-3 text-lg text-zinc-600">{property.locationLabel}</p>
             <div className="mt-6 flex flex-wrap gap-3 text-sm text-zinc-600">
-              <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.operationType === "sale" ? "Venta" : "Renta"}</span>
+              <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Venta / Renta"}</span>
               <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.status}</span>
               <span className="rounded-full border border-black/10 bg-white px-4 py-2">
-                {property.currency} {property.price?.toLocaleString("es-MX")}
+                {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX")}
               </span>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
               {[
-                ["Recámaras", "3"],
-                ["Baños", "3.5"],
-                ["Construcción", "285 m²"],
+                ["Recámaras", property.bedrooms?.toString() ?? "—"],
+                ["Baños", property.bathrooms?.toString() ?? "—"],
+                ["Construcción", property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : "—"],
               ].map(([label, value]) => (
                 <div key={label} className="rounded-[1.5rem] border border-black/5 bg-white p-5">
                   <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">{label}</p>

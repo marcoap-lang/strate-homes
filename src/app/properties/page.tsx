@@ -24,9 +24,9 @@ export default function PropertiesPage() {
                   <span>{property.status}</span>
                 </div>
                 <h2 className="mt-4 text-2xl font-semibold">{property.title}</h2>
-                <p className="mt-2 text-sm text-zinc-600">{property.location}</p>
+                <p className="mt-2 text-sm text-zinc-600">{property.locationLabel}</p>
                 <p className="mt-5 text-lg font-medium text-zinc-950">
-                  {property.currency} {property.price?.toLocaleString("es-MX")}
+                  {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX")}
                 </p>
                 <a
                   href={`/properties/${property.slug}`}

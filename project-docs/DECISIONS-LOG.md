@@ -74,3 +74,55 @@ Permite diseñar y validar experiencia, componentes y narrativa del producto ant
 ### Consecuencias
 - desacopla UI fundacional del backend temprano
 - facilita cambiar el modelo sin romper flujos visuales iniciales
+
+---
+
+### Decisión
+Introducir Supabase ya en Fase 1 avanzada mediante una primera migración mínima y no mediante modelado exhaustivo del negocio.
+
+### Motivo
+El proyecto ya necesita una base persistente real para inventario, identidad y operación inicial, pero todavía no conviene modelar CRM completo ni reglas complejas sin validar primero el núcleo inmobiliario.
+
+### Consecuencias
+- el proyecto queda listo para evolucionar desde un esquema real
+- se reduce el riesgo de rehacer tablas fundacionales después
+- se mantiene el alcance controlado del bloque actual
+
+---
+
+### Decisión
+Separar `profiles` de `agents` en el esquema inicial.
+
+### Motivo
+La identidad autenticada del usuario y la presencia operativa/pública del agente no son exactamente la misma cosa. Esta separación evita acoplar demasiado pronto Auth con branding o exposición pública.
+
+### Consecuencias
+- `profiles` queda atado a `auth.users`
+- `agents` puede crecer hacia capa pública, operativa y comercial sin distorsionar la identidad base
+- en el futuro se pueden soportar más combinaciones de equipo, roles y membresías
+
+---
+
+### Decisión
+No modelar todavía `workspace_members`, RLS ni roles detallados en esta migración inicial.
+
+### Motivo
+Aunque el sistema debe escalar a multiworkspace, este bloque busca dejar una base mínima y utilizable. Meter membresías, permisos y políticas completas ahora metería complejidad prematura.
+
+### Consecuencias
+- el esquema queda incompleto a nivel seguridad fina, de forma intencional
+- el siguiente bloque deberá cubrir Auth + RLS + membresías
+- se preserva velocidad sin perder dirección arquitectónica
+
+---
+
+### Decisión
+Crear `property_images` como metadatos separados y respaldar desde el inicio un bucket de Storage dedicado.
+
+### Motivo
+La galería de propiedades es núcleo del producto y debe quedar resuelta desde una estructura extensible, aunque la UI todavía no suba archivos reales.
+
+### Consecuencias
+- el modelo soporta múltiples imágenes, orden y cover image
+- Storage queda preparado sin mezclar binarios con la tabla principal de propiedades
+- la futura integración UI/backend será más directa
