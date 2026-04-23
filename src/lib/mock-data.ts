@@ -1,0 +1,40 @@
+import type { Property } from "@/types/domain";
+
+export const featuredProperties: Property[] = [
+  {
+    id: "prop-1",
+    workspaceId: "workspace-1",
+    title: "Residencia Bosque Alto",
+    slug: "residencia-bosque-alto",
+    status: "active",
+    operationType: "sale",
+    location: "Valle del Sol",
+    price: 12800000,
+    currency: "MXN",
+    featured: true,
+  },
+  {
+    id: "prop-2",
+    workspaceId: "workspace-1",
+    title: "Penthouse Santa Fe",
+    slug: "penthouse-santa-fe",
+    status: "active",
+    operationType: "rent",
+    location: "Zona corporativa",
+    price: 78000,
+    currency: "MXN",
+    featured: true,
+  },
+  {
+    id: "prop-3",
+    workspaceId: "workspace-1",
+    title: "Casa Jardines",
+    slug: "casa-jardines",
+    status: "pending",
+    operationType: "sale",
+    location: "Zona residencial premium",
+    price: 9450000,
+    currency: "MXN",
+    featured: true,
+  },
+];
