@@ -200,6 +200,9 @@ export function AdminAccessClient() {
           <p className="mt-4 max-w-2xl">
             Tu cuenta ya existe. Solo falta crear tu workspace inicial para habilitar Strate Homes y dejarte como owner del primer espacio operativo.
           </p>
+          <p className="mt-3 max-w-2xl text-amber-50/80">
+            Este paso se hace de forma segura desde la base de datos para evitar bloqueos de permisos durante el primer acceso.
+          </p>
 
           <form action={bootstrapAction} className="mt-6 space-y-4">
             <label className="space-y-2 text-sm text-amber-50">
@@ -229,7 +232,7 @@ export function AdminAccessClient() {
 
             <div className="flex flex-wrap gap-3">
               <button disabled={bootstrapPending} className="rounded-full bg-white px-5 py-3 text-sm font-medium text-zinc-950 transition hover:bg-zinc-200 disabled:opacity-60">
-                {bootstrapPending ? "Configurando..." : "Crear workspace y continuar"}
+                {bootstrapPending ? "Preparando tu espacio..." : "Crear workspace y continuar"}
               </button>
               <button type="button" onClick={handleSignOut} className="rounded-full border border-amber-200/30 px-4 py-2 text-xs transition hover:bg-amber-200/10">
                 Cerrar sesión
@@ -245,6 +248,7 @@ export function AdminAccessClient() {
             <li>• todavía no existe workspace activo</li>
             <li>• este paso crea tu primer workspace</li>
             <li>• quedas habilitado automáticamente como <span className="text-white">owner</span></li>
+            <li>• si algo falla, verás un mensaje claro para volver a intentar</li>
           </ul>
         </div>
       </div>

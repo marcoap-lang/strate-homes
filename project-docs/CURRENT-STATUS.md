@@ -39,12 +39,14 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Login con correo + contraseña implementado como acceso principal.
 - Redirect URL de auth preparado para producción sin depender de `Site URL` por defecto.
 - Primer acceso resuelto: si el usuario tiene sesión pero no tiene workspace/member, puede crear su workspace inicial y quedar habilitado como owner.
+- Bootstrap inicial endurecido con RPC segura en DB para crear workspace + owner membership + default workspace sin abrir permisos amplios en RLS.
 - `/admin` ya no rompe cuando el usuario todavía no está completamente habilitado.
 - Estados de acceso reescritos con experiencia de producto más limpia y menos técnica.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - validar flujo real de login/admin sobre producción con usuario miembro final
+- comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
 
@@ -60,7 +62,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - No hay blockers técnicos críticos en este bloque.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
 - La gestión de imágenes todavía depende de registrar `storage_path` manualmente; no hay uploader real aún.
-- Falta validar con usuario real en producción que el flujo completo de registro/login + habilitación inicial quede redondo de punta a punta.
+- Falta validar con usuario real en producción que el flujo completo de registro/login + habilitación inicial quede redondo de punta a punta, ahora ya sobre el nuevo RPC seguro.
 
 ## Riesgos a vigilar
 - escalar sin documentar decisiones

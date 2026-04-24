@@ -46,6 +46,40 @@ function slugify(value: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+function getReadableBootstrapError(message: string) {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("authentication_required")) {
+    return "Necesitas iniciar sesión otra vez antes de crear tu espacio.";
+  }
+
+  if (normalized.includes("profile_not_ready")) {
+    return "Tu cuenta todavía se está preparando. Espera unos segundos e inténtalo de nuevo.";
+  }
+
+  if (normalized.includes("active_membership_exists")) {
+    return "Tu cuenta ya tiene acceso a un workspace. Recarga el admin para continuar.";
+  }
+
+  if (normalized.includes("invalid_workspace_name")) {
+    return "Escribe un nombre válido para tu espacio de trabajo.";
+  }
+
+  if (normalized.includes("invalid_workspace_slug")) {
+    return "El identificador del workspace no es válido. Usa letras minúsculas, números o guiones.";
+  }
+
+  if (normalized.includes("duplicate key value") || normalized.includes("workspaces_slug_key")) {
+    return "Ese identificador ya está en uso. Prueba con otro slug.";
+  }
+
+  if (normalized.includes("row-level security")) {
+    return "No pudimos activar tu workspace inicial. Intenta de nuevo en unos segundos.";
+  }
+
+  return "No pudimos crear tu espacio inicial. Intenta de nuevo.";
+}
+
 async function getWorkspaceContext() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -87,54 +121,26 @@ export async function bootstrapInitialOwnerAction(
 
     const workspaceSlug = slugify(formData.get("workspaceSlug")?.toString() || workspaceName);
 
-    const { count } = await supabase
-      .from("workspace_members")
-      .select("id", { count: "exact", head: true })
-      .eq("profile_id", user.id)
-      .eq("is_active", true);
-
-    if ((count ?? 0) > 0) {
-      return { success: false, message: "Tu usuario ya tiene memberships activas. Recarga el admin." };
-    }
-
-    const { data: workspace, error: workspaceError } = await supabase
-      .from("workspaces")
-      .insert({
-        name: workspaceName,
-        slug: workspaceSlug,
-        brand_name: workspaceName,
-      })
-      .select("id, name")
-      .single();
-
-    if (workspaceError || !workspace) {
-      return { success: false, message: workspaceError?.message ?? "No se pudo crear el workspace inicial." };
-    }
-
-    const { error: membershipError } = await supabase.from("workspace_members").insert({
-      workspace_id: workspace.id,
-      profile_id: user.id,
-      role: "owner",
-      is_active: true,
-      joined_at: new Date().toISOString(),
-      invited_by: user.id,
+    const { data, error } = await supabase.rpc("bootstrap_initial_workspace", {
+      input_workspace_name: workspaceName,
+      input_workspace_slug: workspaceSlug,
     });
 
-    if (membershipError) {
-      return { success: false, message: membershipError.message };
+    if (error) {
+      return { success: false, message: getReadableBootstrapError(error.message) };
     }
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update({ default_workspace_id: workspace.id })
-      .eq("id", user.id);
+    const workspace = Array.isArray(data) ? data[0] : data;
 
-    if (profileError) {
-      return { success: false, message: profileError.message };
+    if (!workspace?.workspace_id) {
+      return { success: false, message: "No pudimos activar tu espacio inicial. Intenta de nuevo." };
     }
 
     revalidatePath("/admin");
-    return { success: true, message: `Workspace inicial creado: ${workspace.name}. Ya puedes usar el admin.` };
+    return {
+      success: true,
+      message: `Tu espacio inicial ya está listo: ${workspace.created_workspace_name}. Ya puedes continuar al admin.`,
+    };
   } catch (error) {
     return {
       success: false,

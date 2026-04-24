@@ -257,3 +257,17 @@ Strate Homes necesitaba una experiencia de producto más clara, predecible y pre
 - el acceso principal ya se siente como producto real y no como flujo provisional
 - el onboarding inicial queda mejor encadenado con la creación del primer workspace
 - sigue siendo necesario revisar en Supabase las redirect URLs y la URL pública principal de producción
+
+---
+
+### Decisión
+Resolver el bootstrap del primer workspace mediante una función RPC `SECURITY DEFINER` en base de datos, en lugar de abrir inserts directos sobre `workspace_members` vía RLS.
+
+### Motivo
+El primer onboarding necesita crear `workspaces`, `workspace_members` y actualizar `profiles.default_workspace_id` en una sola operación segura, pero sin relajar las políticas generales de RLS para membresías. La ruta correcta es encapsular el alta inicial en una función validada desde DB.
+
+### Consecuencias
+- se mantiene cerrada la RLS general de `workspace_members`
+- el alta del primer owner ocurre de forma atómica y más robusta
+- el onboarding del admin depende ahora de una RPC específica para bootstrap inicial
+- futuras invitaciones o altas administrativas deberán seguir flujos dedicados y no inserts directos desde cliente

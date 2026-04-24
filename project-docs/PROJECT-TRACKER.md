@@ -2,12 +2,13 @@
 
 ## Estado general
 
-**Avance estimado:** 32%  
+**Avance estimado:** 34%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
 
 ✅ Registro/login real + onboarding inicial
+✅ Bootstrap seguro del primer workspace vía RPC sin relajar RLS
 
 ## Bloque actual
 
@@ -55,6 +56,7 @@
 - ✅ Roles base
 - ✅ Workspace activo base
 - ✅ Habilitación mínima de owner inicial
+- ✅ Bootstrap inicial seguro por RPC
 - ⬜ Selector explícito de workspace activo
 
 ### Seguridad multiworkspace
