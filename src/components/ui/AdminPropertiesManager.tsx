@@ -1,20 +1,32 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import Image from "next/image";
+import { useActionState, useMemo, useRef, useState, useTransition } from "react";
+import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
-  addPropertyImageAction,
-  createPropertyAction,
   deletePropertyImageAction,
   type PropertyFormState,
   updatePropertyAction,
+  updatePropertyImagesAction,
   updatePropertyStatusAction,
+  createPropertyAction,
 } from "@/app/admin/actions";
+import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 
 type Props = {
   workspaceName: string | null | undefined;
   properties: PropertyRecord[];
   agents: AgentOption[];
+};
+
+type GalleryImageDraft = {
+  id?: string;
+  storage_path: string;
+  alt_text: string;
+  sort_order: number;
+  is_cover: boolean;
+  previewUrl: string;
 };
 
 const initialState: PropertyFormState = { success: false, message: "" };
@@ -28,8 +40,7 @@ function normalizeText(value?: string | null) {
   return (value ?? "").toLowerCase();
 }
 
-function getPhotoCoverage(property: PropertyRecord) {
-  const images = property.property_images ?? [];
+function getPhotoCoverageFromDraft(images: Array<{ storage_path: string; alt_text?: string | null }>) {
   const combinedText = images.map((image) => `${normalizeText(image.storage_path)} ${normalizeText(image.alt_text)}`).join(" ");
 
   const checks = suggestedPhotoShots.map((label) => {
@@ -56,6 +67,16 @@ function getPhotoCoverage(property: PropertyRecord) {
     completion,
     totalImages: images.length,
   };
+}
+
+function getPhotoCoverage(property: PropertyRecord) {
+  return getPhotoCoverageFromDraft(property.property_images ?? []);
+}
+
+function formatImagePublicUrl(path: string) {
+  const supabase = createSupabaseBrowserClient();
+  const { data } = supabase.storage.from("property-images").getPublicUrl(path);
+  return data.publicUrl;
 }
 
 function Field({
@@ -152,9 +173,7 @@ function PropertyForm({
           <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
           <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
             {propertyTypes.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </label>
@@ -163,9 +182,7 @@ function PropertyForm({
           <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
           <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
             {operationTypes.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </label>
@@ -174,9 +191,7 @@ function PropertyForm({
           <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estatus</span>
           <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
             {statuses.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
+              <option key={option} value={option}>{option}</option>
             ))}
           </select>
         </label>
@@ -186,9 +201,7 @@ function PropertyForm({
           <select name="agentId" defaultValue={property?.agent_id ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
             <option value="">Sin asignar</option>
             {agents.map((agent) => (
-              <option key={agent.id} value={agent.id}>
-                {agent.display_name}
-              </option>
+              <option key={agent.id} value={agent.id}>{agent.display_name}</option>
             ))}
           </select>
         </label>
@@ -213,16 +226,172 @@ function PropertyForm({
 }
 
 function PropertyImagesManager({ property }: { property: PropertyRecord }) {
-  const coverage = useMemo(() => getPhotoCoverage(property), [property]);
+  const supabase = useMemo(() => createSupabaseBrowserClient(), []);
+  const { activeWorkspace } = useActiveWorkspace();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [gallery, setGallery] = useState<GalleryImageDraft[]>(() =>
+    (property.property_images ?? [])
+      .slice()
+      .sort((a, b) => a.sort_order - b.sort_order)
+      .map((image, index) => ({
+        id: image.id,
+        storage_path: image.storage_path,
+        alt_text: image.alt_text ?? "",
+        sort_order: index,
+        is_cover: image.is_cover,
+        previewUrl: formatImagePublicUrl(image.storage_path),
+      })),
+  );
+  const [isUploading, startUploadTransition] = useTransition();
+  const [isSavingGallery, startSaveTransition] = useTransition();
+  const [clientMessage, setClientMessage] = useState<string | null>(null);
+  const [clientError, setClientError] = useState<string | null>(null);
+  const coverage = useMemo(() => getPhotoCoverageFromDraft(gallery), [gallery]);
+
+  function normalizeGallery(nextGallery: GalleryImageDraft[]) {
+    const coverIndex = nextGallery.findIndex((image) => image.is_cover);
+
+    return nextGallery.map((image, index) => ({
+      ...image,
+      sort_order: index,
+      is_cover: coverIndex === -1 ? index === 0 : index === coverIndex,
+    }));
+  }
+
+  function updateGallery(nextGallery: GalleryImageDraft[]) {
+    setGallery(normalizeGallery(nextGallery));
+  }
+
+  function handleSelectCover(index: number) {
+    updateGallery(gallery.map((image, currentIndex) => ({ ...image, is_cover: currentIndex === index })));
+  }
+
+  function moveImage(index: number, direction: -1 | 1) {
+    const nextIndex = index + direction;
+    if (nextIndex < 0 || nextIndex >= gallery.length) return;
+
+    const nextGallery = [...gallery];
+    const [current] = nextGallery.splice(index, 1);
+    nextGallery.splice(nextIndex, 0, current);
+    updateGallery(nextGallery);
+  }
+
+  function removeFromGallery(index: number) {
+    const image = gallery[index];
+
+    startSaveTransition(async () => {
+      try {
+        if (image.id) {
+          const formData = new FormData();
+          formData.set("imageId", image.id);
+          formData.set("storagePath", image.storage_path);
+          await deletePropertyImageAction(formData);
+        } else {
+          await supabase.storage.from("property-images").remove([image.storage_path]);
+        }
+
+        updateGallery(gallery.filter((_, currentIndex) => currentIndex !== index));
+        setClientMessage("Foto eliminada.");
+        setClientError(null);
+      } catch {
+        setClientError("No pudimos eliminar la foto. Intenta de nuevo.");
+        setClientMessage(null);
+      }
+    });
+  }
+
+  async function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    if (!files.length || !activeWorkspace?.workspaceId) return;
+
+    setClientError(null);
+    setClientMessage(null);
+
+    startUploadTransition(async () => {
+      const uploaded: GalleryImageDraft[] = [];
+
+      try {
+        for (const file of files) {
+          const extension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+          const safeName = file.name
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .replace(/[^a-z0-9.]+/g, "-")
+            .replace(/(^-|-$)/g, "");
+
+          const path = `${activeWorkspace.workspaceId}/${property.id}/${Date.now()}-${crypto.randomUUID()}-${safeName || `image.${extension}`}`;
+
+          const { error } = await supabase.storage.from("property-images").upload(path, file, {
+            upsert: false,
+            contentType: file.type,
+          });
+
+          if (error) throw error;
+
+          uploaded.push({
+            storage_path: path,
+            alt_text: "",
+            sort_order: gallery.length + uploaded.length - 1,
+            is_cover: gallery.length === 0 && uploaded.length === 1,
+            previewUrl: URL.createObjectURL(file),
+          });
+        }
+
+        updateGallery([...gallery, ...uploaded]);
+        setClientMessage(`${uploaded.length} foto(s) cargada(s). Guarda la galería para confirmar orden y portada.`);
+      } catch {
+        if (uploaded.length) {
+          await supabase.storage.from("property-images").remove(uploaded.map((image) => image.storage_path));
+        }
+        setClientError("No pudimos subir las fotos. Revisa el archivo e intenta de nuevo.");
+      } finally {
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    });
+  }
+
+  function handleAltTextChange(index: number, value: string) {
+    updateGallery(gallery.map((image, currentIndex) => (currentIndex === index ? { ...image, alt_text: value } : image)));
+  }
+
+  function saveGallery() {
+    setClientError(null);
+    setClientMessage(null);
+
+    startSaveTransition(async () => {
+      try {
+        const formData = new FormData();
+        formData.set("propertyId", property.id);
+        formData.set(
+          "images",
+          JSON.stringify(
+            gallery.map((image, index) => ({
+              id: image.id,
+              storage_path: image.storage_path,
+              alt_text: image.alt_text,
+              sort_order: index,
+              is_cover: image.is_cover,
+            })),
+          ),
+        );
+
+        await updatePropertyImagesAction(formData);
+        setClientMessage("Galería guardada correctamente.");
+      } catch {
+        setClientError("No pudimos guardar el orden de la galería. Intenta de nuevo.");
+      }
+    });
+  }
 
   return (
     <SectionCard>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos de la propiedad</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">Galería guiada</h3>
+          <h3 className="mt-2 text-xl font-semibold text-stone-950">Uploader visual</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Carga la galería pensando en cobertura comercial: empieza por las vistas esenciales y luego completa con espacios secundarios.
+            Sube fotos al storage real, revisa la vista previa, define el orden visual y elige la portada principal desde aquí mismo.
           </p>
         </div>
         <div className="min-w-[180px] rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
@@ -248,60 +417,85 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         </div>
 
         <div className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
-          <p className="text-sm font-semibold text-stone-900">Guía rápida para cargar fotos</p>
+          <p className="text-sm font-semibold text-stone-900">Cómo usar esta galería</p>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-stone-600">
-            <li>• Empieza con una fachada clara para portada.</li>
-            <li>• Usa alt text simple: “fachada principal”, “cocina integral”, “baño principal”.</li>
-            <li>• Mantén el orden visual: portada primero, interiores clave después.</li>
-            <li>• Este bloque ya deja lista una base para un uploader visual más completo después.</li>
+            <li>• Sube una o varias fotos.</li>
+            <li>• Usa la vista previa para revisar la galería.</li>
+            <li>• Ordena visualmente con subir y bajar.</li>
+            <li>• Marca la foto principal como portada.</li>
+            <li>• Guarda la galería para confirmar orden y portada.</li>
           </ul>
-          <div className="mt-4 rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-4 text-sm text-stone-500">
-            Próximo paso preparado: sustituir la captura manual por un uploader con arrastre, preview y orden visual.
-          </div>
         </div>
       </div>
 
-      <form action={addPropertyImageAction} className="mt-6 grid gap-4 md:grid-cols-2">
-        <input type="hidden" name="propertyId" value={property.id} />
-        <Field label="Ruta del archivo" name="storagePath" required placeholder="properties/casa-lomas/fachada-01.jpg" />
-        <Field label="Descripción de la foto" name="altText" placeholder="Fachada principal" />
-        <Field label="Orden" name="sortOrder" defaultValue={coverage.totalImages} />
-        <label className="inline-flex items-center gap-3 self-end rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
-          <input type="checkbox" name="isCover" className="size-4 rounded border-stone-300 bg-white" />
-          Usar como portada
-        </label>
-        <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 md:col-span-2 md:w-fit">
-          Agregar foto
-        </button>
-      </form>
+      <div className="mt-6 rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-stone-900">Agregar fotos</p>
+            <p className="mt-2 text-sm text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
+          </div>
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+            {isUploading ? "Subiendo..." : "Seleccionar fotos"}
+            <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelection} />
+          </label>
+        </div>
+      </div>
 
-      <div className="mt-6 space-y-3">
-        {property.property_images?.length ? (
-          property.property_images
-            .slice()
-            .sort((a, b) => a.sort_order - b.sort_order)
-            .map((image) => (
-              <div key={image.id} className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-700">
-                <div>
-                  <p className="font-medium text-stone-950">{image.storage_path}</p>
-                  <p className="text-xs text-stone-500">
-                    {image.alt_text || "Sin descripción"} · orden {image.sort_order} {image.is_cover ? "· portada" : ""}
-                  </p>
-                </div>
-                <form action={deletePropertyImageAction}>
-                  <input type="hidden" name="imageId" value={image.id} />
-                  <button className="rounded-full border border-rose-200 px-4 py-2 text-xs text-rose-700 transition hover:bg-rose-50">
+      {clientMessage ? <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{clientMessage}</p> : null}
+      {clientError ? <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{clientError}</p> : null}
+
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {gallery.length ? (
+          gallery.map((image, index) => (
+            <div key={`${image.storage_path}-${index}`} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
+              <div className="relative aspect-[4/3] bg-stone-100">
+                <Image src={image.previewUrl} alt={image.alt_text || `Foto ${index + 1}`} fill className="object-cover" unoptimized />
+                {image.is_cover ? (
+                  <span className="absolute left-3 top-3 rounded-full bg-stone-950 px-3 py-1 text-xs font-medium text-white">Portada</span>
+                ) : null}
+              </div>
+              <div className="space-y-3 p-4">
+                <label className="space-y-2 text-sm text-stone-700">
+                  <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Descripción</span>
+                  <input
+                    value={image.alt_text}
+                    onChange={(event) => handleAltTextChange(index, event.target.value)}
+                    placeholder="Ej. Fachada principal"
+                    className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400"
+                  />
+                </label>
+                <p className="text-xs text-stone-500">Orden visual: {index + 1}</p>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40">
+                    Subir
+                  </button>
+                  <button type="button" onClick={() => moveImage(index, 1)} disabled={index === gallery.length - 1} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40">
+                    Bajar
+                  </button>
+                  <button type="button" onClick={() => handleSelectCover(index)} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50">
+                    {image.is_cover ? "Portada activa" : "Usar como portada"}
+                  </button>
+                  <button type="button" onClick={() => removeFromGallery(index)} className="rounded-full border border-rose-200 px-3 py-2 text-xs text-rose-700 transition hover:bg-rose-50">
                     Eliminar
                   </button>
-                </form>
+                </div>
               </div>
-            ))
+            </div>
+          ))
         ) : (
-          <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-            Todavía no hay fotos registradas. Empieza por fachada, sala y cocina para mejorar rápido la presentación.
+          <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500 md:col-span-2 xl:col-span-3">
+            Todavía no hay fotos cargadas. Empieza por fachada, sala y cocina para mejorar rápido la presentación.
           </div>
         )}
       </div>
+
+      {gallery.length ? (
+        <div className="mt-6 flex flex-wrap gap-3">
+          <button type="button" onClick={saveGallery} disabled={isSavingGallery} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+            {isSavingGallery ? "Guardando galería..." : "Guardar orden y portada"}
+          </button>
+        </div>
+      ) : null}
     </SectionCard>
   );
 }
@@ -357,11 +551,7 @@ export function AdminPropertiesManager({ workspaceName, properties, agents }: Pr
                     <div key={property.id} className={`rounded-2xl border p-4 transition ${isSelected ? "border-stone-900 bg-stone-950 text-white" : "border-stone-200 bg-stone-50"}`}>
                       <div className="flex flex-wrap items-start justify-between gap-3">
                         <div>
-                          <button
-                            type="button"
-                            onClick={() => setSelectedPropertyId(property.id)}
-                            className={`text-left text-lg font-semibold transition ${isSelected ? "text-white" : "text-stone-950 hover:text-stone-700"}`}
-                          >
+                          <button type="button" onClick={() => setSelectedPropertyId(property.id)} className={`text-left text-lg font-semibold transition ${isSelected ? "text-white" : "text-stone-950 hover:text-stone-700"}`}>
                             {property.title}
                           </button>
                           <p className={`mt-1 text-sm ${isSelected ? "text-white/70" : "text-stone-500"}`}>
@@ -384,9 +574,7 @@ export function AdminPropertiesManager({ workspaceName, properties, agents }: Pr
                             <input type="hidden" name="propertyId" value={property.id} />
                             <select name="status" defaultValue={property.status} className={`rounded-full border px-3 py-2 text-xs ${isSelected ? "border-white/20 bg-white/10 text-white" : "border-stone-200 bg-white text-stone-900"}`}>
                               {statuses.map((status) => (
-                                <option key={status} value={status}>
-                                  {status}
-                                </option>
+                                <option key={status} value={status}>{status}</option>
                               ))}
                             </select>
                             <button className={`rounded-full border px-3 py-2 text-xs transition ${isSelected ? "border-white/20 text-white hover:bg-white/10" : "border-stone-200 text-stone-700 hover:bg-white"}`}>

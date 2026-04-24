@@ -284,3 +284,16 @@ En esta fase, la percepción de producto importa tanto como la base técnica. Si
 - el esfuerzo inmediato se concentra en claridad, jerarquía visual y confianza del usuario
 - el admin prioriza inventario, fotos y operación básica antes que expandirse a módulos nuevos
 - la gestión de fotos avanza primero como experiencia guiada y preparación para un uploader visual posterior
+
+---
+
+### Decisión
+Implementar el uploader visual real de fotos con subida al Storage desde cliente autenticado y persistencia/orden/portada desde acciones del servidor.
+
+### Motivo
+Esta combinación conserva la compatibilidad con el workspace activo y con la seguridad ya montada, evitando abrir atajos inseguros en RLS mientras se entrega una experiencia visual real de galería.
+
+### Consecuencias
+- la subida binaria ocurre directamente contra Storage con sesión autenticada del usuario
+- el orden, la portada y la persistencia final de metadatos viven en el flujo del admin y se revalidan desde servidor
+- la siguiente mejora natural, si hace falta, será drag-and-drop más fino y limpieza automática más completa de archivos huérfanos

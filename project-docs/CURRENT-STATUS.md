@@ -45,6 +45,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Experiencia visual de acceso y onboarding refinada hacia un tono más claro, limpio y premium.
 - Shell inicial del admin refinado con mejor jerarquía, workspace visible, usuario visible y logout claro.
 - UX de fotos mejorada con guía visual, checklist sugerido de cobertura mínima y noción de completitud por propiedad.
+- Uploader visual real de fotos integrado al admin con subida a Storage, preview, orden visual y selección de portada principal.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -52,11 +53,11 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
-- convertir la captura manual de fotos en uploader visual con preview, arrastre y ordenamiento
+- validar y pulir el uploader visual real de fotos sobre uso operativo y luego decidir si necesita drag-and-drop completo
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
-2. convertir la base guiada de fotos en uploader visual real con preview y mejor ordenamiento
+2. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
 4. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 5. expandir shell admin con siguientes módulos reales sin abrir CRM todavía
@@ -65,14 +66,14 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
-- La gestión de imágenes ya está mejor guiada, pero todavía depende de registrar `storage_path` manualmente; no hay uploader real aún.
+- El uploader visual ya funciona, pero todavía puede requerir una capa posterior de drag-and-drop más fluida y reglas extra para limpieza/consistencia de Storage.
 - Falta validar con usuario real en producción que el flujo completo de registro/login + habilitación inicial quede redondo de punta a punta, ahora ya sobre el nuevo RPC seguro.
 
 ## Riesgos a vigilar
 - escalar sin documentar decisiones
 - dejar ambigua la resolución del workspace activo en usuarios multiworkspace
 - asumir que la RLS mínima ya cubre autorización fina cuando todavía no cubre todo el producto
-- que la gestión manual de imágenes se vuelva cuello de botella operativo si no se reemplaza pronto por uploader visual
+- que la galería visual quede corta en usabilidad si no evoluciona después hacia drag-and-drop más fino, previews más ricos y limpieza automática más robusta
 - olvidar políticas futuras para `workspaces` y dominios nuevos
 - añadir complejidad visual sin necesidad real
 - perder el hilo de continuidad si no se actualiza esta documentación

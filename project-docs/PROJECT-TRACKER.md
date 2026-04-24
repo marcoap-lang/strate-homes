@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 38%  
+**Avance estimado:** 43%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -10,14 +10,15 @@
 ✅ Registro/login real + onboarding inicial
 ✅ Bootstrap seguro del primer workspace vía RPC sin relajar RLS
 ✅ Refinamiento UX de acceso, onboarding y experiencia inicial del admin
+✅ Uploader visual real de fotos con preview, orden y portada principal
 
 ## Bloque actual
 
-🟨 En curso: selector explícito de workspace activo para usuarios multiworkspace + siguiente mejora de uploader visual
+🟨 En curso: selector explícito de workspace activo para usuarios multiworkspace
 
 ## Siguiente bloque
 
-⬜ Selector explícito de workspace activo + uploader visual real para fotos
+⬜ Selector explícito de workspace activo + pulido posterior del uploader visual
 
 ---
 
@@ -72,7 +73,7 @@
 - ✅ CRUD real de propiedades
 - ✅ Acceso claro al admin
 - ✅ Header admin más claro con workspace, usuario y logout visible
-- 🟨 Gestión guiada de imágenes con checklist y completitud visual
+- ✅ Gestión visual de imágenes con Storage, preview, orden, portada, checklist y completitud visual
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables

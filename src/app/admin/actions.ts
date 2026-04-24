@@ -325,9 +325,70 @@ export async function addPropertyImageAction(formData: FormData) {
   revalidatePath("/admin");
 }
 
+export async function updatePropertyImagesAction(formData: FormData) {
+  const { supabase, activeWorkspace } = await getWorkspaceContext();
+  const propertyId = formData.get("propertyId")?.toString();
+  const imagesRaw = formData.get("images")?.toString();
+
+  if (!propertyId || !imagesRaw) {
+    throw new Error("Faltan datos para actualizar las fotos.");
+  }
+
+  let images: Array<{
+    id?: string;
+    storage_path: string;
+    alt_text?: string | null;
+    sort_order: number;
+    is_cover: boolean;
+  }> = [];
+
+  try {
+    images = JSON.parse(imagesRaw);
+  } catch {
+    throw new Error("No se pudo leer la galería enviada.");
+  }
+
+  const normalizedImages = images
+    .filter((image) => image.storage_path?.trim())
+    .map((image, index) => ({
+      workspace_id: activeWorkspace.workspaceId,
+      property_id: propertyId,
+      storage_bucket: "property-images",
+      storage_path: image.storage_path.trim(),
+      alt_text: image.alt_text?.trim() ? image.alt_text.trim() : null,
+      sort_order: index,
+      is_cover: image.is_cover === true,
+    }));
+
+  if (!normalizedImages.length) {
+    throw new Error("Necesitas al menos una foto para guardar la galería.");
+  }
+
+  const coverIndex = normalizedImages.findIndex((image) => image.is_cover);
+  const finalImages = normalizedImages.map((image, index) => ({
+    ...image,
+    is_cover: coverIndex === -1 ? index === 0 : index === coverIndex,
+  }));
+
+  const { error: deleteError } = await supabase
+    .from("property_images")
+    .delete()
+    .eq("property_id", propertyId)
+    .eq("workspace_id", activeWorkspace.workspaceId);
+
+  if (deleteError) throw deleteError;
+
+  const { error: insertError } = await supabase.from("property_images").insert(finalImages);
+
+  if (insertError) throw insertError;
+
+  revalidatePath("/admin");
+}
+
 export async function deletePropertyImageAction(formData: FormData) {
   const { supabase, activeWorkspace } = await getWorkspaceContext();
   const imageId = formData.get("imageId")?.toString();
+  const storagePath = formData.get("storagePath")?.toString();
 
   if (!imageId) {
     throw new Error("Falta identificar la imagen.");
@@ -340,6 +401,10 @@ export async function deletePropertyImageAction(formData: FormData) {
     .eq("workspace_id", activeWorkspace.workspaceId);
 
   if (error) throw error;
+
+  if (storagePath) {
+    await supabase.storage.from("property-images").remove([storagePath]);
+  }
 
   revalidatePath("/admin");
 }
