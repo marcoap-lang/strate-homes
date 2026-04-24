@@ -48,6 +48,8 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Uploader visual real de fotos integrado al admin con subida a Storage, preview, orden visual y selección de portada principal.
 - Políticas de Storage agregadas para `property-images` alineadas al workspace activo, habilitando subida real desde sesión autenticada.
 - Mensajes de error del uploader mejorados para distinguir permisos, archivo inválido y conflictos básicos.
+- Módulo de propiedades reorganizado en rutas navegables separadas: listado, alta y edición.
+- El inventario existente ahora se prioriza como vista principal en `/admin/properties`, dejando alta y edición en experiencias separadas.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -62,7 +64,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 2. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
 4. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
-5. expandir shell admin con siguientes módulos reales sin abrir CRM todavía
+5. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 6. refinar componentes UI compartidos del admin
 
 ## Blockers actuales
@@ -78,6 +80,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - que la galería visual quede corta en usabilidad si no evoluciona después hacia drag-and-drop más fino, previews más ricos y limpieza automática más robusta
 - olvidar políticas futuras para `workspaces` y dominios nuevos
 - añadir complejidad visual sin necesidad real
+- dejar inconsistencias entre rutas del módulo de propiedades si no se mantiene disciplina de navegación
 - perder el hilo de continuidad si no se actualiza esta documentación
 
 ## Criterio de cierre de esta etapa

@@ -1,5 +1,5 @@
 import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
-import { AdminPropertiesManager } from "@/components/ui/AdminPropertiesManager";
+import { AdminPropertiesIndex } from "@/components/ui/AdminPropertiesManager";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 
 export function AdminAccessGate({
@@ -18,5 +18,5 @@ export function AdminAccessGate({
     return <AdminAccessClient />;
   }
 
-  return <AdminPropertiesManager workspaceName={activeWorkspace.workspaceName} properties={properties} agents={agents} />;
+  return <AdminPropertiesIndex workspaceName={activeWorkspace.workspaceName} properties={properties} />;
 }

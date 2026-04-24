@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 45%  
+**Avance estimado:** 49%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -12,6 +12,7 @@
 ✅ Refinamiento UX de acceso, onboarding y experiencia inicial del admin
 ✅ Uploader visual real de fotos con preview, orden y portada principal
 ✅ Storage policies alineadas para upload real al bucket property-images
+✅ Módulo de propiedades separado en listado, alta y edición por rutas
 
 ## Bloque actual
 
@@ -74,6 +75,9 @@
 - ✅ CRUD real de propiedades
 - ✅ Acceso claro al admin
 - ✅ Header admin más claro con workspace, usuario y logout visible
+- ✅ Listado de propiedades como vista principal del módulo
+- ✅ Alta separada en `/admin/properties/new`
+- ✅ Edición separada en `/admin/properties/[id]`
 - ✅ Gestión visual de imágenes con Storage, preview, orden, portada, checklist y completitud visual
 - ✅ Policies mínimas de Storage para upload autenticado por workspace
 - ⬜ Filtros admin

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useActionState, useMemo, useRef, useState, useTransition } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
@@ -14,7 +15,7 @@ import {
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 
-type Props = {
+type SharedProps = {
   workspaceName: string | null | undefined;
   properties: PropertyRecord[];
   agents: AgentOption[];
@@ -110,6 +111,27 @@ function SectionCard({ children, className = "" }: { children: React.ReactNode; 
   return <div className={`rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40 ${className}`}>{children}</div>;
 }
 
+function PropertiesHeader({
+  title,
+  description,
+  action,
+}: {
+  title: string;
+  description: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Propiedades</p>
+        <h3 className="mt-2 text-2xl font-semibold text-stone-950">{title}</h3>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">{description}</p>
+      </div>
+      {action}
+    </div>
+  );
+}
+
 function PropertyForm({
   mode,
   property,
@@ -127,11 +149,11 @@ function PropertyForm({
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">{mode === "create" ? "Captura inicial" : property?.title}</h3>
+          <h3 className="mt-2 text-xl font-semibold text-stone-950">{mode === "create" ? "Alta de propiedad" : property?.title}</h3>
           <p className="mt-2 text-sm text-stone-600">
             {mode === "create"
-              ? "Registra la base comercial de una propiedad para empezar a construir una publicación sólida."
-              : "Ajusta la información clave y mejora la presentación general de esta propiedad."}
+              ? "Captura una nueva propiedad en una vista enfocada y separada del listado principal."
+              : "Edita la información comercial y visual de esta propiedad en una vista dedicada."}
           </p>
         </div>
       </div>
@@ -218,9 +240,14 @@ function PropertyForm({
         </p>
       ) : null}
 
-      <button disabled={pending} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
-        {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
-      </button>
+      <div className="flex flex-wrap gap-3">
+        <button disabled={pending} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+          {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
+        </button>
+        <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          Volver al listado
+        </Link>
+      </div>
     </form>
   );
 }
@@ -406,9 +433,9 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos de la propiedad</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">Uploader visual</h3>
+          <h3 className="mt-2 text-xl font-semibold text-stone-950">Galería visual</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Sube fotos al storage real, revisa la vista previa, define el orden visual y elige la portada principal desde aquí mismo.
+            Trabaja la galería en una vista enfocada: sube, revisa, ordena y define la portada principal sin mezclarlo con el listado general.
           </p>
         </div>
         <div className="min-w-[180px] rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
@@ -517,13 +544,19 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   );
 }
 
-export function AdminPropertiesManager({ workspaceName, properties, agents }: Props) {
-  const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(properties[0]?.id ?? null);
-  const selectedProperty = properties.find((property) => property.id === selectedPropertyId) ?? null;
-  const selectedCoverage = selectedProperty ? getPhotoCoverage(selectedProperty) : null;
-
+export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedProps, "workspaceName" | "properties">) {
   return (
     <div className="space-y-6">
+      <PropertiesHeader
+        title="Listado de propiedades"
+        description="Aquí vive el inventario real del workspace. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
+        action={
+          <Link href="/admin/properties/new" className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+            Agregar propiedad
+          </Link>
+        }
+      />
+
       <div className="grid gap-4 md:grid-cols-4">
         <SectionCard>
           <p className="text-sm text-stone-500">Workspace activo</p>
@@ -534,93 +567,135 @@ export function AdminPropertiesManager({ workspaceName, properties, agents }: Pr
           <p className="mt-3 text-2xl font-semibold text-stone-950">{properties.length}</p>
         </SectionCard>
         <SectionCard>
-          <p className="text-sm text-stone-500">Agentes disponibles</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{agents.length}</p>
+          <p className="text-sm text-stone-500">Activas</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{properties.filter((property) => property.status === "active").length}</p>
         </SectionCard>
         <SectionCard>
-          <p className="text-sm text-stone-500">Cobertura visual</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{selectedCoverage ? `${selectedCoverage.completion}%` : "—"}</p>
-          <p className="mt-2 text-sm text-stone-600">{selectedProperty ? "de la propiedad seleccionada" : "selecciona una propiedad"}</p>
+          <p className="text-sm text-stone-500">Con fotos</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{properties.filter((property) => property.property_images.length > 0).length}</p>
         </SectionCard>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <div className="space-y-6">
-          <PropertyForm mode="create" agents={agents} />
-
-          <SectionCard>
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Inventario real</p>
-                <h3 className="mt-2 text-xl font-semibold text-stone-950">Propiedades del workspace</h3>
-                <p className="mt-2 text-sm leading-6 text-stone-600">
-                  Selecciona una propiedad para revisar su información, ajustar estatus y mejorar su galería visual.
-                </p>
-              </div>
-            </div>
-            <div className="mt-5 space-y-3">
-              {properties.length ? (
-                properties.map((property) => {
-                  const coverage = getPhotoCoverage(property);
-                  const isSelected = property.id === selectedPropertyId;
-
-                  return (
-                    <div key={property.id} className={`rounded-2xl border p-4 transition ${isSelected ? "border-stone-900 bg-stone-950 text-white" : "border-stone-200 bg-stone-50"}`}>
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <button type="button" onClick={() => setSelectedPropertyId(property.id)} className={`text-left text-lg font-semibold transition ${isSelected ? "text-white" : "text-stone-950 hover:text-stone-700"}`}>
-                            {property.title}
-                          </button>
-                          <p className={`mt-1 text-sm ${isSelected ? "text-white/70" : "text-stone-500"}`}>
-                            {property.location_label}
-                            {property.city ? ` · ${property.city}` : ""}
-                            {property.state ? `, ${property.state}` : ""}
-                          </p>
-                          <p className={`mt-2 text-xs uppercase tracking-[0.2em] ${isSelected ? "text-white/60" : "text-stone-400"}`}>
-                            {property.property_type} · {property.operation_type} · {property.status}
-                          </p>
-                          <p className={`mt-3 text-xs ${isSelected ? "text-white/70" : "text-stone-500"}`}>
-                            Fotos: {property.property_images.length} · Cobertura sugerida: {coverage.completion}%
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-lg font-medium ${isSelected ? "text-white" : "text-stone-950"}`}>
-                            {property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}
-                          </p>
-                          <form action={updatePropertyStatusAction} className="mt-3 flex gap-2">
-                            <input type="hidden" name="propertyId" value={property.id} />
-                            <select name="status" defaultValue={property.status} className={`rounded-full border px-3 py-2 text-xs ${isSelected ? "border-white/20 bg-white/10 text-white" : "border-stone-200 bg-white text-stone-900"}`}>
-                              {statuses.map((status) => (
-                                <option key={status} value={status}>{status}</option>
-                              ))}
-                            </select>
-                            <button className={`rounded-full border px-3 py-2 text-xs transition ${isSelected ? "border-white/20 text-white hover:bg-white/10" : "border-stone-200 text-stone-700 hover:bg-white"}`}>
-                              Cambiar
-                            </button>
-                          </form>
-                        </div>
-                      </div>
+      <SectionCard>
+        <div className="space-y-3">
+          {properties.length ? (
+            properties.map((property) => {
+              const coverage = getPhotoCoverage(property);
+              return (
+                <div key={property.id} className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <Link href={`/admin/properties/${property.id}`} className="text-left text-lg font-semibold text-stone-950 transition hover:text-stone-700">
+                        {property.title}
+                      </Link>
+                      <p className="mt-1 text-sm text-stone-500">
+                        {property.location_label}
+                        {property.city ? ` · ${property.city}` : ""}
+                        {property.state ? `, ${property.state}` : ""}
+                      </p>
+                      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-stone-400">
+                        {property.property_type} · {property.operation_type} · {property.status}
+                      </p>
+                      <p className="mt-3 text-xs text-stone-500">
+                        Fotos: {property.property_images.length} · Cobertura sugerida: {coverage.completion}%
+                      </p>
                     </div>
-                  );
-                })
-              ) : (
-                <p className="text-sm text-stone-500">Todavía no hay propiedades registradas en este workspace.</p>
-              )}
-            </div>
-          </SectionCard>
-        </div>
-
-        <div className="space-y-6">
-          {selectedProperty ? (
-            <>
-              <PropertyForm mode="edit" property={selectedProperty} agents={agents} />
-              <PropertyImagesManager property={selectedProperty} />
-            </>
+                    <div className="flex flex-col items-end gap-3">
+                      <p className="text-lg font-medium text-stone-950">
+                        {property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}
+                      </p>
+                      <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
+                        Abrir propiedad
+                      </Link>
+                    </div>
+                  </div>
+                </div>
+              );
+            })
           ) : (
-            <div className="rounded-[1.75rem] border border-dashed border-stone-300 bg-stone-50 p-6 text-sm text-stone-500">
-              Selecciona una propiedad del listado para editarla y mejorar su cobertura visual.
+            <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+              Todavía no hay propiedades registradas. Empieza creando la primera desde “Agregar propiedad”.
             </div>
           )}
+        </div>
+      </SectionCard>
+    </div>
+  );
+}
+
+export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">) {
+  return (
+    <div className="space-y-6">
+      <PropertiesHeader
+        title="Agregar propiedad"
+        description="Crea una nueva propiedad en una vista enfocada y sin mezclarla con el inventario existente."
+        action={
+          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            Volver al listado
+          </Link>
+        }
+      />
+      <PropertyForm mode="create" agents={agents} />
+    </div>
+  );
+}
+
+export function AdminPropertyEditView({ property, agents }: { property: PropertyRecord; agents: AgentOption[] }) {
+  const coverage = getPhotoCoverage(property);
+
+  return (
+    <div className="space-y-6">
+      <PropertiesHeader
+        title={property.title}
+        description="Edita la propiedad en una vista separada, con su información comercial y su galería visual en el mismo contexto de trabajo."
+        action={
+          <div className="flex flex-wrap gap-3">
+            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+              Volver al listado
+            </Link>
+            <Link href="/admin/properties/new" className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+              Agregar propiedad
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <SectionCard>
+          <p className="text-sm text-stone-500">Estatus</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.status}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Operación</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.operation_type}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Fotos</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.property_images.length}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Cobertura visual</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{coverage.completion}%</p>
+        </SectionCard>
+      </div>
+
+      <div className="space-y-6 xl:grid xl:grid-cols-[0.95fr_1.05fr] xl:gap-6 xl:space-y-0">
+        <PropertyForm mode="edit" property={property} agents={agents} />
+        <div className="space-y-6">
+          <SectionCard>
+            <p className="text-sm font-semibold text-stone-900">Cambio rápido de estatus</p>
+            <p className="mt-2 text-sm text-stone-600">Ajusta el estatus desde esta vista sin volver al listado general.</p>
+            <form action={updatePropertyStatusAction} className="mt-4 flex flex-wrap gap-3">
+              <input type="hidden" name="propertyId" value={property.id} />
+              <select name="status" defaultValue={property.status} className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                {statuses.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">Guardar estatus</button>
+            </form>
+          </SectionCard>
+          <PropertyImagesManager property={property} />
         </div>
       </div>
     </div>

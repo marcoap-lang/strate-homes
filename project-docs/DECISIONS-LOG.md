@@ -310,3 +310,16 @@ El uploader ya enviaba archivos a una ruta del tipo `workspaceId/propertyId/...`
 - el upload real al bucket queda habilitado para usuarios autenticados con membresía activa en ese workspace
 - el path de Storage pasa a ser parte importante del contrato de autorización
 - si en el futuro cambia la estructura del path, habrá que ajustar también las policies del bucket
+
+---
+
+### Decisión
+Separar el módulo de propiedades en rutas navegables (`/admin/properties`, `/admin/properties/new`, `/admin/properties/[id]`) en lugar de mantener listado, alta y edición dentro de una sola pantalla acumulada.
+
+### Motivo
+La experiencia de producto necesitaba sentirse más SaaS y menos interna. Priorizar el inventario existente como vista principal y mover el alta/edición a contextos separados mejora claridad, foco operativo y percepción profesional.
+
+### Consecuencias
+- el listado del inventario se vuelve la entrada natural al módulo de propiedades
+- alta y edición ganan contexto propio y menos fricción visual
+- la navegación del admin empieza a parecer sistema real y no panel provisional

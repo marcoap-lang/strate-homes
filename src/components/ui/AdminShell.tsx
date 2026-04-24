@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { AuthStatusBadge } from "@/components/ui/AuthStatusBadge";
@@ -8,16 +10,17 @@ import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 
 const navItems = [
-  { label: "Resumen", hint: "Vista general del workspace", active: true },
-  { label: "Propiedades", hint: "Inventario y publicación" },
-  { label: "Fotos", hint: "Cobertura visual por propiedad" },
-  { label: "Equipo", hint: "Usuarios y agentes" },
+  { label: "Resumen", hint: "Vista principal del admin", href: "/admin" },
+  { label: "Propiedades", hint: "Listado, alta y edición", href: "/admin/properties" },
+  { label: "Fotos", hint: "Galería dentro de propiedades", href: "/admin/properties" },
+  { label: "Equipo", hint: "Usuarios y agentes", href: "#" },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { user } = useSupabaseAuth();
   const { activeWorkspace } = useActiveWorkspace();
+  const pathname = usePathname();
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -47,16 +50,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="mt-8 space-y-2">
-            {navItems.map((item) => (
-              <a
-                key={item.label}
-                href="#"
-                className={`block rounded-2xl border px-4 py-3 transition ${item.active ? "border-stone-200 bg-stone-950 text-white shadow-sm" : "border-transparent bg-stone-50 text-stone-700 hover:border-stone-200 hover:bg-white"}`}
-              >
-                <p className="text-sm font-medium">{item.label}</p>
-                <p className={`mt-1 text-xs ${item.active ? "text-white/70" : "text-stone-500"}`}>{item.hint}</p>
-              </a>
-            ))}
+            {navItems.map((item) => {
+              const isActive = item.href !== "#" && (pathname === item.href || pathname.startsWith(`${item.href}/`));
+              const classes = `block rounded-2xl border px-4 py-3 transition ${isActive ? "border-stone-200 bg-stone-950 text-white shadow-sm" : "border-transparent bg-stone-50 text-stone-700 hover:border-stone-200 hover:bg-white"}`;
+              const hintClasses = `mt-1 text-xs ${isActive ? "text-white/70" : "text-stone-500"}`;
+
+              return item.href === "#" ? (
+                <div key={item.label} className={classes}>
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className={hintClasses}>{item.hint}</p>
+                </div>
+              ) : (
+                <Link key={item.label} href={item.href} className={classes}>
+                  <p className="text-sm font-medium">{item.label}</p>
+                  <p className={hintClasses}>{item.hint}</p>
+                </Link>
+              );
+            })}
           </nav>
 
           <div className="mt-8 space-y-3">
@@ -79,7 +89,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <p className="text-xs uppercase tracking-[0.3em] text-stone-500">Panel principal</p>
               <h2 className="mt-3 text-3xl font-semibold text-stone-950">Operación inmobiliaria más clara</h2>
               <p className="mt-3 max-w-3xl text-sm leading-7 text-stone-600">
-                Administra propiedades, revisa la cobertura visual de cada publicación y mantén tu operación con una experiencia más limpia y profesional.
+                Administra propiedades, revisa la cobertura visual de cada publicación y mantén tu operación con una experiencia más limpia, profesional y navegable.
               </p>
             </div>
             <div className="flex flex-wrap items-center gap-3">
