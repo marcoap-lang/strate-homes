@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 65%  
+**Avance estimado:** 69%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -17,10 +17,11 @@
 ✅ Enforcement base de roles aplicado en acciones/UI de propiedades
 ✅ Endurecimiento estructural de propiedades con created_by + RLS de alcance
 ✅ Separación visible entre rol operativo y perfil comercial en módulo Equipo
+✅ Limpieza principal del legacy `agent` en enforcement de propiedades
 
 ## Bloque actual
 
-🟨 En curso: limpieza progresiva del modelo legacy de roles + selector explícito de workspace activo
+🟨 En curso: selector explícito de workspace activo + extensión del enforcement limpio a más módulos
 
 ## Siguiente bloque
 
@@ -76,6 +77,7 @@
 - ✅ Consistencia multiworkspace mínima
 - ✅ RLS mínima
 - ✅ RLS de alcance base en properties/property_images
+- ✅ Permissions operativos principales sin dependencia conceptual de `agent`
 - ⬜ RLS por rol más fina en resto del sistema
 
 ### Admin de propiedades

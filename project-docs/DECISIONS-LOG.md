@@ -379,3 +379,17 @@ En una inmobiliaria real, una misma persona puede tener permisos operativos ampl
 - `agents` se reafirma como capa comercial/pública opcional y compatible con cualquier rol operativo
 - el módulo Equipo ya debe mostrar ambas dimensiones por separado
 - el uso legacy de `agent` como rol operativo deberá limpiarse progresivamente en schema, RLS y UI futura
+
+---
+
+### Decisión
+Dejar de depender del rol legacy `agent` para autorizar permisos operativos principales en propiedades, usando en su lugar dos señales distintas: rol operativo en `workspace_members` y perfil comercial activo en `agents`.
+
+### Motivo
+Mantener el enforcement atado a `agent` como rol del sistema ya contradecía el nuevo modelo. El ajuste correcto era permitir que la operación comercial dependa de tener perfil de agente y que la autoridad interna dependa del rol operativo real.
+
+### Consecuencias
+- `owner` y `admin` siguen gobernando el inventario por permisos internos
+- la capacidad de crear/operar comercialmente propiedades ya puede depender de tener perfil activo en `agents`, no de un rol legacy
+- el enum operativo aún conserva `agent` por compatibilidad, pero dejó de ser la base conceptual del enforcement principal
+- futuras limpiezas podrán retirar ese legado con menos riesgo porque el comportamiento central ya cambió

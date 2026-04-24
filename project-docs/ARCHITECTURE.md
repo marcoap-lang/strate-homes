@@ -453,14 +453,15 @@ Decisión operativa inicial:
 - `staff` no tiene garantizado ver todo; su visibilidad debe ser explícita por módulo o caso de uso
 
 #### Creación
-- `owner`, `admin` y `agent` pueden crear propiedades
+- `owner` y `admin` pueden crear propiedades por su rol operativo
+- usuarios con perfil comercial activo en `agents` también pueden crear propiedades dentro de su ámbito comercial
 - al crearse, la propiedad debe guardar `created_by`
 - al crearse, la propiedad debe guardar `agent_id` si existe responsable definido
 
 #### Edición
 - `owner` y `admin` pueden editar cualquier propiedad del workspace
-- `agent` solo puede editar propiedades creadas por él o asignadas a él
-- `staff` no edita propiedades como política base
+- el creador y/o agente comercial asignado puede editar propiedades dentro de su ámbito permitido
+- `staff` sin perfil comercial no edita propiedades como política base
 
 #### Eliminación
 - no se adopta borrado como flujo operativo normal
@@ -507,6 +508,10 @@ Un agente necesita dos capas:
 Por eso se separan conceptos:
 - `workspace_member`: permisos internos y rol operativo
 - `agent_public_profile`: presentación pública/comercial opcional
+
+Regla de enforcement ya adoptada:
+- los permisos operativos no deben depender conceptualmente del rol legacy `agent`
+- la capa `agents` define presencia comercial, asignación comercial y alcance comercial sobre propiedades
 
 ### Política operativa de equipo
 #### Invitaciones

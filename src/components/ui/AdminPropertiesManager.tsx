@@ -705,8 +705,8 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
             <p className="text-sm font-semibold text-stone-900">Cambio rápido de estatus</p>
             <p className="mt-2 text-sm text-stone-600">Ajusta el estatus desde esta vista sin volver al listado general.</p>
             <form action={updatePropertyStatusAction} className="mt-4 flex flex-wrap gap-3">
-              {activeWorkspace?.role === "agent" ? (
-                <p className="w-full text-xs leading-5 text-stone-500">Como agent puedes mover la propiedad entre draft y active. Archivar, vender o cerrar queda reservado para owner/admin.</p>
+              {activeWorkspace?.role !== "owner" && activeWorkspace?.role !== "admin" ? (
+                <p className="w-full text-xs leading-5 text-stone-500">Si operas desde perfil comercial puedes mover la propiedad entre draft y active. Archivar, vender o cerrar queda reservado para owner/admin.</p>
               ) : null}
               <input type="hidden" name="propertyId" value={property.id} />
               <select name="status" defaultValue={property.status} className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">

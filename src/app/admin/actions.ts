@@ -222,12 +222,12 @@ export async function createPropertyAction(
     const operationType = formData.get("operationType")?.toString() ?? "sale";
     const status = formData.get("status")?.toString() ?? "draft";
 
-    if (activeWorkspace.role === "staff") {
-      return { success: false, message: "Tu rol actual no puede crear propiedades." };
+    if (activeWorkspace.role === "staff" && !agentRecord?.id) {
+      return { success: false, message: "Tu rol actual no puede crear propiedades si no tienes perfil comercial activo." };
     }
 
-    if (activeWorkspace.role === "agent" && !agentRecord?.id) {
-      return { success: false, message: "Tu usuario todavía no tiene un agente operativo asignado en este workspace." };
+    if (!canManageFullInventory(activeWorkspace.role) && !agentRecord?.id) {
+      return { success: false, message: "Necesitas un perfil comercial de agente activo para crear propiedades en este workspace." };
     }
 
     if (title.length < 4) {
