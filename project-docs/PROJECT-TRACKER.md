@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 56%  
+**Avance estimado:** 61%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -15,10 +15,11 @@
 ✅ Módulo de propiedades separado en listado, alta y edición por rutas
 ✅ Política operativa multiusuario definida para roles y propiedades
 ✅ Enforcement base de roles aplicado en acciones/UI de propiedades
+✅ Endurecimiento estructural de propiedades con created_by + RLS de alcance
 
 ## Bloque actual
 
-🟨 En curso: terminar bajada a schema/RLS del modelo multiusuario + selector explícito de workspace activo
+🟨 En curso: selector explícito de workspace activo + extensión del enforcement multiusuario a otros módulos
 
 ## Siguiente bloque
 
@@ -48,6 +49,7 @@
 - ✅ profiles
 - ✅ agents
 - ✅ properties
+- ✅ created_by en properties
 - ✅ property_images
 - ⬜ branding/settings
 - ⬜ leads
@@ -71,7 +73,8 @@
 
 - ✅ Consistencia multiworkspace mínima
 - ✅ RLS mínima
-- ⬜ RLS por rol más fina
+- ✅ RLS de alcance base en properties/property_images
+- ⬜ RLS por rol más fina en resto del sistema
 
 ### Admin de propiedades
 
@@ -87,6 +90,8 @@
 - ✅ Política operativa base de created_by / assigned_agent definida a nivel documental
 - ✅ Enforcement base: agent crea, agent edita su ámbito, owner/admin gestionan todo
 - ✅ Sin borrado operativo de propiedades desde UI
+- ✅ created_by formalizado en esquema
+- ✅ agent_id ratificado como agente asignado en el modelo actual
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables

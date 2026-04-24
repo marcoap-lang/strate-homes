@@ -27,6 +27,7 @@ export type PropertyRecord = {
   lot_area_m2?: number | null;
   construction_area_m2?: number | null;
   is_featured: boolean;
+  created_by?: string | null;
   agent_id: string | null;
   property_images: Array<{
     id: string;

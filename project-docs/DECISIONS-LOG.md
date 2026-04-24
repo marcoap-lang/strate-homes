@@ -351,3 +351,17 @@ La política ya estaba definida y seguir construyendo encima de permisos ambiguo
 - `agent` solo puede editar propiedades dentro de su ámbito asignado
 - `owner` y `admin` conservan control completo de inventario y estatus sensibles
 - el borrado operativo de propiedades queda fuera de la experiencia del producto y se refuerza el uso de archivado/despublicación
+
+---
+
+### Decisión
+Mantener `agent_id` como representación del agente asignado en el modelo actual y agregar `created_by` como nueva fuente formal de autoría, en lugar de abrir una separación más grande de `assigned_agent_id` en este momento.
+
+### Motivo
+Hacía falta endurecer el modelo sin disparar una refactorización excesiva. `agent_id` ya funcionaba como asignación operativa y era el punto menos costoso para anclar RLS y reglas de alcance; lo que faltaba de forma crítica era registrar formalmente quién creó la propiedad.
+
+### Consecuencias
+- el modelo gana autoría formal con `created_by`
+- la asignación queda más clara sin romper compatibilidad, usando `agent_id` como agente asignado actual
+- las policies de properties/property_images ya pueden acercarse al alcance operativo real de owner/admin vs creator/assigned agent
+- una futura separación explícita de `assigned_agent_id` solo será necesaria si aparece un caso de producto que ya no quepa en el modelo actual

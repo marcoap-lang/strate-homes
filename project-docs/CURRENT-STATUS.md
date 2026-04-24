@@ -53,12 +53,13 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Política operativa multiusuario definida formalmente para roles, permisos, visibilidad de inventario y asignación de propiedades dentro de una inmobiliaria multiusuario.
 - Enforcement base de roles bajado a las acciones y UI del módulo de propiedades: agent crea, agent edita solo su ámbito, owner/admin gestionan inventario completo y asignaciones.
 - Flujo operativo reforzado para evitar borrado de propiedades y privilegiar archivado/despublicación por rol.
+- Modelo de propiedades endurecido estructuralmente con `created_by` formal, `agent_id` ratificado como agente asignado y RLS/policies más cercanas al alcance operativo real.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - validar flujo real de login/admin sobre producción con usuario miembro final
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
-- terminar de bajar el modelo formal de roles/permisos a schema y RLS futura sin romper lo ya construido
+- validar en uso real el nuevo enforcement estructural de propiedades para detectar huecos antes de extenderlo a más módulos
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
 - validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
@@ -67,7 +68,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
 2. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
-4. terminar de bajar la política operativa multiusuario a schema y RLS real para propiedades/equipo
+4. extender la misma disciplina estructural a equipo y permisos administrativos finos
 5. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 6. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 7. refinar componentes UI compartidos del admin

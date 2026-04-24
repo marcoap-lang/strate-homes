@@ -215,7 +215,7 @@ export async function createPropertyAction(
   formData: FormData,
 ): Promise<PropertyFormState> {
   try {
-    const { supabase, activeWorkspace, agentRecord } = await getWorkspaceContext();
+    const { supabase, activeWorkspace, user, agentRecord } = await getWorkspaceContext();
     const title = formData.get("title")?.toString().trim() ?? "";
     const locationLabel = formData.get("locationLabel")?.toString().trim() ?? "";
     const propertyType = formData.get("propertyType")?.toString() ?? "house";
@@ -240,6 +240,7 @@ export async function createPropertyAction(
 
     const payload = {
       workspace_id: activeWorkspace.workspaceId,
+      created_by: user.id,
       agent_id: getAllowedAgentId({
         requestedAgentId: normalizeNullable(formData.get("agentId")),
         activeRole: activeWorkspace.role,

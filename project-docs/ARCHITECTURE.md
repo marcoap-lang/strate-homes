@@ -133,7 +133,8 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `agents.workspace_id` conecta cada agente a un workspace.
 - `agents.profile_id` conecta opcionalmente al agente con un usuario autenticado.
 - `properties.workspace_id` asegura aislamiento del inventario por workspace.
-- `properties.agent_id` asigna opcionalmente una propiedad a un agente responsable.
+- `properties.created_by` registra de forma formal al perfil que creó la propiedad.
+- `properties.agent_id` representa el agente asignado dentro del modelo actual.
 - `property_images.property_id` conecta la galería con cada propiedad.
 - `property_images.workspace_id` replica el contexto de workspace para facilitar trazabilidad y futuras políticas.
 
@@ -309,9 +310,9 @@ Inventario mínimo con foco en publicación y operación inmobiliaria temprana.
 Campos clave:
 - `id`
 - `workspace_id`
-- `agent_id` opcional
-- `created_by` futuro requerido
-- `assigned_agent_id` futuro requerido como convención operativa sobre `agent_id` o como campo explícito
+- `agent_id` opcional como agente asignado
+- `created_by` requerido formalmente
+- `assigned_agent_id` pospuesto; en el modelo actual la asignación vive en `agent_id`
 - `title`
 - `slug`
 - `public_code`
@@ -335,8 +336,8 @@ Restricción relevante:
 - unicidad por `(workspace_id, slug)`
 
 Política operativa objetivo:
-- cada propiedad debe registrar quién la creó (`created_by`)
-- cada propiedad debe contemplar agente responsable (`assigned_agent`)
+- cada propiedad registra quién la creó (`created_by`)
+- cada propiedad contempla agente responsable mediante `agent_id` como agente asignado actual
 - `agent` puede crear propiedades
 - `agent` no puede borrar propiedades
 - `owner` y `admin` archivan o despublican en vez de borrar
@@ -468,7 +469,7 @@ Decisión operativa inicial:
 #### Creación
 - `owner`, `admin` y `agent` pueden crear propiedades
 - al crearse, la propiedad debe guardar `created_by`
-- al crearse, la propiedad debe guardar `assigned_agent` si existe responsable definido
+- al crearse, la propiedad debe guardar `agent_id` si existe responsable definido
 
 #### Edición
 - `owner` y `admin` pueden editar cualquier propiedad del workspace
@@ -482,7 +483,7 @@ Decisión operativa inicial:
 - el borrado físico, si alguna vez existe, debe reservarse para mantenimiento excepcional
 
 #### Asignación
-- la asignación principal de una propiedad corresponde a `assigned_agent`
+- la asignación principal de una propiedad corresponde a `agent_id` en el modelo actual
 - `owner` y `admin` pueden cambiar asignación
 - `agent` no cambia libremente la asignación salvo permiso futuro explícito
 

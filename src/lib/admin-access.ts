@@ -82,6 +82,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
           construction_area_m2,
           published_at,
           is_featured,
+          created_by,
           created_at,
           updated_at,
           agent_id,
