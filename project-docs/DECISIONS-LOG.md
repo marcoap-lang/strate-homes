@@ -419,3 +419,16 @@ El producto ya necesitaba verse y sentirse como sistema real, no como plantilla 
 - el repositorio ya conserva un seed demo útil para poblar entornos de prueba o showroom
 - la experiencia pública se empuja hacia una referencia más premium tipo brokerage/luxury real estate
 - la carga del seed en remoto queda separada como paso operativo consciente para evitar resets destructivos improvisados
+
+---
+
+### Decisión
+Para poblar el showroom remoto, reutilizar perfiles reales ya existentes en `public.profiles` en vez de crear perfiles demo falsos que no existen en `auth.users`.
+
+### Motivo
+El modelo remoto exige integridad entre `public.profiles.id` y `auth.users.id`. Eso vuelve inválido un seed remoto basado en UUIDs demo arbitrarios. Reusar perfiles reales permite sembrar workspace demo, memberships, agentes y propiedades sin reset destructivo ni manipulación frágil de Auth.
+
+### Consecuencias
+- se añade un seed remoto separado (`supabase/seed-remote.sql`) orientado al entorno hospedado
+- el showroom demo remoto queda materializable sin crear usuarios fake en Auth
+- el número de agentes/memberships visibles depende de cuántos perfiles reales activos existan en el sistema

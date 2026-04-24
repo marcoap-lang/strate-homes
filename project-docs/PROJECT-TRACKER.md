@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 88%  
+**Avance estimado:** 91%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -24,6 +24,8 @@
 ✅ Home pública del workspace conectada a datos reales
 ✅ Dirección visual pública más premium/editorial
 ✅ Seed demo completo preparado para showroom del producto
+✅ Seed remoto compatible con usuarios reales cargado en hospedado
+✅ Showroom demo visible en remoto sin reset destructivo
 
 ## Bloque actual
 
@@ -54,6 +56,8 @@
 - ✅ Home pública del workspace con inventario y agentes reales
 - ✅ Dirección visual pública más premium
 - ✅ Seed demo versionado en `supabase/seed.sql`
+- ✅ Seed remoto versionado en `supabase/seed-remote.sql`
+- ✅ Showroom remoto cargado: 1 workspace demo, 2 agentes, 14 propiedades, 51 imágenes metadata
 
 ### Base de datos
 

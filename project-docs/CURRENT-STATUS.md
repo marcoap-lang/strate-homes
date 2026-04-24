@@ -63,6 +63,8 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Home pública del workspace/inmobiliaria creada con datos reales: identidad básica, hero, propiedades destacadas, inventario activo, CTA y agentes visibles.
 - Dirección visual pública refinada hacia una estética más premium/editorial para evaluar mejor el producto con sensación de brokerage de alto nivel.
 - Seed demo completo preparado en `supabase/seed.sql` con inmobiliaria demo, agentes demo, propiedades variadas y galerías útiles para probar admin y sitio público.
+- Seed remoto compatible con usuarios reales cargado en hospedado vía `supabase/seed-remote.sql`, reutilizando perfiles existentes del sistema sin depender de UUIDs inexistentes en `auth.users`.
+- Showroom demo remoto materializado: workspace `azure-coast-realty`, 2 memberships activas, 2 agentes públicos activos, 14 propiedades demo y 51 imágenes metadata; 12 propiedades ya públicas/activas.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -77,7 +79,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - validar con propiedades reales la consistencia comercial de la capa pública (copy, fotos, agente visible, contacto)
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
-- ejecutar de forma controlada la carga remota del seed demo cuando se quiera poblar el entorno hospedado sin reset destructivo improvisado
+- ampliar más adelante el showroom remoto para usar 3-4 agentes visibles si existen más perfiles reales disponibles, sin acoplarse a usuarios demo ficticios
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -89,7 +91,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 7. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
 8. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
-10. cargar de forma explícita el seed demo en remoto cuando se quiera usar como ambiente showroom persistente
+10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin
