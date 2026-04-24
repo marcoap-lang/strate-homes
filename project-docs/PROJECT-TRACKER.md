@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 80%  
+**Avance estimado:** 84%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -21,6 +21,7 @@
 ✅ Activación y edición de perfil comercial operables desde Equipo
 ✅ Propiedades públicas conectadas a inventario real desde Supabase
 ✅ Ficha pública de propiedad refinada con presentación más comercial y premium
+✅ Home pública del workspace conectada a datos reales
 
 ## Bloque actual
 
@@ -48,6 +49,7 @@
 - ✅ Rutas públicas base
 - ✅ Datos reales en páginas públicas
 - ✅ Ficha pública comercial reforzada en `/properties/[slug]`
+- ✅ Home pública del workspace con inventario y agentes reales
 
 ### Base de datos
 
