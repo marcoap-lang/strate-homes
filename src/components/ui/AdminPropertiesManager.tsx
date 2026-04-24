@@ -312,6 +312,14 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
       try {
         for (const file of files) {
+          if (!file.type.startsWith("image/")) {
+            throw new Error(`El archivo ${file.name} no es una imagen válida.`);
+          }
+
+          if (!property.id || !activeWorkspace.workspaceId) {
+            throw new Error("Primero guarda la propiedad antes de subir fotos.");
+          }
+
           const extension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
           const safeName = file.name
             .normalize("NFD")
@@ -327,7 +335,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             contentType: file.type,
           });
 
-          if (error) throw error;
+          if (error) throw new Error(error.message);
 
           uploaded.push({
             storage_path: path,
@@ -340,11 +348,20 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
         updateGallery([...gallery, ...uploaded]);
         setClientMessage(`${uploaded.length} foto(s) cargada(s). Guarda la galería para confirmar orden y portada.`);
-      } catch {
+      } catch (error) {
         if (uploaded.length) {
           await supabase.storage.from("property-images").remove(uploaded.map((image) => image.storage_path));
         }
-        setClientError("No pudimos subir las fotos. Revisa el archivo e intenta de nuevo.");
+
+        const message = error instanceof Error ? error.message : "No pudimos subir las fotos.";
+
+        if (message.toLowerCase().includes("row-level security") || message.toLowerCase().includes("permission")) {
+          setClientError("Tu sesión no tiene permiso para subir fotos a este workspace. Revisa la configuración del bucket o vuelve a iniciar sesión.");
+        } else if (message.toLowerCase().includes("duplicate")) {
+          setClientError("Ya existe una foto con ese nombre. Intenta subirla otra vez.");
+        } else {
+          setClientError(message);
+        }
       } finally {
         if (fileInputRef.current) fileInputRef.current.value = "";
       }

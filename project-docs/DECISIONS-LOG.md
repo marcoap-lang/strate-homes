@@ -297,3 +297,16 @@ Esta combinación conserva la compatibilidad con el workspace activo y con la se
 - la subida binaria ocurre directamente contra Storage con sesión autenticada del usuario
 - el orden, la portada y la persistencia final de metadatos viven en el flujo del admin y se revalidan desde servidor
 - la siguiente mejora natural, si hace falta, será drag-and-drop más fino y limpieza automática más completa de archivos huérfanos
+
+---
+
+### Decisión
+Autorizar el bucket `property-images` con policies de `storage.objects` basadas en el primer segmento del path como `workspace_id`.
+
+### Motivo
+El uploader ya enviaba archivos a una ruta del tipo `workspaceId/propertyId/...`, pero sin policies explícitas de Storage el upload quedaba bloqueado. Reusar el `workspace_id` embebido en el path permite mantener el control alineado con la membresía activa sin abrir acceso amplio al bucket.
+
+### Consecuencias
+- el upload real al bucket queda habilitado para usuarios autenticados con membresía activa en ese workspace
+- el path de Storage pasa a ser parte importante del contrato de autorización
+- si en el futuro cambia la estructura del path, habrá que ajustar también las policies del bucket

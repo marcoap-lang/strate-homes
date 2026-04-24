@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 43%  
+**Avance estimado:** 45%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -11,6 +11,7 @@
 ✅ Bootstrap seguro del primer workspace vía RPC sin relajar RLS
 ✅ Refinamiento UX de acceso, onboarding y experiencia inicial del admin
 ✅ Uploader visual real de fotos con preview, orden y portada principal
+✅ Storage policies alineadas para upload real al bucket property-images
 
 ## Bloque actual
 
@@ -74,6 +75,7 @@
 - ✅ Acceso claro al admin
 - ✅ Header admin más claro con workspace, usuario y logout visible
 - ✅ Gestión visual de imágenes con Storage, preview, orden, portada, checklist y completitud visual
+- ✅ Policies mínimas de Storage para upload autenticado por workspace
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables

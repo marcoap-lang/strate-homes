@@ -46,6 +46,8 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Shell inicial del admin refinado con mejor jerarquía, workspace visible, usuario visible y logout claro.
 - UX de fotos mejorada con guía visual, checklist sugerido de cobertura mínima y noción de completitud por propiedad.
 - Uploader visual real de fotos integrado al admin con subida a Storage, preview, orden visual y selección de portada principal.
+- Políticas de Storage agregadas para `property-images` alineadas al workspace activo, habilitando subida real desde sesión autenticada.
+- Mensajes de error del uploader mejorados para distinguir permisos, archivo inválido y conflictos básicos.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -53,7 +55,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
-- validar y pulir el uploader visual real de fotos sobre uso operativo y luego decidir si necesita drag-and-drop completo
+- validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -66,7 +68,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
-- El uploader visual ya funciona, pero todavía puede requerir una capa posterior de drag-and-drop más fluida y reglas extra para limpieza/consistencia de Storage.
+- El uploader visual ya funciona con policies de Storage compatibles, pero todavía puede requerir una capa posterior de drag-and-drop más fluida y reglas extra para limpieza/consistencia de Storage.
 - Falta validar con usuario real en producción que el flujo completo de registro/login + habilitación inicial quede redondo de punta a punta, ahora ya sobre el nuevo RPC seguro.
 
 ## Riesgos a vigilar
