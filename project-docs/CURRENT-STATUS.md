@@ -58,6 +58,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Módulo Equipo visible en `/admin/team` para mostrar por persona su rol operativo y si además tiene perfil comercial activo.
 - Dependencia legacy del rol `agent` limpiada en el enforcement principal de propiedades: los permisos operativos ahora dependen del rol en `workspace_members` y la operación comercial depende del perfil activo en `agents`.
 - Activación y edición de perfil comercial ya operables desde Equipo para usuarios existentes del workspace, incluyendo owner/admin que quieran activarse como agente.
+- Capa pública de propiedades ya conectada a Supabase con inventario real activo/publicado para listado y detalle.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -69,6 +70,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
 - validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
+- validar con propiedades reales la consistencia comercial de la capa pública (copy, fotos, agente visible, contacto)
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -77,6 +79,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 4. extender la misma disciplina estructural a equipo y permisos administrativos finos
 5. decidir si hace falta una migración posterior para retirar por completo el rol legacy `agent` del enum operativo
 6. mejorar después la experiencia visual del perfil comercial con preview más rica y manejo de assets menos manual
+7. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

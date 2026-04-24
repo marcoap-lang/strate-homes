@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 73%  
+**Avance estimado:** 77%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -19,6 +19,7 @@
 ✅ Separación visible entre rol operativo y perfil comercial en módulo Equipo
 ✅ Limpieza principal del legacy `agent` en enforcement de propiedades
 ✅ Activación y edición de perfil comercial operables desde Equipo
+✅ Propiedades públicas conectadas a inventario real desde Supabase
 
 ## Bloque actual
 
@@ -44,7 +45,7 @@
 - ✅ Landing inicial
 - ✅ Branding inicial
 - ✅ Rutas públicas base
-- ⬜ Datos reales en páginas públicas
+- ✅ Datos reales en páginas públicas
 
 ### Base de datos
 
@@ -102,6 +103,7 @@
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables
+- ✅ Listado/detalle público con propiedades reales activas/publicadas
 
 - ✅ Concepto definido
 - ⬜ Página pública de empresa

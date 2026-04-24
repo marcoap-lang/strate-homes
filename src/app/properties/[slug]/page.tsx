@@ -1,9 +1,10 @@
-import { featuredProperties } from "@/lib/mock-data";
+import Image from "next/image";
 import { notFound } from "next/navigation";
+import { getPublicPropertyBySlug } from "@/lib/public-properties";
 
 export default async function PropertyDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const property = featuredProperties.find((item) => item.slug === slug);
+  const property = await getPublicPropertyBySlug(slug);
 
   if (!property) {
     notFound();
@@ -15,15 +16,21 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         <div className="grid gap-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-start">
           <section>
             <div className="rounded-[2rem] bg-gradient-to-br from-zinc-300 via-zinc-200 to-zinc-100 p-4">
-              <div className="h-[28rem] rounded-[1.5rem] bg-white/45 backdrop-blur-sm" />
+              <div className="relative h-[28rem] overflow-hidden rounded-[1.5rem] bg-white/45 backdrop-blur-sm">
+                {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover" unoptimized /> : null}
+              </div>
             </div>
             <h1 className="mt-8 text-4xl font-semibold tracking-tight sm:text-5xl">{property.title}</h1>
-            <p className="mt-3 text-lg text-zinc-600">{property.locationLabel}</p>
+            <p className="mt-3 text-lg text-zinc-600">
+              {property.locationLabel}
+              {property.city ? ` · ${property.city}` : ""}
+              {property.state ? `, ${property.state}` : ""}
+            </p>
             <div className="mt-6 flex flex-wrap gap-3 text-sm text-zinc-600">
               <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Venta / Renta"}</span>
-              <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.status}</span>
+              <span className="rounded-full border border-black/10 bg-white px-4 py-2">{property.publicCode ?? "Disponible"}</span>
               <span className="rounded-full border border-black/10 bg-white px-4 py-2">
-                {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX")}
+                {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
               </span>
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-3">
@@ -38,6 +45,13 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 </div>
               ))}
             </div>
+
+            {property.description ? (
+              <div className="mt-8 rounded-[1.5rem] border border-black/5 bg-white p-6">
+                <p className="text-xs uppercase tracking-[0.3em] text-zinc-500">Descripción</p>
+                <p className="mt-3 text-sm leading-8 text-zinc-700">{property.description}</p>
+              </div>
+            ) : null}
           </section>
 
           <aside className="space-y-6 rounded-[2rem] border border-black/5 bg-white p-6 shadow-sm">
@@ -46,15 +60,15 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <h2 className="mt-3 text-2xl font-semibold">Solicitar información</h2>
             </div>
             <p className="text-sm leading-7 text-zinc-600">
-              Este panel se conecta después con leads, WhatsApp y asignación de agente. Por ahora deja lista la narrativa comercial.
+              Esta propiedad ya sale de inventario real. El siguiente paso natural será conectar este punto con lead capture y contacto comercial.
             </p>
             <a href="#" className="inline-flex rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-zinc-800">
               Contactar por WhatsApp
             </a>
             <div className="rounded-[1.5rem] border border-dashed border-black/10 bg-[#f8f5ef] p-5">
-              <p className="text-sm font-medium text-zinc-700">Próxima mejora</p>
+              <p className="text-sm font-medium text-zinc-700">Agente comercial</p>
               <p className="mt-2 text-sm leading-7 text-zinc-600">
-                Agregar galería real, mapa, fichas técnicas, propiedades relacionadas y formulario conectado a CRM.
+                {property.agent?.displayName ?? "Sin agente comercial visible todavía."}
               </p>
             </div>
           </aside>
