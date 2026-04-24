@@ -72,13 +72,15 @@ Entidad conceptual:
 - workspace
 - workspace_member
 - agent_profile
-- role
+- operational_role
 - permission profile
 
 Idea base:
 - un usuario autenticado puede pertenecer a uno o más workspaces en el futuro
 - un workspace representa una inmobiliaria, equipo o agente individual
-- un agente puede ser miembro de un workspace con rol específico
+- la membresía del workspace controla permisos internos y rol operativo
+- el perfil comercial de agente es una capa separada y opcional
+- una misma persona puede ser `owner` o `admin` y además tener perfil comercial de agente
 - las propiedades, leads y branding viven dentro de un workspace
 - algunas propiedades pueden asignarse a un agente responsable
 
@@ -188,11 +190,11 @@ Campos clave:
 Restricción relevante:
 - unicidad por `(workspace_id, profile_id)`
 
-Roles mínimos iniciales:
+Roles operativos vigentes en transición:
 - `owner`
 - `admin`
-- `agent`
 - `staff`
+- `agent` (legacy; debe migrarse progresivamente fuera del núcleo operativo)
 
 ### Política operativa formal de roles
 #### `owner`
@@ -242,29 +244,13 @@ No puede:
 - transferir ownership por sí mismo
 - borrar propiedades como flujo normal; debe archivar o despublicar
 
-#### `agent`
-Usuario comercial que opera inventario y seguimiento sobre su ámbito de trabajo.
+#### `agent` (legacy)
+Rol heredado que todavía existe en el sistema actual por compatibilidad, pero conceptualmente debe migrar hacia una combinación más limpia entre rol operativo y perfil comercial.
 
-Puede ver:
-- por decisión operativa base, todo el inventario del workspace
-- propiedades creadas por él
-- propiedades asignadas a él
-- información operativa necesaria para vender mejor
-
-Puede crear:
-- propiedades nuevas dentro del workspace
-
-Puede editar:
-- propiedades creadas por él
-- propiedades asignadas a él
-- fotos y contenido operativo de esas propiedades
-
-No puede:
-- borrar propiedades
-- cambiar roles
-- invitar usuarios
-- reasignar propiedades libremente sin permiso superior
-- editar propiedades fuera de su ámbito si no las creó ni le fueron asignadas
+Lectura correcta a futuro:
+- los permisos internos deben vivir en la membresía del workspace
+- la capacidad comercial/pública debe vivir en `agents`
+- una persona no debe quedar forzada a elegir entre ser admin del sistema o agente comercial
 
 #### `staff`
 Usuario de apoyo operativo o administrativo con acceso restringido.
@@ -286,7 +272,7 @@ No puede:
 - editar inventario principal como regla base
 
 #### `agents`
-Capa operativa y pública mínima del agente. Se separa de `profiles` porque no todo agente visible requiere exponer toda la identidad privada, y en el futuro puede haber relaciones más complejas entre cuenta, rol y presencia pública.
+Capa comercial y pública del agente. Se separa de `profiles` porque no todo agente visible requiere exponer toda la identidad privada, y porque la presencia comercial no debe confundirse con el rol operativo interno.
 
 Campos clave:
 - `id`
@@ -519,8 +505,8 @@ Un agente necesita dos capas:
 2. presencia pública configurable
 
 Por eso se separan conceptos:
-- `workspace_member`: permisos internos
-- `agent_public_profile`: presentación pública
+- `workspace_member`: permisos internos y rol operativo
+- `agent_public_profile`: presentación pública/comercial opcional
 
 ### Política operativa de equipo
 #### Invitaciones

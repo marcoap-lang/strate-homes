@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
+import type { AgentOption, PropertyRecord, TeamMemberRecord } from "@/lib/admin-types";
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 export type AdminAccessState =
@@ -14,6 +14,7 @@ export type AdminAccessState =
       };
       properties: PropertyRecord[];
       agents: AgentOption[];
+      teamMembers: TeamMemberRecord[];
     }
   | {
       kind: "first-access" | "no-workspace";
@@ -54,7 +55,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   }
 
-  const [{ data: properties, error: propertiesError }, { data: agents, error: agentsError }] = await Promise.all([
+  const [{ data: properties, error: propertiesError }, { data: agents, error: agentsError }, { data: teamMembers, error: teamError }] = await Promise.all([
     supabase
       .from("properties")
       .select(
@@ -108,14 +109,66 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .order("updated_at", { ascending: false }),
     supabase
       .from("agents")
-      .select("id, display_name, slug")
+      .select("id, profile_id, display_name, slug, title, is_public")
       .eq("workspace_id", activeWorkspace.workspaceId)
       .eq("is_active", true)
       .order("display_name", { ascending: true }),
+    supabase
+      .from("workspace_members")
+      .select(
+        `
+          id,
+          profile_id,
+          role,
+          is_active,
+          joined_at,
+          profiles:profile_id (
+            full_name,
+            email,
+            phone
+          )
+        `,
+      )
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .eq("is_active", true)
+      .order("created_at", { ascending: true }),
   ]);
 
   if (propertiesError) throw propertiesError;
   if (agentsError) throw agentsError;
+  if (teamError) throw teamError;
+
+  const agentByProfileId = new Map(
+    (agents ?? [])
+      .filter((agent) => agent.profile_id)
+      .map((agent) => [agent.profile_id as string, agent]),
+  );
+
+  const normalizedTeamMembers: TeamMemberRecord[] = (teamMembers ?? []).map((member) => {
+    const profile = Array.isArray(member.profiles) ? member.profiles[0] : member.profiles;
+    const linkedAgent = agentByProfileId.get(member.profile_id);
+
+    return {
+      membership_id: member.id,
+      profile_id: member.profile_id,
+      workspace_role: member.role,
+      is_active: member.is_active,
+      full_name: profile?.full_name ?? null,
+      email: profile?.email ?? null,
+      phone: profile?.phone ?? null,
+      joined_at: member.joined_at ?? null,
+      agent_profile: linkedAgent
+        ? {
+            id: linkedAgent.id,
+            display_name: linkedAgent.display_name,
+            slug: linkedAgent.slug,
+            title: linkedAgent.title ?? null,
+            is_public: linkedAgent.is_public ?? false,
+            is_active: true,
+          }
+        : null,
+    };
+  });
 
   return {
     kind: "ready",
@@ -125,5 +178,6 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     },
     properties: properties ?? [],
     agents: agents ?? [],
+    teamMembers: normalizedTeamMembers,
   };
 }

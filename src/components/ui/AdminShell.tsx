@@ -13,7 +13,7 @@ const navItems = [
   { label: "Resumen", hint: "Vista principal del admin", href: "/admin" },
   { label: "Propiedades", hint: "Listado, alta y edición", href: "/admin/properties" },
   { label: "Fotos", hint: "Galería dentro de propiedades", href: "/admin/properties" },
-  { label: "Equipo", hint: "Usuarios y agentes", href: "#" },
+  { label: "Equipo", hint: "Rol operativo + perfil comercial", href: "/admin/team" },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {

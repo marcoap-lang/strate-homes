@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 61%  
+**Avance estimado:** 65%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -16,10 +16,11 @@
 ✅ Política operativa multiusuario definida para roles y propiedades
 ✅ Enforcement base de roles aplicado en acciones/UI de propiedades
 ✅ Endurecimiento estructural de propiedades con created_by + RLS de alcance
+✅ Separación visible entre rol operativo y perfil comercial en módulo Equipo
 
 ## Bloque actual
 
-🟨 En curso: selector explícito de workspace activo + extensión del enforcement multiusuario a otros módulos
+🟨 En curso: limpieza progresiva del modelo legacy de roles + selector explícito de workspace activo
 
 ## Siguiente bloque
 
@@ -62,6 +63,7 @@
 - ✅ Sync auth.users -> profiles
 - ✅ workspace_members
 - ✅ Roles base
+- ✅ Separación conceptual entre rol operativo y perfil comercial
 - ✅ Política operativa formal de roles
 - ✅ Workspace activo base
 - ✅ Habilitación mínima de owner inicial
@@ -79,6 +81,7 @@
 ### Admin de propiedades
 
 - ✅ Shell admin
+- ✅ Módulo Equipo visible
 - ✅ CRUD real de propiedades
 - ✅ Acceso claro al admin
 - ✅ Header admin más claro con workspace, usuario y logout visible

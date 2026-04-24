@@ -365,3 +365,17 @@ Hacía falta endurecer el modelo sin disparar una refactorización excesiva. `ag
 - la asignación queda más clara sin romper compatibilidad, usando `agent_id` como agente asignado actual
 - las policies de properties/property_images ya pueden acercarse al alcance operativo real de owner/admin vs creator/assigned agent
 - una futura separación explícita de `assigned_agent_id` solo será necesaria si aparece un caso de producto que ya no quepa en el modelo actual
+
+---
+
+### Decisión
+Separar formalmente el rol operativo del workspace y el perfil comercial de agente como dos capas distintas, no mutuamente excluyentes.
+
+### Motivo
+En una inmobiliaria real, una misma persona puede tener permisos operativos amplios (`owner` o `admin`) y además operar comercialmente como asesor con perfil público y propiedades asignadas. Tratar `agent` como rol operativo único distorsiona el producto y mezcla gobierno interno con presencia comercial.
+
+### Consecuencias
+- la membresía del workspace pasa a representar permisos internos
+- `agents` se reafirma como capa comercial/pública opcional y compatible con cualquier rol operativo
+- el módulo Equipo ya debe mostrar ambas dimensiones por separado
+- el uso legacy de `agent` como rol operativo deberá limpiarse progresivamente en schema, RLS y UI futura

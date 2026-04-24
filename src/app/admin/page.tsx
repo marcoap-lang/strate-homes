@@ -25,6 +25,9 @@ export default async function AdminPage() {
               <Link href="/admin/properties/new" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
                 Agregar propiedad
               </Link>
+              <Link href="/admin/team" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+                Ver equipo
+              </Link>
             </div>
           </div>
         </div>
