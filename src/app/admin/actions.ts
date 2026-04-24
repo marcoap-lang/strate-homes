@@ -14,7 +14,17 @@ export type PropertyFormState = {
   message: string;
 };
 
+export type AgentProfileState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_AGENT_PROFILE_STATE: AgentProfileState = {
   success: false,
   message: "",
 };
@@ -81,6 +91,10 @@ function getReadableBootstrapError(message: string) {
 }
 
 function canManageFullInventory(role: string | null | undefined) {
+  return role === "owner" || role === "admin";
+}
+
+function canManageAgentProfiles(role: string | null | undefined) {
   return role === "owner" || role === "admin";
 }
 
@@ -160,6 +174,52 @@ async function getPropertyAccessContext(propertyId: string) {
   };
 }
 
+async function getTeamMemberProfileContext(profileId: string) {
+  const context = await getWorkspaceContext();
+  const { supabase, activeWorkspace, user } = context;
+
+  if (!canManageAgentProfiles(activeWorkspace.role)) {
+    throw new Error("Solo owner/admin pueden activar o editar perfiles comerciales.");
+  }
+
+  const { data: membership, error: membershipError } = await supabase
+    .from("workspace_members")
+    .select("id, profile_id, role")
+    .eq("workspace_id", activeWorkspace.workspaceId)
+    .eq("profile_id", profileId)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  if (membershipError) throw membershipError;
+  if (!membership) throw new Error("No encontramos a esa persona dentro del workspace activo.");
+
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("id, full_name, email, phone, avatar_url")
+    .eq("id", profileId)
+    .maybeSingle();
+
+  if (profileError) throw profileError;
+  if (!profile) throw new Error("No encontramos el perfil base de esa persona.");
+
+  const { data: existingAgent, error: agentError } = await supabase
+    .from("agents")
+    .select("id, profile_id, slug, display_name")
+    .eq("workspace_id", activeWorkspace.workspaceId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (agentError) throw agentError;
+
+  return {
+    ...context,
+    actingUserId: user.id,
+    membership,
+    profile,
+    existingAgent,
+  };
+}
+
 export async function bootstrapInitialOwnerAction(
   _prevState: BootstrapOwnerState = INITIAL_BOOTSTRAP_STATE,
   formData: FormData,
@@ -206,6 +266,78 @@ export async function bootstrapInitialOwnerAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo habilitar el usuario inicial.",
+    };
+  }
+}
+
+export async function upsertAgentProfileAction(
+  _prevState: AgentProfileState = INITIAL_AGENT_PROFILE_STATE,
+  formData: FormData,
+): Promise<AgentProfileState> {
+  try {
+    const profileId = formData.get("profileId")?.toString();
+
+    if (!profileId) {
+      return { success: false, message: "Falta identificar al usuario para activar o editar su perfil comercial." };
+    }
+
+    const { supabase, activeWorkspace, profile, existingAgent } = await getTeamMemberProfileContext(profileId);
+
+    const displayName = formData.get("displayName")?.toString().trim() || profile.full_name?.trim() || profile.email?.trim() || "Asesor";
+    const slugBase = formData.get("slug")?.toString().trim() || displayName;
+    const slug = slugify(slugBase);
+
+    if (displayName.length < 3) {
+      return { success: false, message: "El nombre público debe tener al menos 3 caracteres." };
+    }
+
+    if (slug.length < 3) {
+      return { success: false, message: "El slug del perfil comercial debe tener al menos 3 caracteres." };
+    }
+
+    const payload = {
+      workspace_id: activeWorkspace.workspaceId,
+      profile_id: profileId,
+      display_name: displayName,
+      slug,
+      title: normalizeNullable(formData.get("title")),
+      bio: normalizeNullable(formData.get("bio")),
+      phone: normalizeNullable(formData.get("phone")) ?? profile.phone ?? null,
+      email: normalizeNullable(formData.get("email")) ?? profile.email ?? null,
+      whatsapp: normalizeNullable(formData.get("whatsapp")),
+      avatar_url: normalizeNullable(formData.get("avatarUrl")) ?? profile.avatar_url ?? null,
+      is_public: formData.get("isPublic") === "on",
+      is_active: true,
+    };
+
+    if (existingAgent?.id) {
+      const { error } = await supabase
+        .from("agents")
+        .update(payload)
+        .eq("id", existingAgent.id)
+        .eq("workspace_id", activeWorkspace.workspaceId);
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+    } else {
+      const { error } = await supabase.from("agents").insert(payload);
+
+      if (error) {
+        return { success: false, message: error.message };
+      }
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/team");
+    return {
+      success: true,
+      message: existingAgent?.id ? "Perfil comercial actualizado correctamente." : "Perfil comercial activado correctamente.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo guardar el perfil comercial.",
     };
   }
 }

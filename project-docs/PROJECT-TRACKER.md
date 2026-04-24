@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 69%  
+**Avance estimado:** 73%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -18,6 +18,7 @@
 ✅ Endurecimiento estructural de propiedades con created_by + RLS de alcance
 ✅ Separación visible entre rol operativo y perfil comercial en módulo Equipo
 ✅ Limpieza principal del legacy `agent` en enforcement de propiedades
+✅ Activación y edición de perfil comercial operables desde Equipo
 
 ## Bloque actual
 
@@ -84,6 +85,7 @@
 
 - ✅ Shell admin
 - ✅ Módulo Equipo visible
+- ✅ Activación/edición básica de perfil comercial de agente
 - ✅ CRUD real de propiedades
 - ✅ Acceso claro al admin
 - ✅ Header admin más claro con workspace, usuario y logout visible

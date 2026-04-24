@@ -57,6 +57,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Modelo multiusuario ajustado para separar rol operativo del workspace y perfil comercial de agente como capas distintas y compatibles.
 - Módulo Equipo visible en `/admin/team` para mostrar por persona su rol operativo y si además tiene perfil comercial activo.
 - Dependencia legacy del rol `agent` limpiada en el enforcement principal de propiedades: los permisos operativos ahora dependen del rol en `workspace_members` y la operación comercial depende del perfil activo en `agents`.
+- Activación y edición de perfil comercial ya operables desde Equipo para usuarios existentes del workspace, incluyendo owner/admin que quieran activarse como agente.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -64,6 +65,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
 - validar en uso real el nuevo enforcement estructural de propiedades para detectar huecos antes de extenderlo a más módulos
 - seguir limpiando el uso legacy de `agent` en módulos futuros y evitar reintroducirlo como rol operativo principal
+- validar en uso real el flujo de activación/edición de perfil comercial desde Equipo
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
 - validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
@@ -74,6 +76,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
 4. extender la misma disciplina estructural a equipo y permisos administrativos finos
 5. decidir si hace falta una migración posterior para retirar por completo el rol legacy `agent` del enum operativo
+6. mejorar después la experiencia visual del perfil comercial con preview más rica y manejo de assets menos manual
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

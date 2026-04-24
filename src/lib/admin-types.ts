@@ -4,6 +4,11 @@ export type AgentOption = {
   slug: string;
   profile_id?: string | null;
   title?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  email?: string | null;
+  whatsapp?: string | null;
+  avatar_url?: string | null;
   is_public?: boolean;
 };
 
@@ -55,12 +60,18 @@ export type TeamMemberRecord = {
   full_name: string | null;
   email: string | null;
   phone: string | null;
+  avatar_url: string | null;
   joined_at: string | null;
   agent_profile: {
     id: string;
     display_name: string;
     slug: string;
     title: string | null;
+    bio: string | null;
+    phone: string | null;
+    email: string | null;
+    whatsapp: string | null;
+    avatar_url: string | null;
     is_public: boolean;
     is_active: boolean;
   } | null;

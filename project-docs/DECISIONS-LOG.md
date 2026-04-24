@@ -393,3 +393,16 @@ Mantener el enforcement atado a `agent` como rol del sistema ya contradecía el 
 - la capacidad de crear/operar comercialmente propiedades ya puede depender de tener perfil activo en `agents`, no de un rol legacy
 - el enum operativo aún conserva `agent` por compatibilidad, pero dejó de ser la base conceptual del enforcement principal
 - futuras limpiezas podrán retirar ese legado con menos riesgo porque el comportamiento central ya cambió
+
+---
+
+### Decisión
+Permitir que owner/admin activen y editen perfiles comerciales de agente sobre miembros existentes del workspace, incluyendo activarse a sí mismos, reutilizando la tabla `agents` actual como capa comercial.
+
+### Motivo
+La separación conceptual ya estaba definida, pero hacía falta volverla operable. Sin un flujo real en Equipo, el modelo seguía siendo correcto en teoría pero incompleto en producto.
+
+### Consecuencias
+- la activación de perfil comercial ya no requiere inventar un usuario aparte ni mezclar permisos internos con presencia comercial
+- owner/admin pueden convertir en asesor comercial a una persona existente del workspace, o activarse ellos mismos
+- el módulo Equipo deja visible y editable la capa comercial sin tocar todavía branding completo ni CRM

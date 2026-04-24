@@ -109,7 +109,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .order("updated_at", { ascending: false }),
     supabase
       .from("agents")
-      .select("id, profile_id, display_name, slug, title, is_public")
+      .select("id, profile_id, display_name, slug, title, bio, phone, email, whatsapp, avatar_url, is_public")
       .eq("workspace_id", activeWorkspace.workspaceId)
       .eq("is_active", true)
       .order("display_name", { ascending: true }),
@@ -125,7 +125,8 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
           profiles:profile_id (
             full_name,
             email,
-            phone
+            phone,
+            avatar_url
           )
         `,
       )
@@ -156,6 +157,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       full_name: profile?.full_name ?? null,
       email: profile?.email ?? null,
       phone: profile?.phone ?? null,
+      avatar_url: profile?.avatar_url ?? null,
       joined_at: member.joined_at ?? null,
       agent_profile: linkedAgent
         ? {
@@ -163,6 +165,11 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             display_name: linkedAgent.display_name,
             slug: linkedAgent.slug,
             title: linkedAgent.title ?? null,
+            bio: linkedAgent.bio ?? null,
+            phone: linkedAgent.phone ?? null,
+            email: linkedAgent.email ?? null,
+            whatsapp: linkedAgent.whatsapp ?? null,
+            avatar_url: linkedAgent.avatar_url ?? null,
             is_public: linkedAgent.is_public ?? false,
             is_active: true,
           }
