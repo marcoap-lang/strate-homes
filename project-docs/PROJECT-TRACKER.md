@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 49%  
+**Avance estimado:** 52%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -13,10 +13,11 @@
 ✅ Uploader visual real de fotos con preview, orden y portada principal
 ✅ Storage policies alineadas para upload real al bucket property-images
 ✅ Módulo de propiedades separado en listado, alta y edición por rutas
+✅ Política operativa multiusuario definida para roles y propiedades
 
 ## Bloque actual
 
-🟨 En curso: selector explícito de workspace activo para usuarios multiworkspace
+🟨 En curso: aterrizar schema/RLS futura del modelo multiusuario + selector explícito de workspace activo
 
 ## Siguiente bloque
 
@@ -58,10 +59,12 @@
 - ✅ Sync auth.users -> profiles
 - ✅ workspace_members
 - ✅ Roles base
+- ✅ Política operativa formal de roles
 - ✅ Workspace activo base
 - ✅ Habilitación mínima de owner inicial
 - ✅ Bootstrap inicial seguro por RPC
 - ⬜ Selector explícito de workspace activo
+- ⬜ Bajada de permisos finos a schema/RLS
 
 ### Seguridad multiworkspace
 
@@ -80,6 +83,7 @@
 - ✅ Edición separada en `/admin/properties/[id]`
 - ✅ Gestión visual de imágenes con Storage, preview, orden, portada, checklist y completitud visual
 - ✅ Policies mínimas de Storage para upload autenticado por workspace
+- ✅ Política operativa base de created_by / assigned_agent definida a nivel documental
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables

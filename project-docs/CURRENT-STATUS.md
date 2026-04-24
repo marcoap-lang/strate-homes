@@ -50,11 +50,13 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Mensajes de error del uploader mejorados para distinguir permisos, archivo inválido y conflictos básicos.
 - Módulo de propiedades reorganizado en rutas navegables separadas: listado, alta y edición.
 - El inventario existente ahora se prioriza como vista principal en `/admin/properties`, dejando alta y edición en experiencias separadas.
+- Política operativa multiusuario definida formalmente para roles, permisos, visibilidad de inventario y asignación de propiedades dentro de una inmobiliaria multiusuario.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - validar flujo real de login/admin sobre producción con usuario miembro final
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
+- aterrizar el modelo formal de roles/permisos en schema y RLS futura sin romper lo ya construido
 - decidir si harán falta políticas adicionales para `workspaces` en cuanto empiece escritura real de configuración
 - refinar componentes reutilizables del admin
 - validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
@@ -63,9 +65,10 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
 2. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
-4. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
-5. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
-6. refinar componentes UI compartidos del admin
+4. bajar la política operativa multiusuario a schema y RLS real para propiedades/equipo
+5. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
+6. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
+7. refinar componentes UI compartidos del admin
 
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
@@ -77,6 +80,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - escalar sin documentar decisiones
 - dejar ambigua la resolución del workspace activo en usuarios multiworkspace
 - asumir que la RLS mínima ya cubre autorización fina cuando todavía no cubre todo el producto
+- avanzar UI multiusuario sin aterrizar primero created_by, assigned_agent y reglas reales de visibilidad/edición
 - que la galería visual quede corta en usabilidad si no evoluciona después hacia drag-and-drop más fino, previews más ricos y limpieza automática más robusta
 - olvidar políticas futuras para `workspaces` y dominios nuevos
 - añadir complejidad visual sin necesidad real

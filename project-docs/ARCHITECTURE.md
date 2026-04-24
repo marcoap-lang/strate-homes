@@ -193,6 +193,97 @@ Roles mínimos iniciales:
 - `agent`
 - `staff`
 
+### Política operativa formal de roles
+#### `owner`
+Responsable máximo del workspace.
+
+Puede ver:
+- todo el inventario del workspace
+- todos los miembros, agentes y configuraciones operativas
+- estado global del workspace
+
+Puede crear:
+- propiedades
+- agentes
+- usuarios del equipo
+- configuración operativa futura del workspace
+
+Puede editar:
+- cualquier propiedad del workspace
+- asignaciones de propiedad
+- roles del equipo
+- configuración general del workspace
+
+No debería hacer:
+- borrar propiedades como flujo normal; debe archivar o despublicar
+
+#### `admin`
+Operador de confianza con control amplio del workspace, pero sin soberanía total sobre ownership.
+
+Puede ver:
+- todo el inventario del workspace
+- todo el equipo operativo
+- asignaciones y estado de propiedades
+
+Puede crear:
+- propiedades
+- agentes
+- miembros del equipo según política del workspace
+
+Puede editar:
+- cualquier propiedad del workspace
+- asignaciones de propiedad
+- roles de `agent` y `staff`
+- datos operativos del equipo
+
+No puede:
+- degradar o expulsar al `owner`
+- transferir ownership por sí mismo
+- borrar propiedades como flujo normal; debe archivar o despublicar
+
+#### `agent`
+Usuario comercial que opera inventario y seguimiento sobre su ámbito de trabajo.
+
+Puede ver:
+- por decisión operativa base, todo el inventario del workspace
+- propiedades creadas por él
+- propiedades asignadas a él
+- información operativa necesaria para vender mejor
+
+Puede crear:
+- propiedades nuevas dentro del workspace
+
+Puede editar:
+- propiedades creadas por él
+- propiedades asignadas a él
+- fotos y contenido operativo de esas propiedades
+
+No puede:
+- borrar propiedades
+- cambiar roles
+- invitar usuarios
+- reasignar propiedades libremente sin permiso superior
+- editar propiedades fuera de su ámbito si no las creó ni le fueron asignadas
+
+#### `staff`
+Usuario de apoyo operativo o administrativo con acceso restringido.
+
+Puede ver:
+- solo la información necesaria para su función
+- inventario del workspace solo cuando el módulo o la política concreta lo justifique
+
+Puede crear:
+- no crea propiedades como regla general
+
+Puede editar:
+- tareas o campos auxiliares futuros definidos por producto
+
+No puede:
+- publicar, archivar o reasignar propiedades
+- invitar usuarios
+- cambiar roles
+- editar inventario principal como regla base
+
 #### `agents`
 Capa operativa y pública mínima del agente. Se separa de `profiles` porque no todo agente visible requiere exponer toda la identidad privada, y en el futuro puede haber relaciones más complejas entre cuenta, rol y presencia pública.
 
@@ -219,6 +310,8 @@ Campos clave:
 - `id`
 - `workspace_id`
 - `agent_id` opcional
+- `created_by` futuro requerido
+- `assigned_agent_id` futuro requerido como convención operativa sobre `agent_id` o como campo explícito
 - `title`
 - `slug`
 - `public_code`
@@ -240,6 +333,15 @@ Enums iniciales:
 
 Restricción relevante:
 - unicidad por `(workspace_id, slug)`
+
+Política operativa objetivo:
+- cada propiedad debe registrar quién la creó (`created_by`)
+- cada propiedad debe contemplar agente responsable (`assigned_agent`)
+- `agent` puede crear propiedades
+- `agent` no puede borrar propiedades
+- `owner` y `admin` archivan o despublican en vez de borrar
+- `agent` solo puede editar propiedades creadas por él o asignadas a él
+- por política base, `agent` sí ve el inventario del workspace, pero su capacidad de edición se limita a su ámbito
 
 #### `property_images`
 Tabla de metadatos para imágenes alojadas en Supabase Storage.
@@ -343,6 +445,8 @@ Entidad property preparada para soportar:
 Atributos base esperados:
 - workspaceId
 - agentId opcional
+- createdBy
+- assignedAgentId
 - status
 - publication status
 - operation type: venta/renta/mixto
@@ -353,6 +457,34 @@ Atributos base esperados:
 - features structured
 - featured flag
 - source metadata
+
+### Política operativa de propiedades
+#### Visibilidad
+Decisión operativa inicial:
+- `owner` y `admin` ven todo el inventario del workspace
+- `agent` ve todo el inventario del workspace para poder operar comercialmente con contexto completo
+- `staff` no tiene garantizado ver todo; su visibilidad debe ser explícita por módulo o caso de uso
+
+#### Creación
+- `owner`, `admin` y `agent` pueden crear propiedades
+- al crearse, la propiedad debe guardar `created_by`
+- al crearse, la propiedad debe guardar `assigned_agent` si existe responsable definido
+
+#### Edición
+- `owner` y `admin` pueden editar cualquier propiedad del workspace
+- `agent` solo puede editar propiedades creadas por él o asignadas a él
+- `staff` no edita propiedades como política base
+
+#### Eliminación
+- no se adopta borrado como flujo operativo normal
+- `agent` no puede borrar propiedades
+- `owner` y `admin` deben archivar o despublicar en vez de borrar
+- el borrado físico, si alguna vez existe, debe reservarse para mantenimiento excepcional
+
+#### Asignación
+- la asignación principal de una propiedad corresponde a `assigned_agent`
+- `owner` y `admin` pueden cambiar asignación
+- `agent` no cambia libremente la asignación salvo permiso futuro explícito
 
 Extensión futura:
 - developments
@@ -388,6 +520,24 @@ Un agente necesita dos capas:
 Por eso se separan conceptos:
 - `workspace_member`: permisos internos
 - `agent_public_profile`: presentación pública
+
+### Política operativa de equipo
+#### Invitaciones
+- `owner` puede invitar usuarios a cualquier rol permitido por producto
+- `admin` puede invitar `agent` y `staff`
+- `agent` no invita usuarios
+- `staff` no invita usuarios
+
+#### Cambio de roles
+- `owner` puede cambiar roles dentro del workspace
+- `admin` puede cambiar roles de `agent` y `staff` si producto lo permite
+- `admin` no debe poder promover a `owner` ni alterar ownership
+- `agent` y `staff` no cambian roles
+
+#### Asignación de propiedades
+- `owner` y `admin` pueden asignar propiedades a agentes
+- `agent` puede sugerir o solicitar asignación en un flujo futuro, pero no gobernarla libremente
+- `staff` no asigna propiedades como política base
 
 ## Base de personalización de páginas públicas
 No se implementará un page builder libre.

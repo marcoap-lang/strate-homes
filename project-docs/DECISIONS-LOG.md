@@ -323,3 +323,17 @@ La experiencia de producto necesitaba sentirse más SaaS y menos interna. Priori
 - el listado del inventario se vuelve la entrada natural al módulo de propiedades
 - alta y edición ganan contexto propio y menos fricción visual
 - la navegación del admin empieza a parecer sistema real y no panel provisional
+
+---
+
+### Decisión
+Definir como política operativa base que `agent` vea todo el inventario del workspace, pero solo pueda editar propiedades creadas por él o asignadas a él; además, toda propiedad debe evolucionar hacia `created_by` + `assigned_agent` como campos de gobierno operativo.
+
+### Motivo
+Strate Homes ya debe comportarse como sistema de una inmobiliaria multiusuario. Para evitar ambigüedad futura, hacía falta decidir ahora cómo se reparte visibilidad, edición, asignación y gobierno de inventario entre `owner`, `admin`, `agent` y `staff`.
+
+### Consecuencias
+- el inventario se concibe como activo compartido del workspace y no como silo privado de cada agente
+- la edición queda acotada por autoría y asignación, no solo por pertenencia al workspace
+- futuras migraciones deberán bajar esta política a schema y RLS con campos como `created_by` y `assigned_agent`
+- invitaciones, cambio de rol y asignación de propiedades quedan claramente reservados a `owner` y parcialmente a `admin`
