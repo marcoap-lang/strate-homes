@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 52%  
+**Avance estimado:** 56%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -14,10 +14,11 @@
 ✅ Storage policies alineadas para upload real al bucket property-images
 ✅ Módulo de propiedades separado en listado, alta y edición por rutas
 ✅ Política operativa multiusuario definida para roles y propiedades
+✅ Enforcement base de roles aplicado en acciones/UI de propiedades
 
 ## Bloque actual
 
-🟨 En curso: aterrizar schema/RLS futura del modelo multiusuario + selector explícito de workspace activo
+🟨 En curso: terminar bajada a schema/RLS del modelo multiusuario + selector explícito de workspace activo
 
 ## Siguiente bloque
 
@@ -84,6 +85,8 @@
 - ✅ Gestión visual de imágenes con Storage, preview, orden, portada, checklist y completitud visual
 - ✅ Policies mínimas de Storage para upload autenticado por workspace
 - ✅ Política operativa base de created_by / assigned_agent definida a nivel documental
+- ✅ Enforcement base: agent crea, agent edita su ámbito, owner/admin gestionan todo
+- ✅ Sin borrado operativo de propiedades desde UI
 - ⬜ Filtros admin
 
 ### Páginas públicas configurables

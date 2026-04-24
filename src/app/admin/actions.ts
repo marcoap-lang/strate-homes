@@ -80,6 +80,30 @@ function getReadableBootstrapError(message: string) {
   return "No pudimos crear tu espacio inicial. Intenta de nuevo.";
 }
 
+function canManageFullInventory(role: string | null | undefined) {
+  return role === "owner" || role === "admin";
+}
+
+function canArchiveOrCloseProperty(role: string | null | undefined) {
+  return role === "owner" || role === "admin";
+}
+
+function getAllowedAgentId({
+  requestedAgentId,
+  activeRole,
+  ownAgentId,
+}: {
+  requestedAgentId: string | null;
+  activeRole: string | null | undefined;
+  ownAgentId: string | null;
+}) {
+  if (canManageFullInventory(activeRole)) {
+    return requestedAgentId;
+  }
+
+  return ownAgentId;
+}
+
 async function getWorkspaceContext() {
   const supabase = await createSupabaseServerClient();
   const {
@@ -96,7 +120,44 @@ async function getWorkspaceContext() {
     throw new Error("No hay workspace activo disponible.");
   }
 
-  return { supabase, activeWorkspace };
+  const { data: agentRecord } = await supabase
+    .from("agents")
+    .select("id, profile_id")
+    .eq("workspace_id", activeWorkspace.workspaceId)
+    .eq("profile_id", user.id)
+    .eq("is_active", true)
+    .maybeSingle();
+
+  return { supabase, activeWorkspace, user, agentRecord };
+}
+
+async function getPropertyAccessContext(propertyId: string) {
+  const context = await getWorkspaceContext();
+  const { supabase, activeWorkspace, agentRecord } = context;
+
+  const { data: property, error } = await supabase
+    .from("properties")
+    .select("id, workspace_id, agent_id, status")
+    .eq("id", propertyId)
+    .eq("workspace_id", activeWorkspace.workspaceId)
+    .maybeSingle();
+
+  if (error) throw error;
+
+  if (!property) {
+    throw new Error("No encontramos esa propiedad dentro del workspace activo.");
+  }
+
+  const isFullAccessRole = canManageFullInventory(activeWorkspace.role);
+  const isAssignedAgent = Boolean(agentRecord?.id && property.agent_id === agentRecord.id);
+
+  return {
+    ...context,
+    property,
+    isFullAccessRole,
+    isAssignedAgent,
+    canEditProperty: isFullAccessRole || isAssignedAgent,
+  };
 }
 
 export async function bootstrapInitialOwnerAction(
@@ -154,12 +215,20 @@ export async function createPropertyAction(
   formData: FormData,
 ): Promise<PropertyFormState> {
   try {
-    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const { supabase, activeWorkspace, agentRecord } = await getWorkspaceContext();
     const title = formData.get("title")?.toString().trim() ?? "";
     const locationLabel = formData.get("locationLabel")?.toString().trim() ?? "";
     const propertyType = formData.get("propertyType")?.toString() ?? "house";
     const operationType = formData.get("operationType")?.toString() ?? "sale";
     const status = formData.get("status")?.toString() ?? "draft";
+
+    if (activeWorkspace.role === "staff") {
+      return { success: false, message: "Tu rol actual no puede crear propiedades." };
+    }
+
+    if (activeWorkspace.role === "agent" && !agentRecord?.id) {
+      return { success: false, message: "Tu usuario todavía no tiene un agente operativo asignado en este workspace." };
+    }
 
     if (title.length < 4) {
       return { success: false, message: "El título debe tener al menos 4 caracteres." };
@@ -171,13 +240,17 @@ export async function createPropertyAction(
 
     const payload = {
       workspace_id: activeWorkspace.workspaceId,
-      agent_id: normalizeNullable(formData.get("agentId")),
+      agent_id: getAllowedAgentId({
+        requestedAgentId: normalizeNullable(formData.get("agentId")),
+        activeRole: activeWorkspace.role,
+        ownAgentId: agentRecord?.id ?? null,
+      }),
       title,
       slug: slugify(formData.get("slug")?.toString() || title),
       public_code: normalizeNullable(formData.get("publicCode")),
       description: normalizeNullable(formData.get("description")),
       property_type: propertyType,
-      status,
+      status: canArchiveOrCloseProperty(activeWorkspace.role) ? status : status === "active" ? "active" : "draft",
       operation_type: operationType,
       is_featured: formData.get("isFeatured") === "on",
       location_label: locationLabel,
@@ -203,6 +276,7 @@ export async function createPropertyAction(
     }
 
     revalidatePath("/admin");
+    revalidatePath("/admin/properties");
     return { success: true, message: "Propiedad creada correctamente." };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo crear la propiedad." };
@@ -214,7 +288,6 @@ export async function updatePropertyAction(
   formData: FormData,
 ): Promise<PropertyFormState> {
   try {
-    const { supabase, activeWorkspace } = await getWorkspaceContext();
     const propertyId = formData.get("propertyId")?.toString();
     const title = formData.get("title")?.toString().trim() ?? "";
     const locationLabel = formData.get("locationLabel")?.toString().trim() ?? "";
@@ -222,6 +295,12 @@ export async function updatePropertyAction(
 
     if (!propertyId) {
       return { success: false, message: "Falta identificar la propiedad a editar." };
+    }
+
+    const { supabase, activeWorkspace, agentRecord, canEditProperty, isFullAccessRole } = await getPropertyAccessContext(propertyId);
+
+    if (!canEditProperty) {
+      return { success: false, message: "Solo puedes editar propiedades asignadas a ti dentro de este workspace." };
     }
 
     if (title.length < 4) {
@@ -234,13 +313,17 @@ export async function updatePropertyAction(
 
     const payload = {
       workspace_id: activeWorkspace.workspaceId,
-      agent_id: normalizeNullable(formData.get("agentId")),
+      agent_id: getAllowedAgentId({
+        requestedAgentId: normalizeNullable(formData.get("agentId")),
+        activeRole: activeWorkspace.role,
+        ownAgentId: agentRecord?.id ?? null,
+      }),
       title,
       slug: slugify(formData.get("slug")?.toString() || title),
       public_code: normalizeNullable(formData.get("publicCode")),
       description: normalizeNullable(formData.get("description")),
       property_type: formData.get("propertyType")?.toString() ?? "house",
-      status,
+      status: isFullAccessRole ? status : status === "active" ? "active" : "draft",
       operation_type: formData.get("operationType")?.toString() ?? "sale",
       is_featured: formData.get("isFeatured") === "on",
       location_label: locationLabel,
@@ -270,6 +353,8 @@ export async function updatePropertyAction(
     }
 
     revalidatePath("/admin");
+    revalidatePath("/admin/properties");
+    revalidatePath(`/admin/properties/${propertyId}`);
     return { success: true, message: "Propiedad actualizada correctamente." };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo actualizar la propiedad." };
@@ -277,12 +362,21 @@ export async function updatePropertyAction(
 }
 
 export async function updatePropertyStatusAction(formData: FormData) {
-  const { supabase, activeWorkspace } = await getWorkspaceContext();
   const propertyId = formData.get("propertyId")?.toString();
   const status = formData.get("status")?.toString();
 
   if (!propertyId || !status) {
     throw new Error("Faltan datos para cambiar el estatus.");
+  }
+
+  const { supabase, activeWorkspace, canEditProperty, isFullAccessRole } = await getPropertyAccessContext(propertyId);
+
+  if (!canEditProperty) {
+    throw new Error("No tienes permiso para cambiar el estatus de esta propiedad.");
+  }
+
+  if (!isFullAccessRole && ["archived", "sold", "rented"].includes(status)) {
+    throw new Error("Ese cambio de estatus solo puede hacerlo un owner o admin.");
   }
 
   const { error } = await supabase
@@ -297,6 +391,8 @@ export async function updatePropertyStatusAction(formData: FormData) {
   if (error) throw error;
 
   revalidatePath("/admin");
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
 }
 
 export async function addPropertyImageAction(formData: FormData) {
@@ -326,12 +422,17 @@ export async function addPropertyImageAction(formData: FormData) {
 }
 
 export async function updatePropertyImagesAction(formData: FormData) {
-  const { supabase, activeWorkspace } = await getWorkspaceContext();
   const propertyId = formData.get("propertyId")?.toString();
   const imagesRaw = formData.get("images")?.toString();
 
   if (!propertyId || !imagesRaw) {
     throw new Error("Faltan datos para actualizar las fotos.");
+  }
+
+  const { supabase, activeWorkspace, canEditProperty } = await getPropertyAccessContext(propertyId);
+
+  if (!canEditProperty) {
+    throw new Error("No tienes permiso para actualizar las fotos de esta propiedad.");
   }
 
   let images: Array<{
@@ -383,6 +484,8 @@ export async function updatePropertyImagesAction(formData: FormData) {
   if (insertError) throw insertError;
 
   revalidatePath("/admin");
+  revalidatePath("/admin/properties");
+  revalidatePath(`/admin/properties/${propertyId}`);
 }
 
 export async function deletePropertyImageAction(formData: FormData) {

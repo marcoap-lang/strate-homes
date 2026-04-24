@@ -337,3 +337,17 @@ Strate Homes ya debe comportarse como sistema de una inmobiliaria multiusuario. 
 - la edición queda acotada por autoría y asignación, no solo por pertenencia al workspace
 - futuras migraciones deberán bajar esta política a schema y RLS con campos como `created_by` y `assigned_agent`
 - invitaciones, cambio de rol y asignación de propiedades quedan claramente reservados a `owner` y parcialmente a `admin`
+
+---
+
+### Decisión
+Aplicar desde ahora enforcement operativo en acciones y UI de propiedades, aun antes de completar la bajada final a schema/RLS fina.
+
+### Motivo
+La política ya estaba definida y seguir construyendo encima de permisos ambiguos iba a contaminar el comportamiento del producto. Hacía falta que el sistema dejara de comportarse como panel libre y empezara a respetar jerarquía real por rol desde la capa de aplicación.
+
+### Consecuencias
+- `agent` ya puede crear propiedades pero no reasignarlas libremente
+- `agent` solo puede editar propiedades dentro de su ámbito asignado
+- `owner` y `admin` conservan control completo de inventario y estatus sensibles
+- el borrado operativo de propiedades queda fuera de la experiencia del producto y se refuerza el uso de archivado/despublicación

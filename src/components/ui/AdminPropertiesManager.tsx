@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useActionState, useMemo, useRef, useState, useTransition } from "react";
+import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
   deletePropertyImageAction,
@@ -136,13 +137,21 @@ function PropertyForm({
   mode,
   property,
   agents,
+  activeRole,
+  ownAgentId,
 }: {
   mode: "create" | "edit";
   property?: PropertyRecord;
   agents: AgentOption[];
+  activeRole?: string | null;
+  ownAgentId?: string | null;
 }) {
   const action = mode === "create" ? createPropertyAction : updatePropertyAction;
   const [state, formAction, pending] = useActionState(action, initialState);
+  const canManageAssignments = activeRole === "owner" || activeRole === "admin";
+  const visibleAgents = canManageAssignments
+    ? agents
+    : agents.filter((agent) => !ownAgentId || agent.id === ownAgentId);
 
   return (
     <form action={formAction} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
@@ -220,12 +229,20 @@ function PropertyForm({
 
         <label className="space-y-2 text-sm text-stone-700">
           <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Agente</span>
-          <select name="agentId" defaultValue={property?.agent_id ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+          <select
+            name="agentId"
+            defaultValue={property?.agent_id ?? ownAgentId ?? ""}
+            disabled={!canManageAssignments}
+            className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500"
+          >
             <option value="">Sin asignar</option>
-            {agents.map((agent) => (
+            {visibleAgents.map((agent) => (
               <option key={agent.id} value={agent.id}>{agent.display_name}</option>
             ))}
           </select>
+          {!canManageAssignments ? (
+            <p className="text-xs leading-5 text-stone-500">Tu rol no puede reasignar propiedades. La propiedad se guarda dentro de tu ámbito operativo.</p>
+          ) : null}
         </label>
       </div>
 
@@ -624,6 +641,7 @@ export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedP
 }
 
 export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">) {
+  const { activeWorkspace } = useActiveWorkspace();
   return (
     <div className="space-y-6">
       <PropertiesHeader
@@ -635,12 +653,13 @@ export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">)
           </Link>
         }
       />
-      <PropertyForm mode="create" agents={agents} />
+      <PropertyForm mode="create" agents={agents} activeRole={activeWorkspace?.role} ownAgentId={null} />
     </div>
   );
 }
 
 export function AdminPropertyEditView({ property, agents }: { property: PropertyRecord; agents: AgentOption[] }) {
+  const { activeWorkspace } = useActiveWorkspace();
   const coverage = getPhotoCoverage(property);
 
   return (
@@ -680,12 +699,15 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
       </div>
 
       <div className="space-y-6 xl:grid xl:grid-cols-[0.95fr_1.05fr] xl:gap-6 xl:space-y-0">
-        <PropertyForm mode="edit" property={property} agents={agents} />
+        <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
         <div className="space-y-6">
           <SectionCard>
             <p className="text-sm font-semibold text-stone-900">Cambio rápido de estatus</p>
             <p className="mt-2 text-sm text-stone-600">Ajusta el estatus desde esta vista sin volver al listado general.</p>
             <form action={updatePropertyStatusAction} className="mt-4 flex flex-wrap gap-3">
+              {activeWorkspace?.role === "agent" ? (
+                <p className="w-full text-xs leading-5 text-stone-500">Como agent puedes mover la propiedad entre draft y active. Archivar, vender o cerrar queda reservado para owner/admin.</p>
+              ) : null}
               <input type="hidden" name="propertyId" value={property.id} />
               <select name="status" defaultValue={property.status} className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
                 {statuses.map((status) => (
