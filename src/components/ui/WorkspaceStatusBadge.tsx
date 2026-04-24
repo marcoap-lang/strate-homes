@@ -6,16 +6,16 @@ export function WorkspaceStatusBadge() {
   const { activeWorkspace, isLoading } = useActiveWorkspace();
 
   if (isLoading) {
-    return <span className="rounded-full border border-white/10 px-4 py-2 text-xs text-white/60">Workspace loading…</span>;
+    return <span className="rounded-full border border-stone-200 bg-white px-4 py-2 text-xs text-stone-500">Preparando workspace...</span>;
   }
 
   if (!activeWorkspace?.workspaceId) {
-    return <span className="rounded-full border border-fuchsia-400/30 bg-fuchsia-400/10 px-4 py-2 text-xs text-fuchsia-100">No active workspace</span>;
+    return <span className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-xs text-amber-700">Espacio pendiente</span>;
   }
 
   return (
-    <span className="rounded-full border border-sky-400/30 bg-sky-400/10 px-4 py-2 text-xs text-sky-100">
-      {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}
+    <span className="rounded-full border border-sky-200 bg-sky-50 px-4 py-2 text-xs text-sky-700">
+      Workspace: {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}
       {activeWorkspace.role ? ` · ${activeWorkspace.role}` : ""}
     </span>
   );

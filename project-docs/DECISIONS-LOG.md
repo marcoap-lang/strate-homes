@@ -271,3 +271,16 @@ El primer onboarding necesita crear `workspaces`, `workspace_members` y actualiz
 - el alta del primer owner ocurre de forma atómica y más robusta
 - el onboarding del admin depende ahora de una RPC específica para bootstrap inicial
 - futuras invitaciones o altas administrativas deberán seguir flujos dedicados y no inserts directos desde cliente
+
+---
+
+### Decisión
+Mover la experiencia inicial del admin hacia una interfaz clara y premium antes de abrir módulos nuevos como CRM, campañas o branding avanzado.
+
+### Motivo
+En esta fase, la percepción de producto importa tanto como la base técnica. Si el acceso, el onboarding y la operación básica de propiedades se sienten internos o improvisados, el sistema pierde credibilidad aunque ya funcione.
+
+### Consecuencias
+- el esfuerzo inmediato se concentra en claridad, jerarquía visual y confianza del usuario
+- el admin prioriza inventario, fotos y operación básica antes que expandirse a módulos nuevos
+- la gestión de fotos avanza primero como experiencia guiada y preparación para un uploader visual posterior
