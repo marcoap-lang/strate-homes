@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 77%  
+**Avance estimado:** 80%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -20,6 +20,7 @@
 ✅ Limpieza principal del legacy `agent` en enforcement de propiedades
 ✅ Activación y edición de perfil comercial operables desde Equipo
 ✅ Propiedades públicas conectadas a inventario real desde Supabase
+✅ Ficha pública de propiedad refinada con presentación más comercial y premium
 
 ## Bloque actual
 
@@ -46,6 +47,7 @@
 - ✅ Branding inicial
 - ✅ Rutas públicas base
 - ✅ Datos reales en páginas públicas
+- ✅ Ficha pública comercial reforzada en `/properties/[slug]`
 
 ### Base de datos
 
