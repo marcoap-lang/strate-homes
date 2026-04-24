@@ -20,7 +20,7 @@ export type PublicProperty = {
   coverImageUrl: string | null;
   images: Array<{
     id: string;
-    url: string;
+    url: string | null;
     altText: string | null;
     isCover: boolean;
     sortOrder: number;
@@ -28,7 +28,31 @@ export type PublicProperty = {
   agent: { id: string; displayName: string } | null;
 };
 
+const demoImageCatalog: Record<string, string> = {
+  fachada: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=80",
+  portada: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80",
+  sala: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
+  comedor: "https://images.unsplash.com/photo-1616594039964-3d1b5c6c0b2c?auto=format&fit=crop&w=1600&q=80",
+  cocina: "https://images.unsplash.com/photo-1484154218962-a197022b5858?auto=format&fit=crop&w=1600&q=80",
+  "recamara-principal": "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
+  "bano-principal": "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&w=1600&q=80",
+  terraza: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
+  patio: "https://images.unsplash.com/photo-1502005097973-6a7082348e28?auto=format&fit=crop&w=1600&q=80",
+  vista: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80",
+  amenidad: "https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1600&q=80",
+  rooftop: "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&w=1600&q=80",
+  acceso: "https://images.unsplash.com/photo-1600047509807-ba8f99d2cdde?auto=format&fit=crop&w=1600&q=80",
+  interior: "https://images.unsplash.com/photo-1494526585095-c41746248156?auto=format&fit=crop&w=1600&q=80",
+  consultorio: "https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1600&q=80",
+};
+
 function buildStorageUrl(path: string) {
+  if (path.startsWith("demo/")) {
+    const fileName = path.split("/").pop()?.replace(".jpg", "") ?? "portada";
+    const key = Object.keys(demoImageCatalog).find((entry) => fileName.includes(entry)) ?? "portada";
+    return demoImageCatalog[key];
+  }
+
   const baseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   if (!baseUrl) return null;
   return `${baseUrl}/storage/v1/object/public/property-images/${path}`;
@@ -98,6 +122,7 @@ export async function getPublicProperties() {
         neighborhood,
         public_code,
         published_at,
+        is_featured,
         agents:agent_id (
           id,
           display_name
@@ -113,6 +138,7 @@ export async function getPublicProperties() {
     )
     .eq("status", "active")
     .not("published_at", "is", null)
+    .order("is_featured", { ascending: false })
     .order("published_at", { ascending: false });
 
   if (error) throw error;

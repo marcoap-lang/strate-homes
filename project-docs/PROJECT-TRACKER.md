@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 84%  
+**Avance estimado:** 88%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -22,6 +22,8 @@
 ✅ Propiedades públicas conectadas a inventario real desde Supabase
 ✅ Ficha pública de propiedad refinada con presentación más comercial y premium
 ✅ Home pública del workspace conectada a datos reales
+✅ Dirección visual pública más premium/editorial
+✅ Seed demo completo preparado para showroom del producto
 
 ## Bloque actual
 
@@ -50,6 +52,8 @@
 - ✅ Datos reales en páginas públicas
 - ✅ Ficha pública comercial reforzada en `/properties/[slug]`
 - ✅ Home pública del workspace con inventario y agentes reales
+- ✅ Dirección visual pública más premium
+- ✅ Seed demo versionado en `supabase/seed.sql`
 
 ### Base de datos
 

@@ -61,6 +61,8 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Capa pública de propiedades ya conectada a Supabase con inventario real activo/publicado para listado y detalle.
 - Ficha pública de propiedad refinada con presentación más comercial y premium: mejor portada, galería más jerarquizada, resumen claro, mejor ficha física y bloque de contacto/agente más visible.
 - Home pública del workspace/inmobiliaria creada con datos reales: identidad básica, hero, propiedades destacadas, inventario activo, CTA y agentes visibles.
+- Dirección visual pública refinada hacia una estética más premium/editorial para evaluar mejor el producto con sensación de brokerage de alto nivel.
+- Seed demo completo preparado en `supabase/seed.sql` con inmobiliaria demo, agentes demo, propiedades variadas y galerías útiles para probar admin y sitio público.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -75,6 +77,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - validar con propiedades reales la consistencia comercial de la capa pública (copy, fotos, agente visible, contacto)
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
+- ejecutar de forma controlada la carga remota del seed demo cuando se quiera poblar el entorno hospedado sin reset destructivo improvisado
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -86,6 +89,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 7. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
 8. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
+10. cargar de forma explícita el seed demo en remoto cuando se quiera usar como ambiente showroom persistente
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

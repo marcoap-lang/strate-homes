@@ -406,3 +406,16 @@ La separación conceptual ya estaba definida, pero hacía falta volverla operabl
 - la activación de perfil comercial ya no requiere inventar un usuario aparte ni mezclar permisos internos con presencia comercial
 - owner/admin pueden convertir en asesor comercial a una persona existente del workspace, o activarse ellos mismos
 - el módulo Equipo deja visible y editable la capa comercial sin tocar todavía branding completo ni CRM
+
+---
+
+### Decisión
+Preparar un seed demo inmobiliario completo y usar una dirección visual pública más editorial/premium para evaluar el producto como showroom real, aunque la carga remota del seed se ejecute de forma controlada más adelante.
+
+### Motivo
+El producto ya necesitaba verse y sentirse como sistema real, no como plantilla vacía. Sin inventario demo creíble y sin una capa pública visualmente potente, era difícil juzgar bien el valor del admin, las fichas públicas, el equipo comercial y la navegación general.
+
+### Consecuencias
+- el repositorio ya conserva un seed demo útil para poblar entornos de prueba o showroom
+- la experiencia pública se empuja hacia una referencia más premium tipo brokerage/luxury real estate
+- la carga del seed en remoto queda separada como paso operativo consciente para evitar resets destructivos improvisados
