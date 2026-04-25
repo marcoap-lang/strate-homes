@@ -3,12 +3,10 @@ import Link from "next/link";
 import { PublicLuxuryFilters } from "@/components/ui/PublicLuxuryFilters";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { getPublicWorkspaceHome } from "@/lib/public-home";
-import { buildWorkspacePropertyPath } from "@/lib/public-links";
 
 export default async function Home() {
   const home = await getPublicWorkspaceHome();
   const workspaceName = home.workspace?.brandName ?? home.workspace?.name ?? "Strate Homes Veracruz";
-  const workspaceSlug = home.workspace?.slug ?? null;
   const heroProperty = home.featuredProperties[0] ?? home.recentProperties[0] ?? null;
   const featuredAgent = home.featuredAgents[0] ?? null;
 
@@ -66,7 +64,7 @@ export default async function Home() {
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{heroProperty.title}</h2>
                   <p className="mt-2 text-sm text-slate-600">{heroProperty.locationLabel}</p>
                 </div>
-                <Link href={buildWorkspacePropertyPath(workspaceSlug, heroProperty.slug)} className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                <Link href={`/properties/${heroProperty.slug}`} className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                   Ver propiedad
                 </Link>
               </div>
@@ -114,7 +112,7 @@ export default async function Home() {
                   <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="text-lg font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
-                  <Link href={buildWorkspacePropertyPath(workspaceSlug, property.slug)} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                  <Link href={`/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                     Ver propiedad
                   </Link>
                 </div>
@@ -154,7 +152,7 @@ export default async function Home() {
                   <p className="mt-2 text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="mt-4 text-base font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="mt-3 text-sm text-slate-500">{specsInline}</p> : null}
-                  <Link href={buildWorkspacePropertyPath(workspaceSlug, property.slug)} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                  <Link href={`/properties/${property.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                     Ver propiedad
                   </Link>
                 </div>
