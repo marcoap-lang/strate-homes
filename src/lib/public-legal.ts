@@ -1,0 +1,4 @@
+export const PUBLIC_PROPERTY_DISCLAIMER = `¡ INFORMACIÓN IMPORTANTE !
+Las imágenes, fotografías, videos, información, medidas, características, descripciones, disponibilidad, precio y descuentos son aproximados y deberán confirmarse y ratificarse con la documentación correspondiente, únicamente se presenta con fines ilustrativos e informativos y corresponde a la última información recabada al propietario, constructor y/o desarrollador, por lo cual, no representa ninguna oferta vinculante ni contractual.
+
+El precio de contado o créditos con o sin garantía hipotecaria no incluyen impuestos, derechos, gastos, comisiones, gestorías, gastos y honorarios notariales, de titulación, seguros, servicios de profesionistas, honorarios inmobiliarios, ni ningún otro concepto relacionado. El precio total se determinará en función de los montos variables de conceptos de crédito y gastos notariales que deben ser consultados con los promotores.`;

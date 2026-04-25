@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 95%  
+**Avance estimado:** 96%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -30,6 +30,8 @@
 ✅ Experiencia simplificada a un workspace principal claro
 ✅ Navegación pública más clara entre home, listado y ficha
 ✅ Compartir propiedad por WhatsApp + copiar link público
+✅ Dirección visual pública más premium tipo Miami coastal
+✅ Disclaimer legal discreto integrado en páginas públicas
 
 ## Bloque actual
 
@@ -66,6 +68,8 @@
 - ✅ Selector de workspace oculto en esta etapa para evitar confusión operativa
 - ✅ Ficha pública lista para compartir por WhatsApp con mensaje prellenado comercial
 - ✅ URL pública configurable para compartir links correctos de producción
+- ✅ Home/listado/ficha públicas con lenguaje visual más editorial y navegable
+- ⚠️ Ruta pública limpia por workspace (`/w/{workspace_slug}/...`) queda preparada a nivel de links objetivo, pero no implementada todavía como resolución real
 
 ### Base de datos
 

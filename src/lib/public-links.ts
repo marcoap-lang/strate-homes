@@ -8,8 +8,16 @@ export function getPublicBaseUrl() {
   return "http://localhost:3000";
 }
 
-export function buildPublicPropertyUrl(slug: string) {
-  return `${getPublicBaseUrl()}/properties/${slug}`;
+export function buildWorkspacePropertyPath(workspaceSlug: string | null | undefined, propertySlug: string) {
+  if (workspaceSlug) {
+    return `/w/${workspaceSlug}/properties/${propertySlug}`;
+  }
+
+  return `/properties/${propertySlug}`;
+}
+
+export function buildPublicPropertyUrl(slug: string, workspaceSlug?: string | null) {
+  return `${getPublicBaseUrl()}${buildWorkspacePropertyPath(workspaceSlug, slug)}`;
 }
 
 export function buildPublicAgentUrl(slug: string) {
@@ -18,20 +26,18 @@ export function buildPublicAgentUrl(slug: string) {
 
 export function buildWhatsAppPropertyMessage({
   title,
-  operationLabel,
   locationLabel,
   priceLabel,
   propertyUrl,
 }: {
   title: string;
-  operationLabel: string;
   locationLabel: string;
   priceLabel: string;
   propertyUrl: string;
 }) {
   return [
     `Hola, te comparto esta propiedad: ${title}.`,
-    `${operationLabel} · ${locationLabel}`,
+    `Ubicación: ${locationLabel}`,
     `Precio: ${priceLabel}`,
     `Más información aquí: ${propertyUrl}`,
   ].join("\n");
