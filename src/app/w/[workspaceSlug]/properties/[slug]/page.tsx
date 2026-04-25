@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
-import { getPublicPropertyBySlug } from "@/lib/public-properties";
-import PropertyDetailPage from "@/app/properties/[slug]/page";
+import { PublicPropertyDetailPage } from "@/components/ui/PublicPropertyDetailPage";
+import { getPublicProperties, getPublicPropertyBySlug } from "@/lib/public-properties";
 
 export default async function WorkspacePropertyDetailPage({
   params,
@@ -12,5 +12,8 @@ export default async function WorkspacePropertyDetailPage({
 
   if (!property) notFound();
 
-  return <PropertyDetailPage params={Promise.resolve({ slug })} />;
+  const allProperties = await getPublicProperties({ workspaceSlug });
+  const similarProperties = allProperties.filter((item) => item.slug !== property.slug).slice(0, 3);
+
+  return <PublicPropertyDetailPage property={property} similarProperties={similarProperties} workspaceSlug={workspaceSlug} />;
 }
