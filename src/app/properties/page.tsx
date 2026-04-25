@@ -8,13 +8,19 @@ export default async function PropertiesPage() {
   return (
     <main className="min-h-screen bg-[#f6f1e8] px-6 py-10 text-zinc-950 lg:px-8">
       <div className="mx-auto max-w-7xl">
-        <div className="max-w-2xl">
+        <nav className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+          <Link href="/" className="transition hover:text-zinc-900">Inicio</Link>
+          <span>•</span>
+          <span className="text-zinc-900">Propiedades</span>
+        </nav>
+
+        <div className="mt-6 max-w-2xl">
           <p className="text-sm uppercase tracking-[0.3em] text-zinc-500">Propiedades</p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight sm:text-5xl">
             Inventario real con presentación comercial clara.
           </h1>
           <p className="mt-5 text-base leading-8 text-zinc-600">
-            Strate Homes ya muestra propiedades reales publicadas desde el inventario del workspace, respetando su estatus y visibilidad pública actual.
+            Explora propiedades activas, entra a cada ficha y comparte el link público con un mensaje útil para WhatsApp.
           </p>
         </div>
 
@@ -41,12 +47,20 @@ export default async function PropertiesPage() {
                   <p className="mt-5 text-lg font-medium text-zinc-950">
                     {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
                   </p>
-                  <Link
-                    href={`/properties/${property.slug}`}
-                    className="mt-6 inline-flex rounded-full bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800"
-                  >
-                    Ver detalle
-                  </Link>
+                  <div className="mt-6 flex flex-wrap gap-3">
+                    <Link
+                      href={`/properties/${property.slug}`}
+                      className="inline-flex rounded-full bg-zinc-950 px-4 py-2 text-sm font-medium text-white transition hover:bg-zinc-800"
+                    >
+                      Ver detalle
+                    </Link>
+                    <Link
+                      href="/"
+                      className="inline-flex rounded-full border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
+                    >
+                      Volver al inicio
+                    </Link>
+                  </div>
                 </div>
               </article>
             ))

@@ -1,5 +1,8 @@
 import Image from "next/image";
+import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicShareActions } from "@/components/ui/PublicShareActions";
+import { buildPublicAgentUrl, buildPublicPropertyUrl, buildWhatsAppPropertyMessage } from "@/lib/public-links";
 import { getPublicPropertyBySlug } from "@/lib/public-properties";
 
 function formatOperation(operationType: string) {
@@ -19,10 +22,36 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
   const gallery = property.images.slice(0, 5);
   const cover = gallery[0] ?? null;
   const secondaryImages = gallery.slice(1, 5);
+  const propertyUrl = buildPublicPropertyUrl(property.slug);
+  const operationLabel = formatOperation(property.operationType);
+  const locationText = [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || property.locationLabel;
+  const priceLabel = `${property.currencyCode} ${property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}`;
+  const whatsappMessage = buildWhatsAppPropertyMessage({
+    title: property.title,
+    operationLabel,
+    locationLabel: locationText,
+    priceLabel,
+    propertyUrl,
+  });
+  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(whatsappMessage)}`;
 
   return (
     <main className="min-h-screen bg-[#f6f1e8] px-6 py-10 text-zinc-950 lg:px-8">
       <div className="mx-auto max-w-7xl space-y-8">
+        <nav className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
+          <Link href="/" className="transition hover:text-zinc-900">Inicio</Link>
+          <span>•</span>
+          <Link href="/properties" className="transition hover:text-zinc-900">Propiedades</Link>
+          <span>•</span>
+          <span className="text-zinc-900">{property.title}</span>
+          {property.agent ? (
+            <>
+              <span>•</span>
+              <a href={buildPublicAgentUrl(property.agent.id)} className="transition hover:text-zinc-900">Agente</a>
+            </>
+          ) : null}
+        </nav>
+
         <section className="overflow-hidden rounded-[2.5rem] border border-black/5 bg-white shadow-[0_25px_80px_rgba(0,0,0,0.05)]">
           <div className="grid gap-0 lg:grid-cols-[1.2fr_0.8fr]">
             <div className="relative min-h-[24rem] bg-gradient-to-br from-zinc-300 via-zinc-200 to-zinc-100 lg:min-h-[34rem]">
@@ -30,7 +59,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-black/5 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8">
                 <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.28em] text-white/85">
-                  <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur">{formatOperation(property.operationType)}</span>
+                  <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur">{operationLabel}</span>
                   <span className="rounded-full border border-white/20 bg-white/10 px-4 py-2 backdrop-blur">{property.publicCode ?? "Disponible"}</span>
                 </div>
                 <h1 className="mt-5 max-w-3xl text-4xl font-semibold tracking-tight text-white sm:text-5xl">{property.title}</h1>
@@ -46,9 +75,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
             <div className="flex flex-col justify-between bg-[#fcfaf6] p-6 sm:p-8">
               <div>
                 <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Resumen comercial</p>
-                <p className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950">
-                  {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
-                </p>
+                <p className="mt-4 text-4xl font-semibold tracking-tight text-zinc-950">{priceLabel}</p>
                 <p className="mt-4 text-sm leading-7 text-zinc-600">
                   Propiedad publicada desde inventario real con enfoque comercial claro y presentación premium para consulta inmediata.
                 </p>
@@ -103,7 +130,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
                 {[
                   ["Ubicación", [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || "—"],
-                  ["Tipo de operación", formatOperation(property.operationType)],
+                  ["Tipo de operación", operationLabel],
                   ["Recámaras", property.bedrooms?.toString() ?? "—"],
                   ["Baños", property.bathrooms?.toString() ?? "—"],
                   ["Construcción", property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : "—"],
@@ -120,20 +147,12 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
           <aside className="space-y-6 lg:sticky lg:top-8">
             <div className="rounded-[2rem] border border-black/5 bg-white p-6 shadow-[0_20px_60px_rgba(0,0,0,0.06)]">
-              <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Contacto</p>
-              <h2 className="mt-3 text-2xl font-semibold text-zinc-950">Solicita información de esta propiedad</h2>
+              <p className="text-xs uppercase tracking-[0.28em] text-zinc-500">Compartir propiedad</p>
+              <h2 className="mt-3 text-2xl font-semibold text-zinc-950">Lista para enviar por WhatsApp</h2>
               <p className="mt-4 text-sm leading-7 text-zinc-600">
-                Si esta propiedad encaja contigo, el siguiente paso es pedir más información, validar disponibilidad y coordinar atención comercial.
+                Copia el link o abre WhatsApp con un mensaje comercial prellenado para compartir esta propiedad más rápido.
               </p>
-
-              <div className="mt-6 space-y-3">
-                <a href="#" className="flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-zinc-800">
-                  Contactar por WhatsApp
-                </a>
-                <a href="#" className="flex w-full items-center justify-center rounded-full border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100">
-                  Solicitar más detalles
-                </a>
-              </div>
+              <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl} />
             </div>
 
             <div className="rounded-[2rem] border border-black/5 bg-white p-6 shadow-sm">

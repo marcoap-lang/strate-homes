@@ -68,6 +68,8 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Para simplificar esta etapa, el demo útil fue replicado al workspace principal del usuario actual (`sarita-homes`) para evitar depender de un segundo workspace demo separado.
 - El admin vuelve a operar con una experiencia de workspace principal claro; el selector de workspace se ocultó porque en este momento agrega más confusión que valor.
 - Validación remota: el workspace principal ya muestra propiedades demo replicadas (`DEMO-001` a `DEMO-006`) junto con sus propiedades existentes.
+- Navegación pública mejorada entre home, listado y ficha de propiedad, con breadcrumbs/links simples para que el cliente no se pierda al entrar desde enlaces compartidos.
+- Ficha pública ya permite compartir por WhatsApp y copiar link directo de propiedad usando URL pública de producción configurable vía `NEXT_PUBLIC_APP_URL`.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -83,7 +85,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
 - ampliar más adelante el showroom remoto para usar 3-4 agentes visibles si existen más perfiles reales disponibles, sin acoplarse a usuarios demo ficticios
-- más adelante conviene decidir si el showroom demo secundario (`azure-coast-realty`) se elimina, se mantiene sólo para pruebas internas o se migra por completo al workspace principal
+- más adelante conviene definir perfiles públicos de agente reales y páginas públicas `/agents/[slug]` para cerrar por completo la navegación comercial de punta a punta
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -96,7 +98,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 8. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
 10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
-11. si más adelante vuelve a haber necesidad real multi-workspace, rediseñar el switcher con criterio de negocio claro, no sólo como selector técnico
+11. crear perfil público de agente y conectar desde ficha de propiedad cuando el modelo comercial visible ya esté más cerrado
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

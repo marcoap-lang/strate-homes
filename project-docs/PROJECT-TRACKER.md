@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 94%  
+**Avance estimado:** 95%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -28,6 +28,8 @@
 ✅ Showroom demo visible en remoto sin reset destructivo
 ✅ Datos demo útiles replicados al workspace principal del usuario actual
 ✅ Experiencia simplificada a un workspace principal claro
+✅ Navegación pública más clara entre home, listado y ficha
+✅ Compartir propiedad por WhatsApp + copiar link público
 
 ## Bloque actual
 
@@ -62,6 +64,8 @@
 - ✅ Showroom remoto cargado: 1 workspace demo, 2 agentes, 14 propiedades, 51 imágenes metadata
 - ✅ Propiedades demo visibles también en el workspace principal (`sarita-homes`)
 - ✅ Selector de workspace oculto en esta etapa para evitar confusión operativa
+- ✅ Ficha pública lista para compartir por WhatsApp con mensaje prellenado comercial
+- ✅ URL pública configurable para compartir links correctos de producción
 
 ### Base de datos
 
