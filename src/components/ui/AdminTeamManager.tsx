@@ -140,7 +140,7 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
             </p>
           ) : null}
 
-          <button disabled={pending} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : profile ? "Guardar perfil comercial" : "Activar perfil comercial"}
           </button>
         </form>

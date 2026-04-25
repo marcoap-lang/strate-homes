@@ -258,7 +258,7 @@ function PropertyForm({
       ) : null}
 
       <div className="flex flex-wrap gap-3">
-        <button disabled={pending} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+        <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
           {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
         </button>
         <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
@@ -495,7 +495,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             <p className="text-sm font-semibold text-stone-900">Agregar fotos</p>
             <p className="mt-2 text-sm text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
           </div>
-          <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
             {isUploading ? "Subiendo..." : "Seleccionar fotos"}
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelection} />
           </label>
@@ -512,7 +512,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
               <div className="relative aspect-[4/3] bg-stone-100">
                 <Image src={image.previewUrl} alt={image.alt_text || `Foto ${index + 1}`} fill className="object-cover" unoptimized />
                 {image.is_cover ? (
-                  <span className="absolute left-3 top-3 rounded-full bg-stone-950 px-3 py-1 text-xs font-medium text-white">Portada</span>
+                  <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada</span>
                 ) : null}
               </div>
               <div className="space-y-3 p-4">
@@ -552,7 +552,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
       {gallery.length ? (
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={saveGallery} disabled={isSavingGallery} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+          <button type="button" onClick={saveGallery} disabled={isSavingGallery} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {isSavingGallery ? "Guardando galería..." : "Guardar orden y portada"}
           </button>
         </div>
@@ -568,7 +568,7 @@ export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedP
         title="Listado de propiedades"
         description="Aquí vive el inventario real del workspace. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
         action={
-          <Link href="/admin/properties/new" className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+          <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
             Agregar propiedad
           </Link>
         }
@@ -672,7 +672,7 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
             <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver al listado
             </Link>
-            <Link href="/admin/properties/new" className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+            <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
               Agregar propiedad
             </Link>
           </div>
@@ -714,7 +714,7 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
                   <option key={status} value={status}>{status}</option>
                 ))}
               </select>
-              <button className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">Guardar estatus</button>
+              <button className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">Guardar estatus</button>
             </form>
           </SectionCard>
           <PropertyImagesManager property={property} />

@@ -184,7 +184,7 @@ export function AdminAccessClient() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60"
+                  className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60"
                 >
                   {isSubmitting ? "Entrando..." : mode === "login" ? "Entrar al admin" : "Crear cuenta"}
                 </button>
@@ -262,7 +262,7 @@ export function AdminAccessClient() {
             ) : null}
 
             <div className="flex flex-wrap gap-3">
-              <button disabled={bootstrapPending} className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800 disabled:opacity-60">
+              <button disabled={bootstrapPending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
                 {bootstrapPending ? "Preparando tu espacio..." : "Crear espacio y continuar"}
               </button>
               <button type="button" onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">
@@ -298,7 +298,7 @@ export function AdminAccessClient() {
         <span className="font-medium text-stone-950"> {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}</span>.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <a href="/admin" className="rounded-full bg-stone-950 px-4 py-2 text-xs font-medium text-white transition hover:bg-stone-800">
+        <a href="/admin" className="rounded-full bg-[#d7ab5b] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#c99a46]">
           Entrar al admin
         </a>
         <button onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-white/70">
