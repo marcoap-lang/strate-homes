@@ -24,9 +24,14 @@ export default async function Home() {
             <a href="#agents" className="transition hover:text-slate-950">Agentes</a>
             <a href="#contact" className="transition hover:text-slate-950">Contacto</a>
           </nav>
-          <Link href="/properties" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-            Ver propiedades
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link href="/properties" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+              Ver propiedades
+            </Link>
+            <Link href="/login" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+              Iniciar sesión
+            </Link>
+          </div>
         </div>
       </header>
 

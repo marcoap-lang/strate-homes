@@ -9,7 +9,24 @@ export default async function AdminPage() {
   return (
     <AdminShell>
       {access.kind === "no-session" ? (
-        <AdminAccessClient />
+        <div className="space-y-6">
+          <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Acceso requerido</p>
+            <h3 className="mt-2 text-2xl font-semibold text-stone-950">Inicia sesión para entrar al admin</h3>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+              Si ya tienes cuenta, entra desde la pantalla dedicada de acceso. Si todavía no la tienes, puedes crearla ahí mismo.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link href="/login" className="rounded-full bg-stone-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-stone-800">
+                Ir a /login
+              </Link>
+              <Link href="/" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+                Volver al sitio público
+              </Link>
+            </div>
+          </div>
+          <AdminAccessClient />
+        </div>
       ) : access.kind === "ready" ? (
         <div className="space-y-6">
           <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
