@@ -91,11 +91,6 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 >
                   Contactar por WhatsApp
                 </a>
-                <button
-                  type="button"
-                  onClick={() => {}}
-                  className="hidden"
-                />
               </div>
             </div>
           </div>
