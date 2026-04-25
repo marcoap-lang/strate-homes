@@ -15,18 +15,9 @@ const filterGroups: Array<{ key: string; label: string; options: FilterOption[] 
     key: "location",
     label: "Ubicación",
     options: [
-      { label: "Miami", value: "Miami" },
-      { label: "Brickell", value: "Brickell" },
-      { label: "Coral Gables", value: "Coral Gables" },
-    ],
-  },
-  {
-    key: "type",
-    label: "Tipo",
-    options: [
-      { label: "Casa", value: "house" },
-      { label: "Depto", value: "apartment" },
-      { label: "Oficina", value: "office" },
+      { label: "Veracruz", value: "Veracruz" },
+      { label: "Boca del Río", value: "Boca del Río" },
+      { label: "Riviera", value: "Riviera" },
     ],
   },
   {
@@ -75,11 +66,11 @@ export function PublicLuxuryFilters({
 }) {
   return (
     <section className={compact ? "pt-4" : "pt-8"}>
-      <div className="rounded-[2rem] bg-white px-4 py-4 shadow-[0_12px_40px_rgba(0,0,0,0.06)] sm:px-5">
+      <div className="rounded-[2rem] bg-white px-4 py-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] sm:px-5">
         <div className="flex flex-wrap items-center gap-3">
           {filterGroups.map((group) => (
             <div key={group.key} className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[11px] uppercase tracking-[0.26em] text-zinc-400">{group.label}</span>
+              <span className="mr-1 text-[11px] uppercase tracking-[0.26em] text-slate-400">{group.label}</span>
               {group.options.map((option) => {
                 const active = current[group.key] === option.value;
 
@@ -87,7 +78,7 @@ export function PublicLuxuryFilters({
                   <Link
                     key={`${group.key}-${option.value}`}
                     href={buildHref(basePath, current, group.key, option.value)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${active ? "bg-zinc-900 text-white" : "border border-black/8 bg-[#fcfbf8] text-zinc-700 hover:border-black/15 hover:bg-white hover:text-zinc-950"}`}
+                    className={`rounded-full px-4 py-2 text-sm transition ${active ? "bg-slate-900 text-white" : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-slate-950"}`}
                   >
                     {option.label}
                   </Link>
@@ -95,7 +86,7 @@ export function PublicLuxuryFilters({
               })}
             </div>
           ))}
-          <Link href={basePath} className="ml-auto rounded-full border border-black/8 px-4 py-2 text-sm text-zinc-600 transition hover:bg-[#fcfbf8] hover:text-zinc-950">
+          <Link href={basePath} className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-950">
             Limpiar
           </Link>
         </div>

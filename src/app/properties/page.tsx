@@ -22,67 +22,74 @@ export default async function PropertiesPage({
 
   return (
     <main className="min-h-screen bg-[#f7fbff] px-6 py-10 text-slate-950 lg:px-8">
-      <div className="mx-auto max-w-7xl">
-        <nav className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
-          <Link href="/" className="transition hover:text-zinc-900">Inicio</Link>
+      <div className="mx-auto max-w-7xl space-y-16">
+        <nav className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
+          <Link href="/" className="transition hover:text-slate-900">Inicio</Link>
           <span>•</span>
-          <span className="text-zinc-900">Propiedades</span>
+          <span className="text-slate-900">Propiedades</span>
         </nav>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+        <section className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades en Veracruz</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Explora opciones para vivir, invertir o rentar junto al mar y la ciudad.</h1>
+            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Opciones bien ubicadas para vivir, invertir o rentar.</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
-              Filtra por operación, ubicación, tipo, precio o recámaras y encuentra propiedades reales con una lectura clara y elegante.
+              Filtra por operación, ubicación, precio o recámaras y encuentra propiedades con una lectura clara, visual y consistente con la ficha principal.
             </p>
           </div>
           <div>
-            <PublicLuxuryFilters compact current={{
-              operation: filters.operation ?? undefined,
-              location: filters.location ?? undefined,
-              type: filters.type ?? undefined,
-              price: filters.price ?? undefined,
-              bedrooms: filters.bedrooms ?? undefined,
-            }} />
+            <PublicLuxuryFilters
+              compact
+              current={{
+                operation: filters.operation ?? undefined,
+                location: filters.location ?? undefined,
+                price: filters.price ?? undefined,
+                bedrooms: filters.bedrooms ?? undefined,
+              }}
+            />
           </div>
-        </div>
+        </section>
 
-        <div className="mt-16 grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
           {properties.length ? (
-            properties.map((property) => (
-              <article key={property.id} className="space-y-5">
-                <div className="relative h-[24rem] overflow-hidden rounded-[2rem] bg-gradient-to-br from-sky-100 via-white to-sky-50">
-                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover" unoptimized /> : null}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-slate-500">
-                    <span>{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Venta / Renta"}</span>
-                    <span>{property.propertyType === "house" ? "Casa" : property.propertyType === "apartment" ? "Depto" : property.propertyType === "office" ? "Oficina" : property.propertyType ?? "Propiedad"}</span>
-                  </div>
-                  <h2 className="text-2xl font-semibold text-slate-950">{property.title}</h2>
-                  <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                  <p className="text-lg font-medium text-slate-950">
-                    {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
-                  </p>
-                  <div className="flex items-center gap-4 text-sm text-slate-500">
-                    <span>{property.bedrooms ?? "—"} rec</span>
-                    <span>{property.bathrooms ?? "—"} baños</span>
-                  </div>
-                  <Link href={`/properties/${property.slug}`} className="inline-flex rounded-full border border-sky-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-sky-50">
-                    Ver propiedad
-                  </Link>
-                </div>
-              </article>
-            ))
-          ) : (
-            <div className="text-sm text-zinc-600 md:col-span-2 xl:col-span-3">No encontramos propiedades con esos filtros. Prueba otra combinación.</div>
-          )}
-        </div>
+            properties.map((property) => {
+              const specsInline = [
+                property.bedrooms ? `${property.bedrooms} recámaras` : null,
+                property.bathrooms ? `${property.bathrooms} baños` : null,
+                property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : null,
+              ]
+                .filter(Boolean)
+                .join(" · ");
 
-        <div className="mt-16">
-          <PublicLegalDisclaimer />
-        </div>
+              return (
+                <article key={property.id} className="group space-y-5">
+                  <div className="relative h-[24rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_20px_60px_rgba(15,23,42,0.06)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+                    {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
+                  </div>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-slate-500">
+                      <span>{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible"}</span>
+                      <span>{property.publicCode ?? "Disponible"}</span>
+                    </div>
+                    <h2 className="text-2xl font-semibold text-slate-950">{property.title}</h2>
+                    <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
+                    <p className="text-lg font-medium text-slate-950">
+                      {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
+                    </p>
+                    {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
+                    <Link href={`/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                      Ver propiedad
+                    </Link>
+                  </div>
+                </article>
+              );
+            })
+          ) : (
+            <div className="text-sm text-slate-600 md:col-span-2 xl:col-span-3">No encontramos propiedades con esos filtros. Prueba otra combinación.</div>
+          )}
+        </section>
+
+        <PublicLegalDisclaimer />
       </div>
     </main>
   );
