@@ -27,14 +27,14 @@ export function PublicShareActions({
         href={whatsappUrl}
         target="_blank"
         rel="noreferrer"
-        className="flex w-full items-center justify-center rounded-full bg-zinc-950 px-5 py-3 text-sm font-medium text-white transition hover:bg-zinc-800"
+        className="flex w-full items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-sky-100"
       >
-        Compartir por WhatsApp
+        Contactar por WhatsApp
       </a>
       <button
         type="button"
         onClick={handleCopy}
-        className="flex w-full items-center justify-center rounded-full border border-zinc-300 px-5 py-3 text-sm font-medium text-zinc-700 transition hover:bg-zinc-100"
+        className="flex w-full items-center justify-center rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
       >
         {copied ? "Link copiado" : "Copiar link de propiedad"}
       </button>

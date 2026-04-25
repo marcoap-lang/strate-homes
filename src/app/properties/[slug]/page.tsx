@@ -22,12 +22,20 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   const allProperties = await getPublicProperties();
   const similarProperties = allProperties.filter((item) => item.slug !== property.slug).slice(0, 3);
-  const gallery = property.images.slice(0, 5);
+  const gallery = property.images.slice(0, 6);
   const cover = gallery[0] ?? null;
-  const secondaryImages = gallery.slice(1, 5);
+  const secondaryImages = gallery.slice(1, 3);
+  const remainingImages = gallery.slice(3, 6);
   const propertyUrl = buildPublicPropertyUrl(property.slug, null);
   const locationText = [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || property.locationLabel;
   const priceLabel = `${property.currencyCode} ${property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}`;
+  const specsInline = [
+    property.bedrooms ? `${property.bedrooms} recámaras` : null,
+    property.bathrooms ? `${property.bathrooms} baños` : null,
+    property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
   const whatsappMessage = buildWhatsAppPropertyMessage({
     title: property.title,
     locationLabel: locationText,
@@ -38,7 +46,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
 
   return (
     <main className="min-h-screen bg-[#f7fbff] px-6 py-10 text-slate-950 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-14 lg:space-y-20">
+      <div className="mx-auto max-w-7xl space-y-16 lg:space-y-24">
         <nav className="flex flex-wrap items-center gap-3 text-sm text-zinc-500">
           <Link href="/" className="transition hover:text-zinc-900">Inicio</Link>
           <span>•</span>
@@ -53,7 +61,7 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
           ) : null}
         </nav>
 
-        <section className="grid gap-10 lg:grid-cols-[1.18fr_0.82fr] lg:items-end">
+        <section className="grid gap-10 lg:grid-cols-[1.16fr_0.84fr] lg:items-end">
           <div className="space-y-8">
             <div>
               <div className="flex flex-wrap gap-3 text-xs uppercase tracking-[0.28em] text-zinc-500">
@@ -61,55 +69,39 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
                 <span>•</span>
                 <span>{property.publicCode ?? "Disponible"}</span>
               </div>
-              <h1 className="mt-5 max-w-5xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
-                {property.title}
-              </h1>
-              <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">
-                {property.locationLabel}
-                {property.neighborhood ? ` · ${property.neighborhood}` : ""}
-                {property.city ? ` · ${property.city}` : ""}
-                {property.state ? `, ${property.state}` : ""}
-              </p>
+              <h1 className="mt-5 max-w-5xl text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">{property.title}</h1>
+              <p className="mt-5 max-w-3xl text-base leading-8 text-slate-600 sm:text-lg">{locationText}</p>
             </div>
 
-            <div className="relative min-h-[30rem] overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 lg:min-h-[44rem]">
-              {cover?.url ? <Image src={cover.url} alt={cover.altText ?? property.title} fill className="object-cover" unoptimized /> : null}
+            <div className="relative min-h-[34rem] overflow-hidden rounded-[3rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 lg:min-h-[50rem]">
+              {cover?.url ? <Image src={cover.url} alt={cover.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
               <div className="absolute inset-0 bg-gradient-to-t from-black/22 via-black/0 to-transparent" />
+              <div className="absolute inset-x-0 bottom-0 p-8 text-white sm:p-10">
+                <h2 className="text-2xl font-semibold sm:text-3xl">{property.title}</h2>
+                <p className="mt-3 max-w-2xl text-sm leading-7 text-white/85">{locationText}</p>
+              </div>
             </div>
           </div>
 
-          <aside className="space-y-8 lg:pb-4">
+          <aside className="space-y-10 lg:pb-8">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Precio</p>
-              <p className="mt-4 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">{priceLabel}</p>
+              <p className="mt-4 text-5xl font-semibold tracking-tight text-slate-950 sm:text-6xl">{priceLabel}</p>
+              {specsInline ? <p className="mt-5 text-sm leading-7 text-slate-500">{specsInline}</p> : null}
               <p className="mt-5 max-w-md text-sm leading-8 text-slate-600">
                 Una ficha clara y elegante para conocer mejor la propiedad, compartirla y dar el siguiente paso con asesoría profesional.
               </p>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-              {[
-                ["Recámaras", property.bedrooms?.toString() ?? "—"],
-                ["Baños", property.bathrooms?.toString() ?? "—"],
-                ["Construcción", property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : "—"],
-                ["Ubicación", locationText || "—"],
-              ].map(([label, value]) => (
-                <div key={label} className="space-y-2">
-                  <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">{label}</p>
-                  <p className="text-xl font-semibold text-slate-950">{value}</p>
-                </div>
-              ))}
-            </div>
-
-            <div className="border-t border-black/6 pt-8">
+            <div>
               <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl} />
             </div>
 
-            <div className="border-t border-black/6 pt-8">
+            <div>
               <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor inmobiliario</p>
               {property.agent ? (
                 <div className="mt-5 flex items-start gap-4">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-zinc-100 text-xl font-semibold text-zinc-700">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-sky-50 text-xl font-semibold text-slate-700">
                     {property.agent.displayName.slice(0, 1).toUpperCase()}
                   </div>
                   <div>
@@ -129,25 +121,33 @@ export default async function PropertyDetailPage({ params }: { params: Promise<{
         </section>
 
         {gallery.length > 1 ? (
-          <section className="grid gap-5 lg:grid-cols-[1.2fr_0.8fr] lg:items-start">
-            <div className="grid gap-5 sm:grid-cols-2">
-              {secondaryImages.map((image) => (
-                <div key={image.id} className="relative h-64 overflow-hidden rounded-[2rem] bg-gradient-to-br from-zinc-200 to-zinc-100">
-                  {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover" unoptimized /> : null}
-                </div>
-              ))}
+          <section className="space-y-6">
+            <div className="grid gap-6 lg:grid-cols-[1.18fr_0.82fr] lg:items-start">
+              <div className="relative h-[28rem] overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-zinc-200 to-zinc-100 lg:h-[34rem]">
+                {secondaryImages[0]?.url ? <Image src={secondaryImages[0].url} alt={secondaryImages[0].altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+              </div>
+              <div className="grid gap-6">
+                {secondaryImages.slice(1).map((image) => (
+                  <div key={image.id} className="relative h-[13.25rem] overflow-hidden rounded-[2rem] bg-gradient-to-br from-zinc-200 to-zinc-100 lg:h-[16.2rem]">
+                    {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+                  </div>
+                ))}
+              </div>
             </div>
-            <div className="max-w-lg py-4">
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Galería</p>
-              <h2 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">Más fotografía, mejor lectura de la propiedad.</h2>
-              <p className="mt-5 text-sm leading-8 text-slate-600">
-                La idea es que la propiedad se entienda desde la imagen, los espacios y la ubicación, con una experiencia limpia y profesional.
-              </p>
-            </div>
+
+            {remainingImages.length ? (
+              <div className="grid gap-6 md:grid-cols-3">
+                {remainingImages.map((image) => (
+                  <div key={image.id} className="relative h-56 overflow-hidden rounded-[2rem] bg-gradient-to-br from-zinc-200 to-zinc-100">
+                    {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </section>
         ) : null}
 
-        <section className="grid gap-14 lg:grid-cols-[1fr_0.88fr] lg:items-start">
+        <section className="grid gap-16 lg:grid-cols-[1fr_0.88fr] lg:items-start">
           <div className="max-w-3xl">
             <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Descripción</p>
             <h2 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">Qué hace especial esta propiedad</h2>
