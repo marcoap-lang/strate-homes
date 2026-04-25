@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 93%  
+**Avance estimado:** 94%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -26,7 +26,8 @@
 ✅ Seed demo completo preparado para showroom del producto
 ✅ Seed remoto compatible con usuarios reales cargado en hospedado
 ✅ Showroom demo visible en remoto sin reset destructivo
-✅ Selector mínimo de workspace activo en admin
+✅ Datos demo útiles replicados al workspace principal del usuario actual
+✅ Experiencia simplificada a un workspace principal claro
 
 ## Bloque actual
 
@@ -59,7 +60,8 @@
 - ✅ Seed demo versionado en `supabase/seed.sql`
 - ✅ Seed remoto versionado en `supabase/seed-remote.sql`
 - ✅ Showroom remoto cargado: 1 workspace demo, 2 agentes, 14 propiedades, 51 imágenes metadata
-- ✅ Cambio de workspace activo disponible en sidebar del admin para usuarios con múltiples memberships
+- ✅ Propiedades demo visibles también en el workspace principal (`sarita-homes`)
+- ✅ Selector de workspace oculto en esta etapa para evitar confusión operativa
 
 ### Base de datos
 
