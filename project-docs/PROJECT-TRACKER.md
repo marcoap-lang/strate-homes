@@ -69,7 +69,9 @@
 - ✅ Ficha pública lista para compartir por WhatsApp con mensaje prellenado comercial
 - ✅ URL pública configurable para compartir links correctos de producción
 - ✅ Home/listado/ficha públicas con lenguaje visual más editorial y navegable
-- ⚠️ Ruta pública limpia por workspace (`/w/{workspace_slug}/...`) queda preparada a nivel de links objetivo, pero no implementada todavía como resolución real
+- ✅ Ruta pública real por workspace implementada: `/w/{workspace_slug}`, `/w/{workspace_slug}/properties` y `/w/{workspace_slug}/properties/{property_slug}`
+- ✅ Admin abre la home pública del workspace activo en nueva pestaña usando su slug público
+- ⚠️ Upload de fotos quedó diagnosticado a nivel bucket/policies/path; el siguiente paso operativo, si el fallo persiste en hospedado, es capturar el mensaje exacto del cliente para cerrar el bug end-to-end
 
 ### Base de datos
 

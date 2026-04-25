@@ -72,7 +72,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="mt-8 space-y-3">
-            <a href="/" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full border border-stone-300 px-4 py-3 text-sm text-stone-700 transition hover:bg-stone-100">
+            <a href={activeWorkspace?.workspaceSlug ? `/w/${activeWorkspace.workspaceSlug}` : "/"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full border border-stone-300 px-4 py-3 text-sm text-stone-700 transition hover:bg-stone-100">
               Ver sitio público
             </a>
             <button

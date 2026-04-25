@@ -88,7 +88,9 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
 - ampliar más adelante el showroom remoto para usar 3-4 agentes visibles si existen más perfiles reales disponibles, sin acoplarse a usuarios demo ficticios
-- todavía falta implementar de verdad la ruta pública limpia por workspace tipo `/w/{workspace_slug}/properties/{property_slug}`; los links públicos ya se generan con ese formato como objetivo de producción, pero la resolución de la ruta todavía no quedó construida en este bloque
+- ya existe resolución real de capa pública por workspace con rutas `/w/{workspace_slug}`, `/w/{workspace_slug}/properties` y `/w/{workspace_slug}/properties/{property_slug}`.
+- el botón de admin “Ver sitio público” ya abre la home pública correcta del workspace activo en vez del root SaaS.
+- bucket/policies de `property-images` ya quedaron diagnosticados: el path usa prefijo por `workspaceId/propertyId/...` y las policies permiten insert/select/delete a miembros autenticados del workspace. El flujo de upload ahora conserva mensajes de error más claros en cliente si Storage rechaza la subida.
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -101,7 +103,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 8. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
 10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
-11. crear la resolución real de rutas públicas por workspace (`/w/{workspace_slug}/...`) y página pública de agente cuando se decida cerrar esa capa
+11. validar con prueba manual en entorno hospedado una subida real de foto end-to-end y, si vuelve a fallar, capturar el mensaje exacto del cliente para ajustar bucket/policies o MIME/path específico sin abrir trabajo lateral
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

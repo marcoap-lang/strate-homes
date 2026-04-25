@@ -4,6 +4,7 @@ export type PublicProperty = {
   id: string;
   slug: string;
   title: string;
+  workspaceSlug: string | null;
   locationLabel: string;
   city: string | null;
   state: string | null;
@@ -30,6 +31,7 @@ export type PublicProperty = {
 };
 
 export type PublicPropertyFilters = {
+  workspaceSlug?: string | null;
   operation?: string | null;
   location?: string | null;
   type?: string | null;
@@ -84,11 +86,13 @@ function mapPublicProperty(record: any): PublicProperty {
 
   const coverImage = images.find((image: { isCover: boolean }) => image.isCover) ?? images[0] ?? null;
   const agent = Array.isArray(record.agents) ? record.agents[0] : record.agents;
+  const workspace = Array.isArray(record.workspaces) ? record.workspaces[0] : record.workspaces;
 
   return {
     id: record.id,
     slug: record.slug,
     title: record.title,
+    workspaceSlug: workspace?.slug ?? null,
     locationLabel: record.location_label,
     city: record.city ?? null,
     state: record.state ?? null,
@@ -149,6 +153,9 @@ export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
         public_code,
         published_at,
         is_featured,
+        workspaces:workspace_id (
+          slug
+        ),
         agents:agent_id (
           id,
           display_name
@@ -165,6 +172,7 @@ export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
     .eq("status", "active")
     .not("published_at", "is", null);
 
+  if (filters.workspaceSlug) query = query.eq("workspaces.slug", filters.workspaceSlug);
   if (filters.operation) query = query.eq("operation_type", filters.operation);
   if (filters.type) query = query.eq("property_type", filters.type);
   if (filters.location) query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,location_label.ilike.%${filters.location}%`);
@@ -177,9 +185,9 @@ export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
   return (data ?? []).map(mapPublicProperty);
 }
 
-export async function getPublicPropertyBySlug(slug: string) {
+export async function getPublicPropertyBySlug(slug: string, workspaceSlug?: string | null) {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("properties")
     .select(
       `
@@ -201,6 +209,9 @@ export async function getPublicPropertyBySlug(slug: string) {
         neighborhood,
         public_code,
         published_at,
+        workspaces:workspace_id (
+          slug
+        ),
         agents:agent_id (
           id,
           display_name
@@ -216,8 +227,11 @@ export async function getPublicPropertyBySlug(slug: string) {
     )
     .eq("slug", slug)
     .eq("status", "active")
-    .not("published_at", "is", null)
-    .maybeSingle();
+    .not("published_at", "is", null);
+
+  if (workspaceSlug) query = query.eq("workspaces.slug", workspaceSlug);
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) throw error;
   if (!data) return null;
