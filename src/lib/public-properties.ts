@@ -14,6 +14,7 @@ export type PublicProperty = {
   description: string | null;
   bedrooms: number | null;
   bathrooms: number | null;
+  propertyType: string | null;
   constructionAreaM2: number | null;
   neighborhood: string | null;
   publicCode: string | null;
@@ -26,6 +27,14 @@ export type PublicProperty = {
     sortOrder: number;
   }>;
   agent: { id: string; displayName: string } | null;
+};
+
+export type PublicPropertyFilters = {
+  operation?: string | null;
+  location?: string | null;
+  type?: string | null;
+  price?: string | null;
+  bedrooms?: string | null;
 };
 
 const demoImageCatalog: Record<string, string> = {
@@ -90,6 +99,7 @@ function mapPublicProperty(record: any): PublicProperty {
     description: record.description ?? null,
     bedrooms: record.bedrooms ?? null,
     bathrooms: record.bathrooms ?? null,
+    propertyType: record.property_type ?? null,
     constructionAreaM2: record.construction_area_m2 ?? null,
     neighborhood: record.neighborhood ?? null,
     publicCode: record.public_code ?? null,
@@ -99,9 +109,24 @@ function mapPublicProperty(record: any): PublicProperty {
   };
 }
 
-export async function getPublicProperties() {
+function applyPriceFilter(query: any, price: string | null | undefined) {
+  if (!price) return query;
+  if (price === "under-1m") return query.lt("price_amount", 1000000);
+  if (price === "1m-3m") return query.gte("price_amount", 1000000).lt("price_amount", 3000000);
+  if (price === "3m-plus") return query.gte("price_amount", 3000000);
+  return query;
+}
+
+function applyBedroomsFilter(query: any, bedrooms: string | null | undefined) {
+  if (!bedrooms) return query;
+  const parsed = Number.parseInt(bedrooms, 10);
+  if (Number.isNaN(parsed)) return query;
+  return query.gte("bedrooms", parsed);
+}
+
+export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
   const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
+  let query = supabase
     .from("properties")
     .select(
       `
@@ -113,6 +138,7 @@ export async function getPublicProperties() {
         state,
         operation_type,
         status,
+        property_type,
         currency_code,
         price_amount,
         description,
@@ -137,12 +163,17 @@ export async function getPublicProperties() {
       `,
     )
     .eq("status", "active")
-    .not("published_at", "is", null)
-    .order("is_featured", { ascending: false })
-    .order("published_at", { ascending: false });
+    .not("published_at", "is", null);
+
+  if (filters.operation) query = query.eq("operation_type", filters.operation);
+  if (filters.type) query = query.eq("property_type", filters.type);
+  if (filters.location) query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,location_label.ilike.%${filters.location}%`);
+  query = applyPriceFilter(query, filters.price);
+  query = applyBedroomsFilter(query, filters.bedrooms);
+
+  const { data, error } = await query.order("is_featured", { ascending: false }).order("published_at", { ascending: false });
 
   if (error) throw error;
-
   return (data ?? []).map(mapPublicProperty);
 }
 
@@ -160,6 +191,7 @@ export async function getPublicPropertyBySlug(slug: string) {
         state,
         operation_type,
         status,
+        property_type,
         currency_code,
         price_amount,
         description,
@@ -189,6 +221,5 @@ export async function getPublicPropertyBySlug(slug: string) {
 
   if (error) throw error;
   if (!data) return null;
-
   return mapPublicProperty(data);
 }
