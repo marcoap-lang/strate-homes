@@ -5,7 +5,7 @@ export function getPublicBaseUrl() {
     return explicitUrl.replace(/\/$/, "");
   }
 
-  return "http://localhost:3000";
+  return "https://strate-homes.vercel.app";
 }
 
 export function buildWorkspacePropertyPath(workspaceSlug: string | null | undefined, propertySlug: string) {
