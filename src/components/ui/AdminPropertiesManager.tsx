@@ -593,49 +593,61 @@ export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedP
         </SectionCard>
       </div>
 
-      <SectionCard>
-        <div className="space-y-3">
-          {properties.length ? (
-            properties.map((property) => {
-              const coverage = getPhotoCoverage(property);
-              return (
-                <div key={property.id} className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                      <Link href={`/admin/properties/${property.id}`} className="text-left text-lg font-semibold text-stone-950 transition hover:text-stone-700">
-                        {property.title}
-                      </Link>
-                      <p className="mt-1 text-sm text-stone-500">
-                        {property.location_label}
-                        {property.city ? ` · ${property.city}` : ""}
-                        {property.state ? `, ${property.state}` : ""}
-                      </p>
-                      <p className="mt-2 text-xs uppercase tracking-[0.2em] text-stone-400">
-                        {property.property_type} · {property.operation_type} · {property.status}
-                      </p>
-                      <p className="mt-3 text-xs text-stone-500">
-                        Fotos: {property.property_images.length} · Cobertura sugerida: {coverage.completion}%
-                      </p>
-                    </div>
-                    <div className="flex flex-col items-end gap-3">
-                      <p className="text-lg font-medium text-stone-950">
-                        {property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}
-                      </p>
-                      <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
-                        Abrir propiedad
-                      </Link>
-                    </div>
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {properties.length ? (
+          properties.map((property) => {
+            const coverage = getPhotoCoverage(property);
+            const coverImage = property.property_images.find((image) => image.is_cover) ?? property.property_images[0] ?? null;
+            const publicWorkspaceSlug = workspaceName?.toLowerCase().replace(/[^a-z0-9]+/g, "-") ?? null;
+            const specsInline = [
+              property.bedrooms ? `${property.bedrooms} recámaras` : null,
+              property.bathrooms ? `${property.bathrooms} baños` : null,
+              property.construction_area_m2 ? `${property.construction_area_m2} m²` : null,
+            ].filter(Boolean).join(" · ");
+
+            return (
+              <article key={property.id} className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+                <div className="relative h-64 bg-sky-50">
+                  {coverImage ? <Image src={formatImagePublicUrl(coverImage.storage_path)} alt={coverImage.alt_text ?? property.title} fill className="object-cover" unoptimized /> : null}
+                  <div className="absolute left-4 top-4 flex items-center gap-2">
+                    <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${property.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
+                      {property.status}
+                    </span>
                   </div>
                 </div>
-              );
-            })
-          ) : (
-            <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-              Todavía no hay propiedades registradas. Empieza creando la primera desde “Agregar propiedad”.
-            </div>
-          )}
-        </div>
-      </SectionCard>
+                <div className="space-y-4 p-5">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{property.operation_type}</p>
+                    <Link href={`/admin/properties/${property.id}`} className="mt-2 block text-2xl font-semibold text-slate-950 transition hover:text-slate-700">
+                      {property.title}
+                    </Link>
+                    <p className="mt-2 text-sm leading-7 text-slate-600">
+                      {property.location_label}
+                      {property.city ? ` · ${property.city}` : ""}
+                      {property.state ? `, ${property.state}` : ""}
+                    </p>
+                  </div>
+                  <p className="text-lg font-medium text-slate-950">{property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}</p>
+                  {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
+                  <p className="text-xs text-slate-500">Cobertura visual: {coverage.completion}%</p>
+                  <div className="flex flex-wrap gap-3">
+                    <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
+                      Editar
+                    </Link>
+                    <a href={publicWorkspaceSlug ? `/w/${publicWorkspaceSlug}/properties/${property.slug}` : `/properties/${property.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                      Ver pública
+                    </a>
+                  </div>
+                </div>
+              </article>
+            );
+          })
+        ) : (
+          <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500 md:col-span-2 xl:col-span-3">
+            Todavía no hay propiedades registradas. Empieza creando la primera desde “Agregar propiedad”.
+          </div>
+        )}
+      </div>
     </div>
   );
 }
