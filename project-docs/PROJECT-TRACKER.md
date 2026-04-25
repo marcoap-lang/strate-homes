@@ -2,7 +2,7 @@
 
 ## Estado general
 
-**Avance estimado:** 91%  
+**Avance estimado:** 93%  
 **Enfoque actual:** pasar de base técnica + landing a sistema operativo real
 
 ## Último bloque completado
@@ -26,6 +26,7 @@
 ✅ Seed demo completo preparado para showroom del producto
 ✅ Seed remoto compatible con usuarios reales cargado en hospedado
 ✅ Showroom demo visible en remoto sin reset destructivo
+✅ Selector mínimo de workspace activo en admin
 
 ## Bloque actual
 
@@ -58,6 +59,7 @@
 - ✅ Seed demo versionado en `supabase/seed.sql`
 - ✅ Seed remoto versionado en `supabase/seed-remote.sql`
 - ✅ Showroom remoto cargado: 1 workspace demo, 2 agentes, 14 propiedades, 51 imágenes metadata
+- ✅ Cambio de workspace activo disponible en sidebar del admin para usuarios con múltiples memberships
 
 ### Base de datos
 

@@ -19,7 +19,7 @@ const navItems = [
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { user } = useSupabaseAuth();
-  const { activeWorkspace } = useActiveWorkspace();
+  const { activeWorkspace, memberships, setActiveWorkspaceId } = useActiveWorkspace();
   const pathname = usePathname();
 
   async function handleSignOut() {
@@ -47,6 +47,23 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <p className="mt-2 text-sm text-stone-600">
               {user?.email ? `Sesión: ${user.email}` : "Inicia sesión para operar tu admin."}
             </p>
+
+            {memberships.length > 1 ? (
+              <div className="mt-4 space-y-2">
+                <label className="block text-xs uppercase tracking-[0.2em] text-stone-500">Cambiar workspace</label>
+                <select
+                  value={activeWorkspace?.workspaceId ?? ""}
+                  onChange={(event) => setActiveWorkspaceId(event.target.value || null)}
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-stone-400"
+                >
+                  {memberships.map((membership) => (
+                    <option key={membership.workspaceId ?? "workspace-null"} value={membership.workspaceId ?? ""}>
+                      {(membership.workspaceName ?? membership.workspaceSlug ?? membership.workspaceId) + (membership.role ? ` · ${membership.role}` : "")}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
           </div>
 
           <nav className="mt-8 space-y-2">

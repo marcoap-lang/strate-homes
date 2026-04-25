@@ -65,6 +65,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Seed demo completo preparado en `supabase/seed.sql` con inmobiliaria demo, agentes demo, propiedades variadas y galerías útiles para probar admin y sitio público.
 - Seed remoto compatible con usuarios reales cargado en hospedado vía `supabase/seed-remote.sql`, reutilizando perfiles existentes del sistema sin depender de UUIDs inexistentes en `auth.users`.
 - Showroom demo remoto materializado: workspace `azure-coast-realty`, 2 memberships activas, 2 agentes públicos activos, 14 propiedades demo y 51 imágenes metadata; 12 propiedades ya públicas/activas.
+- Admin ya permite cambiar entre múltiples workspaces desde el sidebar cuando un usuario tiene más de una membership activa; esto destraba acceso real al showroom demo sembrado en remoto.
 
 ## Qué está en curso
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
@@ -80,6 +81,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
 - ampliar más adelante el showroom remoto para usar 3-4 agentes visibles si existen más perfiles reales disponibles, sin acoplarse a usuarios demo ficticios
+- más adelante conviene definir si el cambio de workspace debe además persistirse en backend (`default_workspace_id`) o si basta la preferencia cliente/localStorage
 
 ## Qué sigue inmediatamente después
 1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
@@ -92,6 +94,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 8. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
 10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
+11. evaluar un selector/global switcher más completo de workspaces fuera del sidebar del admin
 6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
 7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
 8. refinar componentes UI compartidos del admin

@@ -1,5 +1,5 @@
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { ACTIVE_WORKSPACE_STORAGE_KEY } from "@/lib/workspace/shared";
+import { ACTIVE_WORKSPACE_STORAGE_KEY, type WorkspaceMembershipSummary } from "@/lib/workspace/shared";
 
 function getWorkspaceMeta(workspaces: unknown) {
   if (Array.isArray(workspaces)) {
@@ -24,9 +24,8 @@ export function clearClientStoredWorkspaceId() {
   window.localStorage.removeItem(ACTIVE_WORKSPACE_STORAGE_KEY);
 }
 
-export async function getClientActiveWorkspace(userId: string) {
+export async function getClientWorkspaceMemberships(userId: string): Promise<WorkspaceMembershipSummary[]> {
   const supabase = createSupabaseBrowserClient();
-  const storedWorkspaceId = getClientStoredWorkspaceId();
 
   const { data: memberships } = await supabase
     .from("workspace_members")
@@ -45,15 +44,29 @@ export async function getClientActiveWorkspace(userId: string) {
     .eq("is_active", true)
     .order("created_at", { ascending: true });
 
-  const selectedMembership =
-    memberships?.find((membership) => membership.workspace_id === storedWorkspaceId) ?? memberships?.[0] ?? null;
+  return (memberships ?? []).map((membership) => {
+    const workspaceMeta = getWorkspaceMeta(membership.workspaces);
 
-  const workspaceMeta = getWorkspaceMeta(selectedMembership?.workspaces);
+    return {
+      workspaceId: membership.workspace_id,
+      workspaceName: workspaceMeta?.name ?? null,
+      workspaceSlug: workspaceMeta?.slug ?? null,
+      role: membership.role ?? null,
+    };
+  });
+}
+
+export async function getClientActiveWorkspace(userId: string) {
+  const storedWorkspaceId = getClientStoredWorkspaceId();
+  const memberships = await getClientWorkspaceMemberships(userId);
+
+  const selectedMembership = memberships.find((membership) => membership.workspaceId === storedWorkspaceId) ?? memberships[0] ?? null;
 
   return {
-    workspaceId: selectedMembership?.workspace_id ?? null,
-    workspaceName: workspaceMeta?.name ?? null,
-    workspaceSlug: workspaceMeta?.slug ?? null,
+    workspaceId: selectedMembership?.workspaceId ?? null,
+    workspaceName: selectedMembership?.workspaceName ?? null,
+    workspaceSlug: selectedMembership?.workspaceSlug ?? null,
     role: selectedMembership?.role ?? null,
+    memberships,
   };
 }
