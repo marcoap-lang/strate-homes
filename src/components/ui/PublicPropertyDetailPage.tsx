@@ -120,8 +120,8 @@ export function PublicPropertyDetailPage({
             <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor inmobiliario</p>
             {assignedAgent ? (
               <div className="mt-6 text-center">
-                <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700">
-                  {assignedAgent.avatarUrl ? <Image src={assignedAgent.avatarUrl} alt={assignedAgent.displayName} fill className="object-cover" unoptimized /> : assignedAgent.displayName.slice(0, 1).toUpperCase()}
+                <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700 sm:h-28 sm:w-28">
+                  {assignedAgent.avatarUrl ? <Image src={assignedAgent.avatarUrl} alt={assignedAgent.displayName} fill className="object-cover" unoptimized sizes="112px" /> : assignedAgent.displayName.slice(0, 1).toUpperCase()}
                 </div>
                 <p className="mt-6 text-3xl font-semibold text-slate-950">{assignedAgent.displayName}</p>
                 {workspaceSlug && assignedAgent.slug ? (
