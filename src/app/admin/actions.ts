@@ -29,6 +29,11 @@ export type LeadCaptureState = {
   message: string;
 };
 
+export type LeadUpdateState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -50,6 +55,11 @@ const INITIAL_CREATE_AGENT_STATE: CreateAgentState = {
 };
 
 const INITIAL_LEAD_CAPTURE_STATE: LeadCaptureState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_LEAD_UPDATE_STATE: LeadUpdateState = {
   success: false,
   message: "",
 };
@@ -341,6 +351,42 @@ export async function captureLeadFromPropertyAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No pudimos guardar tu interés.",
+    };
+  }
+}
+
+export async function updateLeadStateAction(
+  _prevState: LeadUpdateState = INITIAL_LEAD_UPDATE_STATE,
+  formData: FormData,
+): Promise<LeadUpdateState> {
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const leadId = formData.get("leadId")?.toString();
+    const status = formData.get("status")?.toString();
+
+    if (!leadId || !status) {
+      return { success: false, message: "Faltan datos para actualizar el lead." };
+    }
+
+    const { error } = await supabase
+      .from("leads")
+      .update({
+        status,
+        internal_note: normalizeNullable(formData.get("internalNote")),
+      })
+      .eq("id", leadId)
+      .eq("workspace_id", activeWorkspace.workspaceId);
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    revalidatePath("/admin/leads");
+    return { success: true, message: "Lead actualizado correctamente." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo actualizar el lead.",
     };
   }
 }

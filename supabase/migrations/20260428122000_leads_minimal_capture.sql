@@ -7,6 +7,7 @@ create table public.leads (
   phone text not null,
   email text,
   message text,
+  internal_note text,
   status public.lead_status not null default 'new',
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now())

@@ -7,6 +7,7 @@ type LeadRecord = {
   phone: string;
   email: string | null;
   message: string | null;
+  internal_note: string | null;
   status: string;
   created_at: string;
   property_title: string | null;
@@ -158,6 +159,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             phone,
             email,
             message,
+            internal_note,
             status,
             created_at
           ),
@@ -248,6 +250,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       phone: Array.isArray(item.leads) ? item.leads[0]?.phone : item.leads?.phone,
       email: Array.isArray(item.leads) ? item.leads[0]?.email ?? null : item.leads?.email ?? null,
       message: Array.isArray(item.leads) ? item.leads[0]?.message ?? null : item.leads?.message ?? null,
+      internal_note: Array.isArray(item.leads) ? item.leads[0]?.internal_note ?? null : item.leads?.internal_note ?? null,
       status: Array.isArray(item.leads) ? item.leads[0]?.status : item.leads?.status,
       created_at: Array.isArray(item.leads) ? item.leads[0]?.created_at : item.leads?.created_at,
       property_title: Array.isArray(item.properties) ? item.properties[0]?.title ?? null : item.properties?.title ?? null,
