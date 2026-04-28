@@ -40,10 +40,10 @@ export default async function WorkspacePropertiesPage({
           <span className="text-slate-900">Propiedades</span>
         </nav>
 
-        <section className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
+        <section className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{workspace.public_claim ?? "Selección pública de propiedades con presentación comercial clara."}</h1>
+            <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.5rem]">{workspace.public_claim ?? "Selección pública de propiedades con presentación comercial clara."}</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
               Filtra por operación, ubicación, precio o recámaras y encuentra opciones con una presentación más cuidada y fácil de compartir.
             </p>
@@ -58,7 +58,7 @@ export default async function WorkspacePropertiesPage({
           </div>
         </section>
 
-        <section className="grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+        <section className="grid gap-x-8 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
           {properties.length ? properties.map((property) => {
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
@@ -68,13 +68,13 @@ export default async function WorkspacePropertiesPage({
 
             return (
               <article key={property.id} className="group space-y-5">
-                <div className="relative h-[24rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_20px_60px_rgba(15,23,42,0.06)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+                <div className="relative h-[26rem] overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
                   {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
                 </div>
                 <div className="space-y-3">
-                  <h2 className="text-2xl font-semibold text-slate-950">{property.title}</h2>
+                  <h2 className="text-[2rem] font-semibold leading-tight text-slate-950">{property.title}</h2>
                   <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                  <p className="text-lg font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
                   <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                     Ver propiedad

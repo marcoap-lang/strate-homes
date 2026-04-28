@@ -25,14 +25,14 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
     <main className="min-h-screen bg-[#f7fbff] text-slate-950">
       <PublicBrandHeader brandName={workspace.brand_name ?? workspace.name} logoUrl={workspace.public_logo_url} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
 
-      <section className="px-6 pb-18 pt-6 lg:px-8 lg:pb-24 lg:pt-8">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.84fr_1.16fr] lg:items-end">
-          <div className="pb-6 lg:pb-12">
-            <p className="text-xs uppercase tracking-[0.34em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-6 max-w-4xl text-6xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-7xl">
+      <section className="px-6 pb-24 pt-8 lg:px-8 lg:pb-32 lg:pt-10">
+        <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
+          <div className="pb-8 lg:pb-14">
+            <p className="text-xs uppercase tracking-[0.38em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
+            <h1 className="mt-7 max-w-5xl text-6xl font-semibold leading-[0.9] tracking-tight text-slate-950 sm:text-7xl lg:text-[6.25rem]">
               {workspace.public_claim ?? "Propiedades bien elegidas, atención clara y presentación comercial cuidada."}
             </h1>
-            <p className="mt-7 max-w-xl text-lg leading-9 text-slate-600">
+            <p className="mt-8 max-w-lg text-base leading-8 text-slate-600">
               {workspace.public_bio ?? `Explora la selección pública de ${workspace.brand_name ?? workspace.name} y descubre propiedades con mejor presentación, contexto y acompañamiento comercial.`}
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
@@ -48,12 +48,12 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           </div>
 
           <div className="relative">
-            <div className="relative min-h-[36rem] overflow-hidden rounded-[2.6rem] bg-gradient-to-br from-sky-100 to-white lg:min-h-[44rem]">
-              {(workspace.public_hero_url ?? heroProperty?.coverImageUrl) ? <Image src={workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? ""} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="object-cover" unoptimized /> : null}
-              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/22 via-slate-950/5 to-transparent" />
+            <div className="relative min-h-[40rem] overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-sky-100 to-white shadow-[0_30px_90px_rgba(15,23,42,0.10)] lg:min-h-[50rem]">
+              {(workspace.public_hero_url ?? heroProperty?.coverImageUrl) ? <Image src={workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? ""} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="object-cover object-center" unoptimized /> : null}
+              <div className="absolute inset-0 bg-gradient-to-t from-slate-950/28 via-slate-950/8 to-transparent" />
             </div>
             {heroProperty ? (
-              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 rounded-[1.8rem] bg-white/90 px-5 py-4 backdrop-blur-sm">
+              <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between gap-4 rounded-[2rem] bg-white/92 px-6 py-5 backdrop-blur-md shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Propiedad destacada</p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{heroProperty.title}</h2>
@@ -72,7 +72,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-18">
+      <section className="mx-auto max-w-7xl px-6 py-18 lg:px-8 lg:py-24">
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades destacadas</p>
@@ -83,7 +83,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           </Link>
         </div>
 
-        <div className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+        <div className="mt-14 grid gap-x-8 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
           {properties.slice(0, 6).map((property) => {
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
@@ -93,7 +93,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
 
             return (
               <article key={property.id} className="group space-y-5">
-                <div className="relative h-[24rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_20px_60px_rgba(15,23,42,0.06)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+                <div className="relative h-[26rem] overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
                   {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
                 </div>
                 <div className="space-y-3">
@@ -101,9 +101,9 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                     <span>{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible"}</span>
                     <span>{property.publicCode ?? "Disponible"}</span>
                   </div>
-                  <h3 className="text-2xl font-semibold text-slate-950">{property.title}</h3>
+                  <h3 className="text-[2rem] font-semibold leading-tight text-slate-950">{property.title}</h3>
                   <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                  <p className="text-lg font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
+                  <p className="text-2xl font-semibold tracking-tight text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
                   <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                     Ver propiedad
@@ -115,7 +115,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         </div>
       </section>
 
-      <footer className="mx-auto max-w-7xl px-6 pb-20 pt-8 lg:px-8">
+      <footer className="mx-auto max-w-7xl px-6 pb-20 pt-12 lg:px-8">
         <div className="space-y-3 pb-8 text-sm text-slate-500">
           <p className="font-medium text-slate-900">{workspace.brand_name ?? workspace.name}</p>
           {workspace.public_phone ? <p>Teléfono: {workspace.public_phone}</p> : null}
