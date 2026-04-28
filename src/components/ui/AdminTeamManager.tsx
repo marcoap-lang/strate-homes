@@ -205,6 +205,72 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
   );
 }
 
+function StandaloneAgentEditor({ agent }: { agent: StandaloneAgentRecord }) {
+  const [open, setOpen] = useState(false);
+  const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
+
+  return (
+    <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-lg font-semibold text-stone-950">{agent.display_name}</p>
+          <p className="mt-2 text-sm text-stone-600">{agent.title ?? "Asesor inmobiliario"}</p>
+          {agent.email ? <p className="mt-3 text-sm text-stone-500">{agent.email}</p> : null}
+          {agent.whatsapp ?? agent.phone ? <p className="mt-1 text-sm text-stone-500">{agent.whatsapp ?? agent.phone}</p> : null}
+          <p className="mt-3 text-xs text-stone-500">Slug: {agent.slug}</p>
+        </div>
+        <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-stone-100">
+          {open ? "Cerrar" : "Editar asesor"}
+        </button>
+      </div>
+
+      {open ? (
+        <form action={action} className="mt-4 space-y-4">
+          <input type="hidden" name="agentId" value={agent.id} />
+          <div className="grid gap-4 md:grid-cols-2">
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre público</span>
+              <input name="displayName" defaultValue={agent.display_name} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Slug</span>
+              <input name="slug" defaultValue={agent.slug} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Especialidad</span>
+              <input name="title" defaultValue={agent.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Teléfono</span>
+              <input name="phone" defaultValue={agent.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">WhatsApp</span>
+              <input name="whatsapp" defaultValue={agent.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Foto</span>
+              <input name="avatarUrl" defaultValue={agent.avatar_url ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+          </div>
+          <label className="space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio corta</span>
+            <textarea name="bio" rows={4} defaultValue={agent.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+          </label>
+          <label className="inline-flex items-center gap-3 text-sm text-stone-700">
+            <input type="checkbox" name="isPublic" defaultChecked={agent.is_public} className="size-4 rounded border-stone-300 bg-white" />
+            Mostrar asesor públicamente
+          </label>
+          {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
+          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+            {pending ? "Guardando..." : "Guardar asesor"}
+          </button>
+        </form>
+      ) : null}
+    </div>
+  );
+}
+
 function StandaloneAgentsList({ agents }: { agents: StandaloneAgentRecord[] }) {
   if (!agents.length) return null;
 
@@ -220,13 +286,7 @@ function StandaloneAgentsList({ agents }: { agents: StandaloneAgentRecord[] }) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {agents.map((agent) => (
-          <div key={agent.id} className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
-            <p className="text-lg font-semibold text-stone-950">{agent.display_name}</p>
-            <p className="mt-2 text-sm text-stone-600">{agent.title ?? "Asesor inmobiliario"}</p>
-            {agent.email ? <p className="mt-3 text-sm text-stone-500">{agent.email}</p> : null}
-            {agent.whatsapp ?? agent.phone ? <p className="mt-1 text-sm text-stone-500">{agent.whatsapp ?? agent.phone}</p> : null}
-            <p className="mt-3 text-xs text-stone-500">Slug: {agent.slug}</p>
-          </div>
+          <StandaloneAgentEditor key={agent.id} agent={agent} />
         ))}
       </div>
     </div>

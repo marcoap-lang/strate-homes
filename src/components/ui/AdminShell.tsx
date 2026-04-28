@@ -10,11 +10,17 @@ import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import { getPublicBaseUrl } from "@/lib/public-links";
 
-const navItems = [
+const primaryNavItems = [
   { label: "Inicio", href: "/admin" },
   { label: "Propiedades", href: "/admin/properties" },
   { label: "Leads", href: "/admin/leads" },
   { label: "Equipo", href: "/admin/team" },
+];
+
+const publicNavItems = [
+  { label: "Ver sitio público", href: "/admin/public/properties" },
+  { label: "Propiedades públicas", href: "/admin/public/properties" },
+  { label: "Asesores públicos", href: "/admin/public/agents" },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -52,7 +58,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <nav className="mt-8 space-y-2">
-            {navItems.map((item) => {
+            {primaryNavItems.map((item) => {
               const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
               const classes = `flex items-center justify-between rounded-[1.4rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/30 bg-[#fff8ec] text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
 
@@ -64,10 +70,28 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             })}
           </nav>
 
+          <div className="mt-8 rounded-[1.8rem] border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Área Pública</p>
+            <div className="mt-3 space-y-2">
+              {publicNavItems.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const classes = `flex items-center justify-between rounded-[1.2rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/30 bg-[#fff8ec] text-slate-950" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
+                const href = item.label === "Ver sitio público" ? (activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()) : item.href;
+                const external = item.label === "Ver sitio público";
+                return external ? (
+                  <a key={item.label} href={href} target="_blank" rel="noopener noreferrer" className={classes}>
+                    <p className="text-sm font-medium">{item.label}</p>
+                  </a>
+                ) : (
+                  <Link key={item.label} href={href} className={classes}>
+                    <p className="text-sm font-medium">{item.label}</p>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="mt-8 space-y-3">
-            <a href={activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50">
-              Ver sitio público
-            </a>
             <button
               type="button"
               onClick={handleSignOut}

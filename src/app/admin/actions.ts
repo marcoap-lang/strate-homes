@@ -529,64 +529,100 @@ export async function upsertAgentProfileAction(
 ): Promise<AgentProfileState> {
   try {
     const profileId = formData.get("profileId")?.toString();
+    const standaloneAgentId = formData.get("agentId")?.toString();
 
-    if (!profileId) {
-      return { success: false, message: "Falta identificar al usuario para activar o editar su perfil comercial." };
+    if (!profileId && !standaloneAgentId) {
+      return { success: false, message: "Falta identificar al asesor que quieres editar." };
     }
 
-    const { supabase, activeWorkspace, profile, existingAgent } = await getTeamMemberProfileContext(profileId);
+    if (profileId) {
+      const { supabase, activeWorkspace, profile, existingAgent } = await getTeamMemberProfileContext(profileId);
+      const displayName = formData.get("displayName")?.toString().trim() || profile.full_name?.trim() || profile.email?.trim() || "Asesor";
+      const slugBase = formData.get("slug")?.toString().trim() || displayName;
+      const slug = slugify(slugBase);
 
-    const displayName = formData.get("displayName")?.toString().trim() || profile.full_name?.trim() || profile.email?.trim() || "Asesor";
+      if (displayName.length < 3) {
+        return { success: false, message: "El nombre público debe tener al menos 3 caracteres." };
+      }
+
+      if (slug.length < 3) {
+        return { success: false, message: "El slug del perfil comercial debe tener al menos 3 caracteres." };
+      }
+
+      const payload = {
+        workspace_id: activeWorkspace.workspaceId,
+        profile_id: profileId,
+        display_name: displayName,
+        slug,
+        title: normalizeNullable(formData.get("title")),
+        bio: normalizeNullable(formData.get("bio")),
+        phone: normalizeNullable(formData.get("phone")) ?? profile.phone ?? null,
+        email: normalizeNullable(formData.get("email")) ?? profile.email ?? null,
+        whatsapp: normalizeNullable(formData.get("whatsapp")),
+        avatar_url: normalizeNullable(formData.get("avatarUrl")) ?? profile.avatar_url ?? null,
+        is_public: formData.get("isPublic") === "on",
+        is_active: true,
+      };
+
+      if (existingAgent?.id) {
+        const { error } = await supabase.from("agents").update(payload).eq("id", existingAgent.id).eq("workspace_id", activeWorkspace.workspaceId);
+        if (error) return { success: false, message: error.message };
+      } else {
+        const { error } = await supabase.from("agents").insert(payload);
+        if (error) return { success: false, message: error.message };
+      }
+
+      revalidatePath("/admin");
+      revalidatePath("/admin/team");
+      return {
+        success: true,
+        message: existingAgent?.id ? "Perfil comercial actualizado correctamente." : "Perfil comercial activado correctamente.",
+      };
+    }
+
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const { data: agent, error: agentError } = await supabase
+      .from("agents")
+      .select("id, display_name, email, phone, avatar_url")
+      .eq("id", standaloneAgentId)
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .maybeSingle();
+
+    if (agentError) throw agentError;
+    if (!agent) return { success: false, message: "No encontramos ese asesor en el workspace activo." };
+
+    const displayName = formData.get("displayName")?.toString().trim() || agent.display_name || "Asesor";
     const slugBase = formData.get("slug")?.toString().trim() || displayName;
     const slug = slugify(slugBase);
 
-    if (displayName.length < 3) {
-      return { success: false, message: "El nombre público debe tener al menos 3 caracteres." };
-    }
+    if (displayName.length < 3) return { success: false, message: "El nombre público debe tener al menos 3 caracteres." };
+    if (slug.length < 3) return { success: false, message: "El slug del perfil comercial debe tener al menos 3 caracteres." };
 
-    if (slug.length < 3) {
-      return { success: false, message: "El slug del perfil comercial debe tener al menos 3 caracteres." };
-    }
+    const { error } = await supabase
+      .from("agents")
+      .update({
+        display_name: displayName,
+        slug,
+        title: normalizeNullable(formData.get("title")),
+        bio: normalizeNullable(formData.get("bio")),
+        phone: normalizeNullable(formData.get("phone")) ?? agent.phone ?? null,
+        email: normalizeNullable(formData.get("email")) ?? agent.email ?? null,
+        whatsapp: normalizeNullable(formData.get("whatsapp")),
+        avatar_url: normalizeNullable(formData.get("avatarUrl")) ?? agent.avatar_url ?? null,
+        is_public: formData.get("isPublic") === "on",
+        is_active: true,
+      })
+      .eq("id", agent.id)
+      .eq("workspace_id", activeWorkspace.workspaceId);
 
-    const payload = {
-      workspace_id: activeWorkspace.workspaceId,
-      profile_id: profileId,
-      display_name: displayName,
-      slug,
-      title: normalizeNullable(formData.get("title")),
-      bio: normalizeNullable(formData.get("bio")),
-      phone: normalizeNullable(formData.get("phone")) ?? profile.phone ?? null,
-      email: normalizeNullable(formData.get("email")) ?? profile.email ?? null,
-      whatsapp: normalizeNullable(formData.get("whatsapp")),
-      avatar_url: normalizeNullable(formData.get("avatarUrl")) ?? profile.avatar_url ?? null,
-      is_public: formData.get("isPublic") === "on",
-      is_active: true,
-    };
-
-    if (existingAgent?.id) {
-      const { error } = await supabase
-        .from("agents")
-        .update(payload)
-        .eq("id", existingAgent.id)
-        .eq("workspace_id", activeWorkspace.workspaceId);
-
-      if (error) {
-        return { success: false, message: error.message };
-      }
-    } else {
-      const { error } = await supabase.from("agents").insert(payload);
-
-      if (error) {
-        return { success: false, message: error.message };
-      }
+    if (error) {
+      return { success: false, message: error.message };
     }
 
     revalidatePath("/admin");
     revalidatePath("/admin/team");
-    return {
-      success: true,
-      message: existingAgent?.id ? "Perfil comercial actualizado correctamente." : "Perfil comercial activado correctamente.",
-    };
+    revalidatePath("/admin/public/agents");
+    return { success: true, message: "Asesor actualizado correctamente." };
   } catch (error) {
     return {
       success: false,
