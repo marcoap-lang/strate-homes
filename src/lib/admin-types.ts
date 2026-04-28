@@ -12,6 +12,17 @@ export type AgentOption = {
   is_public?: boolean;
 };
 
+export type PropertyLeadInterestRecord = {
+  lead_id: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  status: string;
+  created_at: string;
+  message: string | null;
+  internal_note: string | null;
+};
+
 export type PropertyRecord = {
   id: string;
   title: string;
@@ -50,6 +61,7 @@ export type PropertyRecord = {
     updated_at: string;
   }>;
   agents?: { id: string; display_name: string } | { id: string; display_name: string }[] | null;
+  lead_interests?: PropertyLeadInterestRecord[];
 };
 
 export type TeamMemberRecord = {

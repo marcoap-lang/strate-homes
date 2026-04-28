@@ -117,6 +117,19 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             is_cover,
             created_at,
             updated_at
+          ),
+          lead_property_interests (
+            created_at,
+            leads:lead_id (
+              id,
+              full_name,
+              phone,
+              email,
+              message,
+              internal_note,
+              status,
+              created_at
+            )
           )
         `,
       )

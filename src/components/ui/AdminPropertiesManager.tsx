@@ -6,12 +6,14 @@ import { useActionState, useEffect, useMemo, useRef, useState, useTransition } f
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
+  createPropertyAction,
+  createPropertyLeadAction,
   deletePropertyImageAction,
   type PropertyFormState,
+  type PropertyLeadCreateState,
   updatePropertyAction,
   updatePropertyImagesAction,
   updatePropertyStatusAction,
-  createPropertyAction,
 } from "@/app/admin/actions";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
@@ -35,6 +37,7 @@ type GalleryImageDraft = {
 };
 
 const initialState: PropertyFormState = { success: false, message: "" };
+const initialPropertyLeadCreateState: PropertyLeadCreateState = { success: false, message: "" };
 
 const propertyTypes = ["house", "apartment", "land", "office", "commercial", "warehouse", "building", "development", "mixed_use"];
 const operationTypes = ["sale", "rent", "both"];
@@ -889,6 +892,60 @@ function PropertyForm({
   );
 }
 
+function PropertyLeadInterestsManager({ property }: { property: PropertyRecord }) {
+  const [state, action, pending] = useActionState(createPropertyLeadAction, initialPropertyLeadCreateState);
+  const interests = property.lead_interests ?? [];
+
+  return (
+    <SectionCard>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-semibold text-stone-900">Interesados en esta propiedad</p>
+          <p className="mt-2 text-sm text-stone-600">Seguimiento básico para saber quién se interesó y agregar contactos manuales asociados a esta propiedad.</p>
+        </div>
+        <div className="rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700">
+          {interests.length} interesados
+        </div>
+      </div>
+
+      <div className="mt-5 grid gap-4">
+        {interests.length ? interests.map((interest) => (
+          <div key={`${interest.lead_id}-${interest.created_at}`} className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-base font-semibold text-stone-950">{interest.full_name}</p>
+                <p className="mt-1 text-sm text-stone-500">{interest.phone}{interest.email ? ` · ${interest.email}` : ""}</p>
+              </div>
+              <span className="rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-700">{interest.status}</span>
+            </div>
+            <p className="mt-3 text-sm text-stone-700"><span className="font-medium text-stone-900">Fecha de entrada:</span> {new Date(interest.created_at).toLocaleString("es-MX")}</p>
+            {interest.message ? <p className="mt-2 text-sm leading-6 text-stone-600"><span className="font-medium text-stone-900">Mensaje inicial:</span> {interest.message}</p> : null}
+            {interest.internal_note ? <p className="mt-2 text-sm leading-6 text-stone-600"><span className="font-medium text-stone-900">Nota interna:</span> {interest.internal_note}</p> : null}
+            <div className="mt-4 flex flex-wrap gap-3">
+              <a href={`https://wa.me/${interest.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">WhatsApp</a>
+              <Link href="/admin/leads" className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">Ver lead</Link>
+              <button type="button" onClick={() => navigator.clipboard.writeText(interest.phone)} className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">Copiar teléfono</button>
+            </div>
+          </div>
+        )) : <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">Todavía no hay interesados registrados para esta propiedad.</div>}
+      </div>
+
+      <form action={action} className="mt-6 space-y-4 rounded-2xl border border-stone-200 bg-stone-50 p-4">
+        <input type="hidden" name="propertyId" value={property.id} />
+        <p className="text-sm font-semibold text-stone-900">Agregar lead manual</p>
+        <div className="grid gap-4 md:grid-cols-2">
+          <input name="fullName" placeholder="Nombre completo" className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+          <input name="phone" placeholder="Teléfono" className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+          <input name="email" placeholder="Email (opcional)" className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400 md:col-span-2" />
+        </div>
+        <textarea name="message" rows={3} placeholder="Mensaje o nota inicial" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+        {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
+        <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">{pending ? "Guardando..." : "Agregar interesado"}</button>
+      </form>
+    </SectionCard>
+  );
+}
+
 function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { activeWorkspace } = useActiveWorkspace();
@@ -1362,6 +1419,7 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
               <button className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">Guardar estatus</button>
             </form>
           </SectionCard>
+          <PropertyLeadInterestsManager property={property} />
           <PropertyImagesManager property={property} />
         </div>
       </div>

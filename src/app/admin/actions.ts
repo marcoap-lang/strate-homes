@@ -34,6 +34,11 @@ export type LeadUpdateState = {
   message: string;
 };
 
+export type PropertyLeadCreateState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -60,6 +65,11 @@ const INITIAL_LEAD_CAPTURE_STATE: LeadCaptureState = {
 };
 
 const INITIAL_LEAD_UPDATE_STATE: LeadUpdateState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_PROPERTY_LEAD_CREATE_STATE: PropertyLeadCreateState = {
   success: false,
   message: "",
 };
@@ -388,6 +398,60 @@ export async function updateLeadStateAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo actualizar el lead.",
+    };
+  }
+}
+
+export async function createPropertyLeadAction(
+  _prevState: PropertyLeadCreateState = INITIAL_PROPERTY_LEAD_CREATE_STATE,
+  formData: FormData,
+): Promise<PropertyLeadCreateState> {
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const propertyId = formData.get("propertyId")?.toString();
+    const fullName = formData.get("fullName")?.toString().trim() ?? "";
+    const phone = formData.get("phone")?.toString().trim() ?? "";
+
+    if (!propertyId || fullName.length < 3 || phone.length < 7) {
+      return { success: false, message: "Comparte al menos nombre y teléfono válidos." };
+    }
+
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .insert({
+        workspace_id: activeWorkspace.workspaceId,
+        full_name: fullName,
+        phone,
+        email: normalizeNullable(formData.get("email")),
+        message: normalizeNullable(formData.get("message")),
+        internal_note: normalizeNullable(formData.get("message")),
+        source_type: "manual",
+        status: "new",
+      })
+      .select("id")
+      .single();
+
+    if (leadError || !lead?.id) {
+      return { success: false, message: leadError?.message ?? "No pudimos crear el lead." };
+    }
+
+    const { error: interestError } = await supabase.from("lead_property_interests").insert({
+      workspace_id: activeWorkspace.workspaceId,
+      lead_id: lead.id,
+      property_id: propertyId,
+    });
+
+    if (interestError) {
+      return { success: false, message: interestError.message };
+    }
+
+    revalidatePath(`/admin/properties/${propertyId}`);
+    revalidatePath(`/admin/leads`);
+    return { success: true, message: "Lead agregado correctamente a esta propiedad." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo crear el lead manual.",
     };
   }
 }
