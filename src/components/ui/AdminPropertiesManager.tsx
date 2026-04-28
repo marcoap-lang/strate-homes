@@ -1400,6 +1400,8 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
         </SectionCard>
       </div>
 
+      <PropertyLeadInterestsManager property={property} />
+
       <div className="space-y-6 xl:grid xl:grid-cols-[0.95fr_1.05fr] xl:gap-6 xl:space-y-0">
         <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
         <div className="space-y-6">
@@ -1419,7 +1421,6 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
               <button className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">Guardar estatus</button>
             </form>
           </SectionCard>
-          <PropertyLeadInterestsManager property={property} />
           <PropertyImagesManager property={property} />
         </div>
       </div>
