@@ -40,6 +40,7 @@ const operationTypes = ["sale", "rent", "both"];
 const statuses = ["draft", "active", "pending", "sold", "rented", "archived"];
 const suggestedPhotoShots = ["Fachada", "Sala", "Cocina", "Recámara principal", "Baño principal"];
 const wizardSteps = ["Base", "Ubicación", "Características", "Fotos", "Descripción", "Publicación", "Revisión"] as const;
+const descriptionTones = ["premium", "familiar", "inversion", "ejecutivo", "comercial"] as const;
 
 function normalizeText(value?: string | null) {
   return (value ?? "").toLowerCase();
@@ -82,6 +83,68 @@ function formatImagePublicUrl(path: string) {
   const supabase = createSupabaseBrowserClient();
   const { data } = supabase.storage.from("property-images").getPublicUrl(path);
   return data.publicUrl;
+}
+
+function getPropertyTypeLabel(value?: string | null) {
+  if (value === "house") return "casa";
+  if (value === "apartment") return "departamento";
+  if (value === "land") return "terreno";
+  if (value === "office") return "oficina";
+  if (value === "commercial") return "local comercial";
+  return "propiedad";
+}
+
+function buildSuggestedDescription({
+  type,
+  tone,
+  location,
+  price,
+  bedrooms,
+  bathrooms,
+  area,
+}: {
+  type: string;
+  tone: string;
+  location: string;
+  price: string;
+  bedrooms: string;
+  bathrooms: string;
+  area: string;
+}) {
+  const typeLabel = getPropertyTypeLabel(type);
+  const specs = [
+    bedrooms ? `${bedrooms} recámaras` : null,
+    bathrooms ? `${bathrooms} baños` : null,
+    area ? `${area} m² de construcción` : null,
+  ].filter(Boolean).join(", ");
+
+  const intros: Record<string, string> = {
+    premium: `Descubre esta ${typeLabel} con una presencia cuidada, espacios bien resueltos y una ubicación que eleva la experiencia de vivir o invertir.`,
+    familiar: `Una ${typeLabel} pensada para quienes buscan comodidad, buena ubicación y una vida diaria más práctica para su familia.`,
+    inversion: `Una ${typeLabel} con atributos atractivos para quien busca proteger capital, rentabilizar ubicación y mantener flexibilidad comercial.`,
+    ejecutivo: `Una ${typeLabel} funcional y bien ubicada para quienes priorizan operación eficiente, imagen profesional y buena conectividad.`,
+    comercial: `Una ${typeLabel} con condiciones claras para activar operación, recibir clientes y aprovechar mejor su zona inmediata.`,
+  };
+
+  return [
+    intros[tone] ?? intros.premium,
+    location ? `Se encuentra en ${location}${price ? `, con un precio de referencia de ${price}` : ""}.` : null,
+    specs ? `Destaca por ${specs}, ofreciendo una propuesta equilibrada entre valor, funcionalidad y presentación.` : null,
+    "Es una opción que puede comunicar mejor su valor desde la primera visita y facilitar una conversación comercial más clara con el cliente adecuado.",
+  ].filter(Boolean).join(" ");
+}
+
+function buildSuggestedShortDescription({
+  type,
+  location,
+  price,
+}: {
+  type: string;
+  location: string;
+  price: string;
+}) {
+  const typeLabel = getPropertyTypeLabel(type);
+  return `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Ideal para compartir rápido con clientes interesados.`;
 }
 
 function Field({
@@ -203,6 +266,8 @@ function PropertyForm({
   const reviewPrice = String(draftSnapshot.priceAmount ?? property?.price_amount ?? "");
   const reviewCurrency = String(draftSnapshot.currencyCode ?? property?.currency_code ?? "MXN");
   const reviewLocation = [draftSnapshot.locationLabel ?? property?.location_label, draftSnapshot.city ?? property?.city, draftSnapshot.state ?? property?.state].filter(Boolean).join(" · ");
+  const reviewType = String(draftSnapshot.propertyType ?? property?.property_type ?? "house");
+  const reviewTone = String(draftSnapshot.descriptionTone ?? "premium");
   const reviewSpecs = [
     draftSnapshot.bedrooms ?? property?.bedrooms,
     draftSnapshot.bathrooms ?? property?.bathrooms,
@@ -211,7 +276,21 @@ function PropertyForm({
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
   const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
-  const reviewDescription = String(draftSnapshot.description ?? property?.description ?? "");
+  const suggestedDescription = buildSuggestedDescription({
+    type: reviewType,
+    tone: reviewTone,
+    location: reviewLocation,
+    price: reviewPrice ? `${reviewCurrency} ${reviewPrice}` : "",
+    bedrooms: String(draftSnapshot.bedrooms ?? property?.bedrooms ?? ""),
+    bathrooms: String(draftSnapshot.bathrooms ?? property?.bathrooms ?? ""),
+    area: String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? ""),
+  });
+  const suggestedShortDescription = buildSuggestedShortDescription({
+    type: reviewType,
+    location: reviewLocation,
+    price: reviewPrice ? `${reviewCurrency} ${reviewPrice}` : "",
+  });
+  const reviewDescription = String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
   const photosCount = property?.property_images.length ?? 0;
   const reviewChecklist = [
     { label: "Datos base", done: Boolean(reviewTitle && reviewTitle !== "Sin título") },
@@ -391,10 +470,40 @@ function PropertyForm({
       ) : null}
 
       {currentStep === 4 ? (
-        <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Descripción</span>
-          <textarea name="description" defaultValue={property?.description ?? ""} rows={6} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" placeholder="Describe lo más atractivo de la propiedad, su distribución y el valor comercial más claro." />
-        </label>
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[0.8fr_1.2fr]">
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Tono de la descripción</p>
+              <div className="mt-4 space-y-3">
+                <label className="space-y-2 text-sm text-stone-700">
+                  <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
+                  <select name="descriptionTone" defaultValue="premium" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                    {descriptionTones.map((tone) => (
+                      <option key={tone} value={tone}>{tone}</option>
+                    ))}
+                  </select>
+                </label>
+                <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
+                  <p className="font-medium text-stone-900">Plantilla sugerida</p>
+                  <p className="mt-2">La propuesta se arma con tipo de propiedad, ubicación, precio y características ya capturadas para que no empieces desde cero.</p>
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Descripción comercial</p>
+              <p className="mt-2 text-sm leading-6 text-stone-600">Puedes usar la propuesta sugerida tal como está o editarla para adaptarla a tu estilo comercial.</p>
+              <label className="mt-4 block space-y-2 text-sm text-stone-700">
+                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
+                <textarea name="description" defaultValue={property?.description ?? suggestedDescription} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              </label>
+              <label className="mt-4 block space-y-2 text-sm text-stone-700">
+                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión corta para WhatsApp / redes</span>
+                <textarea name="shortDescription" defaultValue={String(draftSnapshot.shortDescription ?? suggestedShortDescription)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              </label>
+            </SectionCard>
+          </div>
+        </div>
       ) : null}
 
       {currentStep === 5 ? (
