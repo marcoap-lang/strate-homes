@@ -43,9 +43,9 @@ export default async function WorkspacePropertiesPage({
         <section className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.5rem]">{workspace.public_claim ?? "Selección pública de propiedades con presentación comercial clara."}</h1>
+            <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.5rem]">{workspace.public_claim ?? "Encuentra propiedades seleccionadas en las mejores zonas."}</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
-              Filtra por operación, ubicación, precio o recámaras y encuentra opciones con una presentación más cuidada y fácil de compartir.
+              Filtra por operación, ubicación, precio o recámaras y descubre opciones ideales para vivir, invertir o cambiar de estilo de vida.
             </p>
           </div>
           <div>
@@ -83,7 +83,7 @@ export default async function WorkspacePropertiesPage({
               </article>
             );
           }) : (
-            <div className="text-sm text-slate-600 md:col-span-2 xl:col-span-3">No encontramos propiedades con esos filtros. Prueba otra combinación.</div>
+            <div className="text-sm text-slate-600 md:col-span-2 xl:col-span-3">No encontramos propiedades con esos filtros. Prueba otra combinación para seguir explorando opciones.</div>
           )}
         </section>
 

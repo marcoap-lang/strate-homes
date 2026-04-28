@@ -30,16 +30,16 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           <div className="pb-8 lg:pb-14">
             <p className="text-xs uppercase tracking-[0.38em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
             <h1 className="mt-7 max-w-5xl text-6xl font-semibold leading-[0.9] tracking-tight text-slate-950 sm:text-7xl lg:text-[6.25rem]">
-              {workspace.public_claim ?? "Propiedades bien elegidas, atención clara y presentación comercial cuidada."}
+              {workspace.public_claim ?? "Encuentra tu próximo hogar en Veracruz"}
             </h1>
             <p className="mt-8 max-w-lg text-base leading-8 text-slate-600">
-              {workspace.public_bio ?? `Explora la selección pública de ${workspace.brand_name ?? workspace.name} y descubre propiedades con mejor presentación, contexto y acompañamiento comercial.`}
+              {workspace.public_bio ?? "Propiedades seleccionadas en las mejores zonas, con asesoría cercana y atención personalizada."}
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                 Ver propiedades
               </Link>
-              {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">Contactar por WhatsApp</a> : null}
+              {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">Contactar a la inmobiliaria</a> : null}
             </div>
             <div className="mt-8 flex flex-wrap gap-5 text-sm text-slate-500">
               {workspace.public_phone ? <span>Tel. {workspace.public_phone}</span> : null}
@@ -76,7 +76,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades destacadas</p>
-            <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Opciones bien ubicadas, con presencia y valor residencial.</h2>
+            <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Oportunidades seleccionadas para ti</h2>
           </div>
           <Link href={`/w/${workspaceSlug}/properties`} className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-900 transition hover:bg-slate-50 md:inline-flex">
             Ver más propiedades

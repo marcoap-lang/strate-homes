@@ -36,12 +36,12 @@ export default async function WorkspaceAgentPage({
             <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.8rem]">{agent.displayName}</h1>
             {agent.title ? <p className="mt-4 text-sm uppercase tracking-[0.25em] text-slate-500">{agent.title}</p> : null}
             <p className="mt-7 max-w-2xl text-base leading-8 text-slate-600">
-              {agent.bio ?? `Un asesor de ${agent.workspace.brandName ?? agent.workspace.name} puede ayudarte con esta búsqueda y acompañarte durante todo el proceso.`}
+              {agent.bio ?? `Te ayudo a encontrar la propiedad ideal con atención cercana, información clara y acompañamiento durante cada paso.`}
             </p>
             <div className="mt-8 flex flex-wrap gap-4">
               {agent.whatsappUrl ? (
                 <a href={agent.whatsappUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#d7ab5b] px-7 py-4 text-sm font-medium text-white shadow-[0_14px_35px_rgba(215,171,91,0.35)] transition hover:bg-[#c99a46]">
-                  Hablar por WhatsApp
+                  Agenda una visita por WhatsApp
                 </a>
               ) : (
                 <span className="rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">
