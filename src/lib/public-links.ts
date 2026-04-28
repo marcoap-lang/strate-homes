@@ -1,11 +1,21 @@
 export function getPublicBaseUrl() {
-  const explicitUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const explicitSiteUrl = process.env.NEXT_PUBLIC_SITE_URL?.trim();
 
-  if (explicitUrl) {
-    return explicitUrl.replace(/\/$/, "");
+  if (explicitSiteUrl) {
+    return explicitSiteUrl.replace(/\/$/, "");
   }
 
-  return "https://strate-homes.vercel.app";
+  if (process.env.NODE_ENV !== "production") {
+    return "http://localhost:3000";
+  }
+
+  const fallbackAppUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (fallbackAppUrl) {
+    return fallbackAppUrl.replace(/\/$/, "");
+  }
+
+  return "http://localhost:3000";
 }
 
 export function buildWorkspacePropertyPath(workspaceSlug: string | null | undefined, propertySlug: string) {

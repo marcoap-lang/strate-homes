@@ -30,16 +30,17 @@
 ✅ Experiencia simplificada a un workspace principal claro
 ✅ Navegación pública más clara entre home, listado y ficha
 ✅ Compartir propiedad por WhatsApp + copiar link público
+✅ Dominio canónico público aplicado a links compartibles (`NEXT_PUBLIC_SITE_URL`)
 ✅ Dirección visual pública más premium tipo Miami coastal
 ✅ Disclaimer legal discreto integrado en páginas públicas
 
 ## Bloque actual
 
-🟨 En curso: selector explícito de workspace activo + extensión del enforcement limpio a más módulos
+🟨 En curso: validación final de links públicos canónicos + selector explícito de workspace activo
 
 ## Siguiente bloque
 
-⬜ Selector explícito de workspace activo + pulido posterior del uploader visual
+⬜ Validación manual en incógnito de links públicos canónicos + pulido posterior del uploader visual
 
 ---
 
@@ -68,6 +69,7 @@
 - ✅ Selector de workspace oculto en esta etapa para evitar confusión operativa
 - ✅ Ficha pública lista para compartir por WhatsApp con mensaje prellenado comercial
 - ✅ URL pública configurable para compartir links correctos de producción
+- ✅ Copiar link / WhatsApp / preview público preparados para usar base canónica `https://homes.strate.lat`
 - ✅ Home/listado/ficha públicas con lenguaje visual más editorial y navegable
 - ✅ Ruta pública real por workspace implementada: `/w/{workspace_slug}`, `/w/{workspace_slug}/properties` y `/w/{workspace_slug}/properties/{property_slug}`
 - ✅ Admin abre la home pública del workspace activo en nueva pestaña usando su slug público

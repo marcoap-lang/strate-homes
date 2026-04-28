@@ -72,6 +72,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Dirección visual pública elevada hacia “Miami coastal + minimal luxury”: fondos claros, fotos protagonistas, más aire, menos densidad visual y tono más brokerage que SaaS en home, listado y ficha.
 - Home pública reforzada con hero más editorial, destacadas, recientes, agente destacado, CTA a WhatsApp y footer limpio con disclaimer legal discreto.
 - Ficha pública reforzada con compartir por WhatsApp, copiar link, propiedades similares y disclaimer legal discreto al final.
+- Links públicos compartibles estabilizados para usar dominio canónico de producción vía `NEXT_PUBLIC_SITE_URL`, evitando dominios internos de Vercel en copiar link, WhatsApp, preview público y accesos desde admin.
 - Disclaimer legal ya integrado de forma discreta en la experiencia pública sin romper el diseño.
 
 ## Qué está en curso
@@ -85,11 +86,12 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - refinar componentes reutilizables del admin
 - validar en uso real el uploader visual de fotos ya habilitado y luego decidir si necesita drag-and-drop completo
 - validar con propiedades reales la consistencia comercial de la capa pública (copy, fotos, agente visible, contacto)
+- validar con prueba manual en incógnito que copiar link, WhatsApp y preview público abran con `https://homes.strate.lat`
 - mejorar después el CTA real cuando se conecte lead capture/contacto operativo
 - decidir más adelante resolución explícita del workspace público cuando existan múltiples sitios públicos fuertes
 - ampliar más adelante el showroom remoto para usar 3-4 agentes visibles si existen más perfiles reales disponibles, sin acoplarse a usuarios demo ficticios
 - ya existe resolución real de capa pública por workspace con rutas `/w/{workspace_slug}`, `/w/{workspace_slug}/properties` y `/w/{workspace_slug}/properties/{property_slug}`.
-- el botón de admin “Ver sitio público” ya abre la home pública correcta del workspace activo en vez del root SaaS.
+- el botón de admin “Ver sitio público” ya abre la home pública correcta del workspace activo en vez del root SaaS y ahora usa base canónica pública configurable.
 - bucket/policies de `property-images` ya quedaron diagnosticados: el path usa prefijo por `workspaceId/propertyId/...` y las policies permiten insert/select/delete a miembros autenticados del workspace. El flujo de upload ahora conserva mensajes de error más claros en cliente si Storage rechaza la subida.
 
 ## Qué sigue inmediatamente después
@@ -99,8 +101,9 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 4. extender la misma disciplina estructural a equipo y permisos administrativos finos
 5. decidir si hace falta una migración posterior para retirar por completo el rol legacy `agent` del enum operativo
 6. mejorar después la experiencia visual del perfil comercial con preview más rica y manejo de assets menos manual
-7. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
-8. conectar después el CTA público con captura real de interés/contacto
+7. validar manualmente con propiedades publicadas que compartir/copiar/preview siempre usen `homes.strate.lat` en producción y no dominios preview
+8. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
+9. conectar después el CTA público con captura real de interés/contacto
 9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
 10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
 11. validar con prueba manual en entorno hospedado una subida real de foto end-to-end y, si vuelve a fallar, capturar el mensaje exacto del cliente para ajustar bucket/policies o MIME/path específico sin abrir trabajo lateral
@@ -121,6 +124,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - avanzar UI multiusuario sin aterrizar primero created_by, assigned_agent y reglas reales de visibilidad/edición
 - que la galería visual quede corta en usabilidad si no evoluciona después hacia drag-and-drop más fino, previews más ricos y limpieza automática más robusta
 - olvidar políticas futuras para `workspaces` y dominios nuevos
+- reintroducir links compartibles armados contra dominios preview o internos en vez de la base canónica pública
 - añadir complejidad visual sin necesidad real
 - dejar inconsistencias entre rutas del módulo de propiedades si no se mantiene disciplina de navegación
 - perder el hilo de continuidad si no se actualiza esta documentación

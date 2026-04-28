@@ -15,6 +15,7 @@ import {
 } from "@/app/admin/actions";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
+import { buildPublicPropertyUrl } from "@/lib/public-links";
 
 type SharedProps = {
   workspaceName: string | null | undefined;
@@ -634,7 +635,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                     <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
                       Editar
                     </Link>
-                    <a href={workspaceSlug ? `/w/${workspaceSlug}/properties/${property.slug}` : `/properties/${property.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                       Ver pública
                     </a>
                   </div>

@@ -8,6 +8,7 @@ import { AuthStatusBadge } from "@/components/ui/AuthStatusBadge";
 import { WorkspaceStatusBadge } from "@/components/ui/WorkspaceStatusBadge";
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
+import { getPublicBaseUrl } from "@/lib/public-links";
 
 const navItems = [
   { label: "Inicio", href: "/admin" },
@@ -63,7 +64,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="mt-8 space-y-3">
-            <a href={activeWorkspace?.workspaceSlug ? `/w/${activeWorkspace.workspaceSlug}` : "/"} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50">
+            <a href={activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center rounded-full border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 transition hover:bg-slate-50">
               Ver sitio público
             </a>
             <button
