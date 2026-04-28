@@ -21,9 +21,10 @@ export function PublicPropertyDetailPage({
   similarProperties: PublicProperty[];
   workspaceSlug?: string | null;
 }) {
-  const gallery = property.images.slice(0, 7);
+  const gallery = property.images;
   const cover = gallery[0] ?? null;
   const storyImages = gallery.slice(1, 5);
+  const remainingImages = gallery.slice(5);
   const propertyBasePath = workspaceSlug ? `/w/${workspaceSlug}/properties` : "/properties";
   const propertyUrl = buildPublicPropertyUrl(property.slug, workspaceSlug ?? null);
   const locationText = [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || property.locationLabel;
@@ -92,7 +93,10 @@ export function PublicPropertyDetailPage({
                 <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Galería</p>
                 <h2 className="mt-4 text-4xl font-semibold tracking-tight text-slate-950">Espacios que cuentan la historia de la propiedad</h2>
               </div>
-              <Link href={propertyBasePath} className="hidden text-sm text-slate-600 transition hover:text-slate-950 md:inline-flex">Ver más propiedades</Link>
+              <div className="flex items-center gap-4">
+                <span className="hidden text-sm text-slate-500 md:inline-flex">{gallery.length} fotos disponibles</span>
+                <Link href={propertyBasePath} className="hidden text-sm text-slate-600 transition hover:text-slate-950 md:inline-flex">Ver más propiedades</Link>
+              </div>
             </div>
             <div className="overflow-x-auto pb-2">
               <div className="flex min-w-max gap-5 pr-4">
@@ -103,6 +107,21 @@ export function PublicPropertyDetailPage({
                 ))}
               </div>
             </div>
+            {remainingImages.length ? (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between gap-4">
+                  <p className="text-sm font-medium text-slate-900">Ver todas las fotos</p>
+                  <span className="text-sm text-slate-500">{remainingImages.length} fotos adicionales</span>
+                </div>
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  {remainingImages.map((image) => (
+                    <div key={image.id} className="relative h-64 overflow-hidden rounded-[1.8rem] bg-gradient-to-br from-slate-100 to-slate-50 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+                      {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
           </section>
         ) : null}
 
