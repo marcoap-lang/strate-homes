@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicBrandHeader } from "@/components/ui/PublicBrandHeader";
 import { PublicLuxuryFilters } from "@/components/ui/PublicLuxuryFilters";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -11,7 +12,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
   const supabase = await createSupabaseServerClient();
   const { data: workspace } = await supabase
     .from("workspaces")
-    .select("id, name, slug, brand_name")
+    .select("id, name, slug, brand_name, public_phone, public_whatsapp, public_email, public_claim, public_bio, public_logo_url, public_hero_url")
     .eq("slug", workspaceSlug)
     .maybeSingle();
 
@@ -22,40 +23,33 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
 
   return (
     <main className="min-h-screen bg-[#f7fbff] text-slate-950">
-      <header className="sticky top-0 z-50 bg-[#f7fbff]/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-5 lg:px-8">
-          <div>
-            <p className="text-sm font-semibold uppercase tracking-[0.42em] text-slate-800">{workspace.brand_name ?? workspace.name}</p>
-            <p className="mt-1 text-xs text-slate-500">Sitio público del workspace</p>
-          </div>
-          <nav className="hidden items-center gap-8 text-sm text-slate-600 md:flex">
-            <Link href={`/w/${workspaceSlug}`} className="transition hover:text-slate-950">Inicio</Link>
-            <Link href={`/w/${workspaceSlug}/properties`} className="transition hover:text-slate-950">Propiedades</Link>
-            <Link href="/login" className="transition hover:text-slate-950">Login</Link>
-          </nav>
-        </div>
-      </header>
+      <PublicBrandHeader brandName={workspace.brand_name ?? workspace.name} logoUrl={workspace.public_logo_url} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
 
       <section className="px-6 pb-18 pt-6 lg:px-8 lg:pb-24 lg:pt-8">
         <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.84fr_1.16fr] lg:items-end">
           <div className="pb-6 lg:pb-12">
             <p className="text-xs uppercase tracking-[0.34em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
             <h1 className="mt-6 max-w-4xl text-6xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-7xl">
-              Propiedades, ubicaciones y atención clara en un solo lugar.
+              {workspace.public_claim ?? "Propiedades bien elegidas, atención clara y presentación comercial cuidada."}
             </h1>
             <p className="mt-7 max-w-xl text-lg leading-9 text-slate-600">
-              Explora la selección pública del workspace y entra directamente a cada propiedad publicada.
+              {workspace.public_bio ?? `Explora la selección pública de ${workspace.brand_name ?? workspace.name} y descubre propiedades con mejor presentación, contexto y acompañamiento comercial.`}
             </p>
             <div className="mt-9 flex flex-wrap gap-4">
               <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                 Ver propiedades
               </Link>
+              {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">Contactar por WhatsApp</a> : null}
+            </div>
+            <div className="mt-8 flex flex-wrap gap-5 text-sm text-slate-500">
+              {workspace.public_phone ? <span>Tel. {workspace.public_phone}</span> : null}
+              {workspace.public_email ? <span>{workspace.public_email}</span> : null}
             </div>
           </div>
 
           <div className="relative">
             <div className="relative min-h-[36rem] overflow-hidden rounded-[2.6rem] bg-gradient-to-br from-sky-100 to-white lg:min-h-[44rem]">
-              {heroProperty?.coverImageUrl ? <Image src={heroProperty.coverImageUrl} alt={heroProperty.title} fill className="object-cover" unoptimized /> : null}
+              {(workspace.public_hero_url ?? heroProperty?.coverImageUrl) ? <Image src={workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? ""} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="object-cover" unoptimized /> : null}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/22 via-slate-950/5 to-transparent" />
             </div>
             {heroProperty ? (
@@ -122,6 +116,12 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       </section>
 
       <footer className="mx-auto max-w-7xl px-6 pb-20 pt-8 lg:px-8">
+        <div className="space-y-3 pb-8 text-sm text-slate-500">
+          <p className="font-medium text-slate-900">{workspace.brand_name ?? workspace.name}</p>
+          {workspace.public_phone ? <p>Teléfono: {workspace.public_phone}</p> : null}
+          {workspace.public_whatsapp ? <p>WhatsApp: {workspace.public_whatsapp}</p> : null}
+          {workspace.public_email ? <p>Email: {workspace.public_email}</p> : null}
+        </div>
         <PublicLegalDisclaimer />
       </footer>
     </main>

@@ -39,6 +39,16 @@ export type PropertyLeadCreateState = {
   message: string;
 };
 
+export type PropertyTourCreateState = {
+  success: boolean;
+  message: string;
+};
+
+export type WorkspaceBrandingState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -70,6 +80,16 @@ const INITIAL_LEAD_UPDATE_STATE: LeadUpdateState = {
 };
 
 const INITIAL_PROPERTY_LEAD_CREATE_STATE: PropertyLeadCreateState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_PROPERTY_TOUR_CREATE_STATE: PropertyTourCreateState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_WORKSPACE_BRANDING_STATE: WorkspaceBrandingState = {
   success: false,
   message: "",
 };
@@ -452,6 +472,97 @@ export async function createPropertyLeadAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo crear el lead manual.",
+    };
+  }
+}
+
+export async function updateWorkspaceBrandingAction(
+  _prevState: WorkspaceBrandingState = INITIAL_WORKSPACE_BRANDING_STATE,
+  formData: FormData,
+): Promise<WorkspaceBrandingState> {
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+
+    const { error } = await supabase
+      .from("workspaces")
+      .update({
+        brand_name: normalizeNullable(formData.get("brandName")),
+        public_phone: normalizeNullable(formData.get("publicPhone")),
+        public_whatsapp: normalizeNullable(formData.get("publicWhatsapp")),
+        public_email: normalizeNullable(formData.get("publicEmail")),
+        public_claim: normalizeNullable(formData.get("publicClaim")),
+        public_bio: normalizeNullable(formData.get("publicBio")),
+        public_logo_url: normalizeNullable(formData.get("publicLogoUrl")),
+        public_hero_url: normalizeNullable(formData.get("publicHeroUrl")),
+      })
+      .eq("id", activeWorkspace.workspaceId);
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/public/properties");
+    revalidatePath("/w/[workspaceSlug]", "page");
+    return { success: true, message: "Branding público actualizado correctamente." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo guardar el branding público.",
+    };
+  }
+}
+
+export async function createPropertyTourAction(
+  _prevState: PropertyTourCreateState = INITIAL_PROPERTY_TOUR_CREATE_STATE,
+  formData: FormData,
+): Promise<PropertyTourCreateState> {
+  try {
+    const { supabase, activeWorkspace, agentRecord } = await getWorkspaceContext();
+    const leadId = formData.get("leadId")?.toString();
+    const title = formData.get("title")?.toString().trim() ?? "";
+    const slug = slugify(formData.get("slug")?.toString() || title);
+    const selectedPropertyIds = formData.getAll("propertyIds").map((value) => value.toString()).filter(Boolean);
+
+    if (!leadId || title.length < 3 || slug.length < 3 || !selectedPropertyIds.length) {
+      return { success: false, message: "Completa lead, título, slug y al menos una propiedad." };
+    }
+
+    const { data: tour, error: tourError } = await supabase
+      .from("property_tours")
+      .insert({
+        workspace_id: activeWorkspace.workspaceId,
+        lead_id: leadId,
+        agent_id: agentRecord?.id ?? null,
+        slug,
+        title,
+        intro_message: normalizeNullable(formData.get("introMessage")),
+      })
+      .select("id")
+      .single();
+
+    if (tourError || !tour?.id) {
+      return { success: false, message: tourError?.message ?? "No pudimos crear el recorrido." };
+    }
+
+    const items = selectedPropertyIds.map((propertyId, index) => ({
+      workspace_id: activeWorkspace.workspaceId,
+      tour_id: tour.id,
+      property_id: propertyId,
+      sort_order: index,
+    }));
+
+    const { error: itemsError } = await supabase.from("property_tour_items").insert(items);
+    if (itemsError) {
+      return { success: false, message: itemsError.message };
+    }
+
+    revalidatePath("/admin/leads");
+    return { success: true, message: "Recorrido creado correctamente." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo crear el recorrido.",
     };
   }
 }

@@ -17,6 +17,13 @@ export type PublicAgentProfile = {
     slug: string | null;
     name: string;
     brandName: string | null;
+    publicPhone: string | null;
+    publicWhatsapp: string | null;
+    publicEmail: string | null;
+    publicClaim: string | null;
+    publicBio: string | null;
+    publicLogoUrl: string | null;
+    publicHeroUrl: string | null;
   };
   properties: PublicProperty[];
   whatsappUrl: string | null;
@@ -43,7 +50,14 @@ export async function getPublicAgentBySlug(workspaceSlug: string, agentSlug: str
           id,
           slug,
           name,
-          brand_name
+          brand_name,
+          public_phone,
+          public_whatsapp,
+          public_email,
+          public_claim,
+          public_bio,
+          public_logo_url,
+          public_hero_url
         )
       `,
     )
@@ -90,6 +104,13 @@ export async function getPublicAgentBySlug(workspaceSlug: string, agentSlug: str
       slug: workspace.slug ?? null,
       name: workspace.name,
       brandName: workspace.brand_name ?? null,
+      publicPhone: workspace.public_phone ?? null,
+      publicWhatsapp: workspace.public_whatsapp ?? null,
+      publicEmail: workspace.public_email ?? null,
+      publicClaim: workspace.public_claim ?? null,
+      publicBio: workspace.public_bio ?? null,
+      publicLogoUrl: workspace.public_logo_url ?? null,
+      publicHeroUrl: workspace.public_hero_url ?? null,
     },
     properties,
     whatsappUrl,

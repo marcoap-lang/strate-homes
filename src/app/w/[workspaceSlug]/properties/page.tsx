@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PublicBrandHeader } from "@/components/ui/PublicBrandHeader";
 import { PublicLuxuryFilters } from "@/components/ui/PublicLuxuryFilters";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
@@ -15,7 +16,7 @@ export default async function WorkspacePropertiesPage({
 }) {
   const { workspaceSlug } = await params;
   const supabase = await createSupabaseServerClient();
-  const { data: workspace } = await supabase.from("workspaces").select("id, name, slug, brand_name").eq("slug", workspaceSlug).maybeSingle();
+  const { data: workspace } = await supabase.from("workspaces").select("id, name, slug, brand_name, public_logo_url, public_claim").eq("slug", workspaceSlug).maybeSingle();
   if (!workspace) notFound();
 
   const q = await searchParams;
@@ -31,6 +32,7 @@ export default async function WorkspacePropertiesPage({
 
   return (
     <main className="min-h-screen bg-[#f7fbff] px-6 py-10 text-slate-950 lg:px-8">
+      <PublicBrandHeader brandName={workspace.brand_name ?? workspace.name} logoUrl={workspace.public_logo_url} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
       <div className="mx-auto max-w-7xl space-y-16">
         <nav className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
           <Link href={`/w/${workspaceSlug}`} className="transition hover:text-slate-900">Inicio</Link>
@@ -41,9 +43,9 @@ export default async function WorkspacePropertiesPage({
         <section className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Propiedades publicadas de este workspace.</h1>
+            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">{workspace.public_claim ?? "Selección pública de propiedades con presentación comercial clara."}</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
-              Filtra por operación, ubicación, precio o recámaras y encuentra propiedades con una lectura clara, visual y consistente con la ficha principal.
+              Filtra por operación, ubicación, precio o recámaras y encuentra opciones con una presentación más cuidada y fácil de compartir.
             </p>
           </div>
           <div>

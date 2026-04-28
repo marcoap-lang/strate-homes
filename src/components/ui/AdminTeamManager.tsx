@@ -1,8 +1,10 @@
 "use client";
 
+import Image from "next/image";
 import { useActionState, useState } from "react";
 import { createAgentAction, upsertAgentProfileAction, type AgentProfileState, type CreateAgentState } from "@/app/admin/actions";
 import type { StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
+import { AgentAvatarUploadField } from "@/components/ui/AgentAvatarUploadField";
 
 const initialProfileState: AgentProfileState = { success: false, message: "" };
 const initialCreateState: CreateAgentState = { success: false, message: "" };
@@ -118,6 +120,7 @@ function NewAgentForm() {
 
 function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
   const [open, setOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(member.agent_profile?.avatar_url ?? member.avatar_url ?? "");
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
   const profile = member.agent_profile;
 
@@ -174,11 +177,15 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
               <input name="whatsapp" defaultValue={profile?.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
-            <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Foto</span>
-              <input name="avatarUrl" defaultValue={profile?.avatar_url ?? member.avatar_url ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
-            </label>
           </div>
+
+          <AgentAvatarUploadField
+            workspaceId={member.agent_profile?.id ? member.agent_profile.id : member.membership_id}
+            agentKey={member.profile_id}
+            value={avatarUrl}
+            onChange={setAvatarUrl}
+            label="Foto"
+          />
 
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio</span>
@@ -205,8 +212,9 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
   );
 }
 
-function StandaloneAgentEditor({ agent }: { agent: StandaloneAgentRecord }) {
+function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentRecord; workspaceId: string }) {
   const [open, setOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState(agent.avatar_url ?? "");
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
 
   return (
@@ -248,11 +256,14 @@ function StandaloneAgentEditor({ agent }: { agent: StandaloneAgentRecord }) {
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">WhatsApp</span>
               <input name="whatsapp" defaultValue={agent.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
-            <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Foto</span>
-              <input name="avatarUrl" defaultValue={agent.avatar_url ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
-            </label>
           </div>
+          <AgentAvatarUploadField
+            workspaceId={workspaceId}
+            agentKey={agent.id}
+            value={avatarUrl}
+            onChange={setAvatarUrl}
+            label="Foto"
+          />
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio corta</span>
             <textarea name="bio" rows={4} defaultValue={agent.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
@@ -271,7 +282,7 @@ function StandaloneAgentEditor({ agent }: { agent: StandaloneAgentRecord }) {
   );
 }
 
-function StandaloneAgentsList({ agents }: { agents: StandaloneAgentRecord[] }) {
+function StandaloneAgentsList({ agents, workspaceId }: { agents: StandaloneAgentRecord[]; workspaceId: string }) {
   if (!agents.length) return null;
 
   return (
@@ -286,14 +297,14 @@ function StandaloneAgentsList({ agents }: { agents: StandaloneAgentRecord[] }) {
 
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {agents.map((agent) => (
-          <StandaloneAgentEditor key={agent.id} agent={agent} />
+          <StandaloneAgentEditor key={agent.id} agent={agent} workspaceId={workspaceId} />
         ))}
       </div>
     </div>
   );
 }
 
-export function AdminTeamManager({ teamMembers, standaloneAgents }: { teamMembers: TeamMemberRecord[]; standaloneAgents: StandaloneAgentRecord[] }) {
+export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }: { teamMembers: TeamMemberRecord[]; standaloneAgents: StandaloneAgentRecord[]; workspaceId: string }) {
   return (
     <div className="space-y-6">
       <NewAgentForm />
@@ -321,9 +332,14 @@ export function AdminTeamManager({ teamMembers, standaloneAgents }: { teamMember
         {teamMembers.map((member) => (
           <div key={member.membership_id} className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
             <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <p className="text-lg font-semibold text-stone-950">{member.full_name ?? member.email ?? member.profile_id}</p>
-                <p className="mt-1 text-sm text-stone-500">{member.email ?? "Sin correo visible"}</p>
+              <div className="flex items-start gap-4">
+                <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-stone-100 text-lg font-semibold text-stone-600">
+                  {(member.agent_profile?.avatar_url ?? member.avatar_url) ? <Image src={member.agent_profile?.avatar_url ?? member.avatar_url ?? ""} alt={member.full_name ?? member.email ?? "Asesor"} fill className="object-cover" unoptimized /> : (member.full_name ?? member.email ?? "A").slice(0,1).toUpperCase()}
+                </div>
+                <div>
+                  <p className="text-lg font-semibold text-stone-950">{member.full_name ?? member.email ?? member.profile_id}</p>
+                  <p className="mt-1 text-sm text-stone-500">{member.email ?? "Sin correo visible"}</p>
+                </div>
               </div>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs text-stone-700">
@@ -369,7 +385,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents }: { teamMember
         ))}
       </div>
 
-      <StandaloneAgentsList agents={standaloneAgents} />
+      <StandaloneAgentsList agents={standaloneAgents} workspaceId={workspaceId} />
     </div>
   );
 }

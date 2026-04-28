@@ -19,6 +19,7 @@ const primaryNavItems = [
 
 const publicNavItems = [
   { label: "Ver sitio público", href: "/admin/public/properties" },
+  { label: "Branding público", href: "/admin/public" },
   { label: "Propiedades públicas", href: "/admin/public/properties" },
   { label: "Asesores públicos", href: "/admin/public/agents" },
 ];

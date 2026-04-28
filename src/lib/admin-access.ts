@@ -11,6 +11,7 @@ type LeadRecord = {
   status: string;
   created_at: string;
   property_title: string | null;
+  tours?: Array<{ id: string; title: string; slug: string }>;
 };
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
@@ -24,6 +25,14 @@ export type AdminAccessState =
         workspaceId: string;
         workspaceName: string | null | undefined;
         workspaceSlug: string | null | undefined;
+        brandName: string | null | undefined;
+        publicPhone: string | null | undefined;
+        publicWhatsapp: string | null | undefined;
+        publicEmail: string | null | undefined;
+        publicClaim: string | null | undefined;
+        publicBio: string | null | undefined;
+        publicLogoUrl: string | null | undefined;
+        publicHeroUrl: string | null | undefined;
       };
       properties: PropertyRecord[];
       agents: AgentOption[];
@@ -174,7 +183,12 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             message,
             internal_note,
             status,
-            created_at
+            created_at,
+            property_tours (
+              id,
+              title,
+              slug
+            )
           ),
           properties:property_id (
             title
@@ -269,6 +283,14 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       workspaceId: activeWorkspace.workspaceId,
       workspaceName: activeWorkspace.workspaceName,
       workspaceSlug: activeWorkspace.workspaceSlug,
+      brandName: activeWorkspace.brandName,
+      publicPhone: activeWorkspace.publicPhone,
+      publicWhatsapp: activeWorkspace.publicWhatsapp,
+      publicEmail: activeWorkspace.publicEmail,
+      publicClaim: activeWorkspace.publicClaim,
+      publicBio: activeWorkspace.publicBio,
+      publicLogoUrl: activeWorkspace.publicLogoUrl,
+      publicHeroUrl: activeWorkspace.publicHeroUrl,
     },
     properties: normalizedProperties,
     agents: agents ?? [],
@@ -284,6 +306,11 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       status: Array.isArray(item.leads) ? item.leads[0]?.status : item.leads?.status,
       created_at: Array.isArray(item.leads) ? item.leads[0]?.created_at : item.leads?.created_at,
       property_title: Array.isArray(item.properties) ? item.properties[0]?.title ?? null : item.properties?.title ?? null,
+      tours: (Array.isArray(item.leads) ? item.leads[0]?.property_tours : item.leads?.property_tours ?? []).map((tour: any) => ({
+        id: tour.id,
+        title: tour.title,
+        slug: tour.slug,
+      })),
     })),
   };
 }

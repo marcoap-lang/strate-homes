@@ -1,9 +1,9 @@
 import { AdminShell } from "@/components/ui/AdminShell";
 import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
-import { AdminTeamManager } from "@/components/ui/AdminTeamManager";
+import { AdminPublicBrandingManager } from "@/components/ui/AdminPublicBrandingManager";
 import { getAdminAccessState } from "@/lib/admin-access";
 
-export default async function AdminTeamPage() {
+export default async function AdminPublicBrandingPage() {
   const access = await getAdminAccessState();
 
   return (
@@ -11,7 +11,7 @@ export default async function AdminTeamPage() {
       {access.kind === "no-session" ? (
         <AdminAccessClient />
       ) : access.kind === "ready" ? (
-        <AdminTeamManager teamMembers={access.teamMembers} standaloneAgents={access.standaloneAgents} workspaceId={access.activeWorkspace.workspaceId} />
+        <AdminPublicBrandingManager workspace={access.activeWorkspace} />
       ) : (
         <AdminAccessClient />
       )}

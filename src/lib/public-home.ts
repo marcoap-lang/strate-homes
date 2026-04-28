@@ -17,6 +17,13 @@ export type PublicWorkspaceHome = {
     slug: string | null;
     brandName: string | null;
     legalName: string | null;
+    publicPhone: string | null;
+    publicWhatsapp: string | null;
+    publicEmail: string | null;
+    publicClaim: string | null;
+    publicBio: string | null;
+    publicLogoUrl: string | null;
+    publicHeroUrl: string | null;
   } | null;
   featuredProperties: PublicProperty[];
   recentProperties: PublicProperty[];
@@ -40,7 +47,7 @@ export async function getPublicWorkspaceHome(): Promise<PublicWorkspaceHome> {
 
   if (primaryWorkspaceId) {
     const [{ data: workspaceData }, { data: agentsData }] = await Promise.all([
-      supabase.from("workspaces").select("id, name, slug, brand_name, legal_name").eq("id", primaryWorkspaceId).maybeSingle(),
+      supabase.from("workspaces").select("id, name, slug, brand_name, legal_name, public_phone, public_whatsapp, public_email, public_claim, public_bio, public_logo_url, public_hero_url").eq("id", primaryWorkspaceId).maybeSingle(),
       supabase
         .from("agents")
         .select("id, display_name, title, bio, avatar_url, is_public")
@@ -58,6 +65,13 @@ export async function getPublicWorkspaceHome(): Promise<PublicWorkspaceHome> {
           slug: workspaceData.slug ?? null,
           brandName: workspaceData.brand_name ?? null,
           legalName: workspaceData.legal_name ?? null,
+          publicPhone: workspaceData.public_phone ?? null,
+          publicWhatsapp: workspaceData.public_whatsapp ?? null,
+          publicEmail: workspaceData.public_email ?? null,
+          publicClaim: workspaceData.public_claim ?? null,
+          publicBio: workspaceData.public_bio ?? null,
+          publicLogoUrl: workspaceData.public_logo_url ?? null,
+          publicHeroUrl: workspaceData.public_hero_url ?? null,
         }
       : null;
 
