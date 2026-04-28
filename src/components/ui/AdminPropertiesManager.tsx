@@ -897,8 +897,8 @@ function PropertyLeadInterestsManager({ property }: { property: PropertyRecord }
   const interests = property.lead_interests ?? [];
 
   return (
-    <SectionCard>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+    <SectionCard className="scroll-mt-28">
+      <div id="interesados" className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-stone-900">Interesados en esta propiedad</p>
           <p className="mt-2 text-sm text-stone-600">Seguimiento básico para saber quién se interesó y agregar contactos manuales asociados a esta propiedad.</p>
@@ -1288,6 +1288,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
         {properties.length ? (
           properties.map((property) => {
             const coverage = getPhotoCoverage(property);
+            const interestedCount = property.lead_interests?.length ?? 0;
             const coverImage = property.property_images.find((image) => image.is_cover) ?? property.property_images[0] ?? null;
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
@@ -1319,10 +1320,16 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                   </div>
                   <p className="text-lg font-medium text-slate-950">{property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
-                  <p className="text-xs text-slate-500">Cobertura visual: {coverage.completion}%</p>
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+                    <p>Cobertura visual: {coverage.completion}%</p>
+                    <p>{interestedCount} interesados</p>
+                  </div>
                   <div className="flex flex-wrap gap-3">
                     <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
                       Editar
+                    </Link>
+                    <Link href={`/admin/properties/${property.id}#interesados`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                      Ver interesados
                     </Link>
                     <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                       Ver pública
