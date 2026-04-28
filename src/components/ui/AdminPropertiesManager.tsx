@@ -313,19 +313,80 @@ function PropertyForm({
       ) : null}
 
       {currentStep === 3 ? (
-        <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
-          {mode === "edit" && property ? (
-            <div className="space-y-3">
-              <p className="font-semibold text-stone-900">Paso de fotos</p>
-              <p>Usa el módulo de galería en esta misma pantalla para subir, ordenar y definir la portada sin perder el flujo guiado.</p>
-              <p>Fotos actuales: <span className="font-medium text-stone-900">{property.property_images.length}</span></p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              <p className="font-semibold text-stone-900">Paso de fotos</p>
-              <p>Primero guarda la propiedad para habilitar la galería. Después podrás volver a este paso y cargar fotos sin perder la captura.</p>
-            </div>
-          )}
+        <div className="space-y-5">
+          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Fotos de la propiedad</p>
+              <p className="mt-2 text-sm leading-6 text-stone-600">
+                Este paso te ayuda a revisar rápido si la propiedad ya tiene material visual suficiente antes de publicar.
+              </p>
+
+              {mode === "edit" && property ? (
+                <div className="mt-5 space-y-4">
+                  <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                    <span className="text-stone-700">Fotos disponibles</span>
+                    <span className="font-semibold text-stone-950">{property.property_images.length}</span>
+                  </div>
+
+                  {property.property_images.length ? (
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                      {property.property_images
+                        .slice()
+                        .sort((a, b) => a.sort_order - b.sort_order)
+                        .map((image, index) => (
+                          <div key={image.id} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
+                            <div className="relative aspect-[4/3] bg-stone-100">
+                              <Image src={formatImagePublicUrl(image.storage_path)} alt={image.alt_text ?? `Foto ${index + 1}`} fill className="object-cover" unoptimized />
+                              {image.is_cover ? (
+                                <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada</span>
+                              ) : null}
+                            </div>
+                            <div className="p-4 text-sm text-stone-600">
+                              <p className="font-medium text-stone-900">{image.alt_text ?? `Foto ${index + 1}`}</p>
+                              <p className="mt-1 text-xs text-stone-500">Orden visual: {index + 1}</p>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+                      Todavía no hay fotos cargadas para esta propiedad.
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-600">
+                  Primero guarda la propiedad para habilitar la galería. Después podrás volver a este paso y cargar fotos sin perder la captura.
+                </div>
+              )}
+            </SectionCard>
+
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Checklist visual mínimo</p>
+              <p className="mt-2 text-sm leading-6 text-stone-600">
+                Usa esta referencia para detectar rápido qué material falta antes de cerrar la publicación.
+              </p>
+              <div className="mt-4 space-y-3">
+                {getPhotoCoverageFromDraft(
+                  (property?.property_images ?? []).map((image) => ({
+                    storage_path: image.storage_path,
+                    alt_text: image.alt_text ?? "",
+                  })),
+                ).checks.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                    <span className="text-stone-800">{item.label}</span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                      {item.covered ? "Lista" : "Falta"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
+                {mode === "edit" && property ? "Puedes seguir usando el módulo actual de galería en esta misma pantalla para subir, ordenar y definir portada." : "La galería se activa después de guardar la propiedad por primera vez."}
+              </div>
+            </SectionCard>
+          </div>
         </div>
       ) : null}
 
