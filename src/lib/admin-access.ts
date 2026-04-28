@@ -246,6 +246,23 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       profile_id: agent.profile_id ?? null,
     }));
 
+  const normalizedProperties: PropertyRecord[] = (properties ?? []).map((property: any) => ({
+    ...property,
+    lead_interests: (property.lead_property_interests ?? []).map((interest: any) => {
+      const lead = Array.isArray(interest.leads) ? interest.leads[0] : interest.leads;
+      return {
+        lead_id: lead?.id,
+        full_name: lead?.full_name,
+        phone: lead?.phone,
+        email: lead?.email ?? null,
+        status: lead?.status,
+        created_at: interest.created_at ?? lead?.created_at,
+        message: lead?.message ?? null,
+        internal_note: lead?.internal_note ?? null,
+      };
+    }),
+  }));
+
   return {
     kind: "ready",
     activeWorkspace: {
@@ -253,7 +270,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       workspaceName: activeWorkspace.workspaceName,
       workspaceSlug: activeWorkspace.workspaceSlug,
     },
-    properties: properties ?? [],
+    properties: normalizedProperties,
     agents: agents ?? [],
     teamMembers: normalizedTeamMembers,
     standaloneAgents,
