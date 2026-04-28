@@ -428,6 +428,12 @@ function PropertyForm({
     } catch {}
   }, [storageKey]);
 
+  useEffect(() => {
+    if (!state.success || typeof window === "undefined") return;
+    window.localStorage.removeItem(storageKey);
+    setDraftSnapshot({});
+  }, [state.success, storageKey]);
+
   function persistDraft(form: HTMLFormElement) {
     if (typeof window === "undefined") return;
     const data = new FormData(form);
@@ -508,7 +514,7 @@ function PropertyForm({
   const visibleCompletion = Math.round((((currentStep + 1) / wizardSteps.length) * 100));
 
   return (
-    <form id={storageKey} action={formAction} onChange={(event) => persistDraft(event.currentTarget)} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
+    <form id={storageKey} action={formAction} onChange={(event) => persistDraft(event.currentTarget)} onSubmit={(event) => persistDraft(event.currentTarget)} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
@@ -543,12 +549,12 @@ function PropertyForm({
 
       {currentStep === 0 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Título" name="title" defaultValue={property?.title} required placeholder="Casa amplia en zona norte" />
-          <Field label="Slug" name="slug" defaultValue={property?.slug} placeholder="casa-amplia-zona-norte" />
-          <Field label="Clave pública" name="publicCode" defaultValue={property?.public_code} placeholder="SH-102" />
+          <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
+          <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
+          <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
-            <select name="agentId" defaultValue={property?.agent_id ?? ownAgentId ?? ""} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
+            <select name="agentId" defaultValue={String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "")} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
               <option value="">Sin asesor asignado</option>
               {visibleAgents.map((agent) => (
                 <option key={agent.id} value={agent.id}>{agent.display_name}</option>
@@ -561,12 +567,12 @@ function PropertyForm({
 
       {currentStep === 1 ? (
         <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Ubicación corta" name="locationLabel" defaultValue={property?.location_label} required placeholder="Lomas del Valle" />
-          <Field label="Ciudad" name="city" defaultValue={property?.city} />
-          <Field label="Estado" name="state" defaultValue={property?.state} />
-          <Field label="País" name="countryCode" defaultValue={property?.country_code ?? "MX"} />
-          <Field label="Colonia / zona" name="neighborhood" defaultValue={property?.neighborhood} />
-          <Field label="Dirección" name="addressLine" defaultValue={property?.address_line} />
+          <Field label="Ubicación corta" name="locationLabel" defaultValue={String(draftSnapshot.locationLabel ?? property?.location_label ?? "")} required placeholder="Lomas del Valle" />
+          <Field label="Ciudad" name="city" defaultValue={String(draftSnapshot.city ?? property?.city ?? "")} />
+          <Field label="Estado" name="state" defaultValue={String(draftSnapshot.state ?? property?.state ?? "")} />
+          <Field label="País" name="countryCode" defaultValue={String(draftSnapshot.countryCode ?? property?.country_code ?? "MX")} />
+          <Field label="Colonia / zona" name="neighborhood" defaultValue={String(draftSnapshot.neighborhood ?? property?.neighborhood ?? "")} />
+          <Field label="Dirección" name="addressLine" defaultValue={String(draftSnapshot.addressLine ?? property?.address_line ?? "")} />
         </div>
       ) : null}
 
