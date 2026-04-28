@@ -31,6 +31,7 @@ type GalleryImageDraft = {
   sort_order: number;
   is_cover: boolean;
   previewUrl: string;
+  fileSizeLabel?: string;
 };
 
 const initialState: PropertyFormState = { success: false, message: "" };
@@ -58,6 +59,9 @@ const amenityOptions = [
   "cerca de centros comerciales",
   "ideal para inversión",
 ] as const;
+const MAX_PROPERTY_IMAGES = 20;
+const MAX_IMAGE_FILE_SIZE_MB = 8;
+const MAX_IMAGE_DIMENSION = 2000;
 
 function normalizeText(value?: string | null) {
   return (value ?? "").toLowerCase();
@@ -272,6 +276,47 @@ function buildSuggestedShortDescription({
   };
 
   return pickVariant(variants[tone] ?? variants.premium, `${tone}-${type}-${location}-${price}-${operation}-short`);
+}
+
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  return `${Math.round(bytes / 1024)} KB`;
+}
+
+async function optimizeImageFile(file: File) {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, MAX_IMAGE_DIMENSION / Math.max(bitmap.width, bitmap.height));
+  const width = Math.max(1, Math.round(bitmap.width * scale));
+  const height = Math.max(1, Math.round(bitmap.height * scale));
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    return { file, previewUrl: URL.createObjectURL(file), fileSizeLabel: formatFileSize(file.size) };
+  }
+
+  context.drawImage(bitmap, 0, 0, width, height);
+  bitmap.close();
+
+  const tryWebp = await new Promise<Blob | null>((resolve) => canvas.toBlob((blob) => resolve(blob), "image/webp", 0.82));
+  const tryOriginal = await new Promise<Blob | null>((resolve) => canvas.toBlob((blob) => resolve(blob), file.type || "image/jpeg", 0.84));
+  const chosenBlob = tryWebp && tryOriginal ? (tryWebp.size <= tryOriginal.size ? tryWebp : tryOriginal) : (tryWebp ?? tryOriginal);
+
+  if (!chosenBlob) {
+    return { file, previewUrl: URL.createObjectURL(file), fileSizeLabel: formatFileSize(file.size) };
+  }
+
+  const extension = chosenBlob.type === "image/webp" ? "webp" : file.name.split(".").pop()?.toLowerCase() ?? "jpg";
+  const optimizedFile = new File([chosenBlob], `${file.name.replace(/\.[^.]+$/, "") || "image"}.${extension}`, { type: chosenBlob.type });
+
+  return {
+    file: optimizedFile,
+    previewUrl: URL.createObjectURL(optimizedFile),
+    fileSizeLabel: formatFileSize(optimizedFile.size),
+  };
 }
 
 function Field({
@@ -926,19 +971,31 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
     setClientError(null);
     setClientMessage(null);
 
+    if (!property.id || !activeWorkspace.workspaceId) {
+      setClientError("Primero guarda la propiedad antes de subir fotos.");
+      return;
+    }
+
+    if (gallery.length + files.length > MAX_PROPERTY_IMAGES) {
+      setClientError(`Puedes tener máximo ${MAX_PROPERTY_IMAGES} fotos por propiedad.`);
+      return;
+    }
+
     startUploadTransition(async () => {
       const uploaded: GalleryImageDraft[] = [];
 
       try {
-        for (const file of files) {
-          if (!file.type.startsWith("image/")) {
-            throw new Error(`El archivo ${file.name} no es una imagen válida.`);
+        for (const originalFile of files) {
+          if (!originalFile.type.startsWith("image/")) {
+            throw new Error(`El archivo ${originalFile.name} no es una imagen válida.`);
           }
 
-          if (!property.id || !activeWorkspace.workspaceId) {
-            throw new Error("Primero guarda la propiedad antes de subir fotos.");
+          if (originalFile.size > MAX_IMAGE_FILE_SIZE_MB * 1024 * 1024) {
+            throw new Error(`El archivo ${originalFile.name} supera el límite de ${MAX_IMAGE_FILE_SIZE_MB} MB.`);
           }
 
+          const optimized = await optimizeImageFile(originalFile);
+          const file = optimized.file;
           const extension = file.name.split(".").pop()?.toLowerCase() ?? "jpg";
           const safeName = file.name
             .normalize("NFD")
@@ -961,12 +1018,13 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             alt_text: "",
             sort_order: gallery.length + uploaded.length - 1,
             is_cover: gallery.length === 0 && uploaded.length === 1,
-            previewUrl: URL.createObjectURL(file),
+            previewUrl: optimized.previewUrl,
+            fileSizeLabel: optimized.fileSizeLabel,
           });
         }
 
         updateGallery([...gallery, ...uploaded]);
-        setClientMessage(`${uploaded.length} foto(s) cargada(s). Guarda la galería para confirmar orden y portada.`);
+        setClientMessage(`${uploaded.length} foto(s) cargada(s) y optimizadas. Guarda la galería para confirmar orden y portada.`);
       } catch (error) {
         if (uploaded.length) {
           await supabase.storage.from("property-images").remove(uploaded.map((image) => image.storage_path));
@@ -1075,6 +1133,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelection} />
           </label>
         </div>
+        <p className="mt-4 text-xs leading-5 text-stone-500">Máximo {MAX_PROPERTY_IMAGES} fotos por propiedad · hasta {MAX_IMAGE_FILE_SIZE_MB} MB por archivo · ancho máximo aproximado {MAX_IMAGE_DIMENSION}px · optimización previa a la subida.</p>
       </div>
 
       {clientMessage ? <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{clientMessage}</p> : null}
@@ -1100,7 +1159,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
                     className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400"
                   />
                 </label>
-                <p className="text-xs text-stone-500">Orden visual: {index + 1}</p>
+                <p className="text-xs text-stone-500">Orden visual: {index + 1}{image.fileSizeLabel ? ` · ${image.fileSizeLabel}` : ""}</p>
                 <div className="flex flex-wrap gap-2">
                   <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40">
                     Subir
