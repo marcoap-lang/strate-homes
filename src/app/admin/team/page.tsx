@@ -11,7 +11,7 @@ export default async function AdminTeamPage() {
       {access.kind === "no-session" ? (
         <AdminAccessClient />
       ) : access.kind === "ready" ? (
-        <AdminTeamManager teamMembers={access.teamMembers} />
+        <AdminTeamManager teamMembers={access.teamMembers} standaloneAgents={access.standaloneAgents} />
       ) : (
         <AdminAccessClient />
       )}

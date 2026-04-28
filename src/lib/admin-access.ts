@@ -1,5 +1,5 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
-import type { AgentOption, PropertyRecord, TeamMemberRecord } from "@/lib/admin-types";
+import type { AgentOption, PropertyRecord, StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 export type AdminAccessState =
@@ -16,6 +16,7 @@ export type AdminAccessState =
       properties: PropertyRecord[];
       agents: AgentOption[];
       teamMembers: TeamMemberRecord[];
+      standaloneAgents: StandaloneAgentRecord[];
     }
   | {
       kind: "first-access" | "no-workspace";
@@ -178,6 +179,24 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   });
 
+  const memberProfileIds = new Set(normalizedTeamMembers.map((member) => member.profile_id));
+  const standaloneAgents: StandaloneAgentRecord[] = (agents ?? [])
+    .filter((agent) => !agent.profile_id || !memberProfileIds.has(agent.profile_id))
+    .map((agent) => ({
+      id: agent.id,
+      display_name: agent.display_name,
+      slug: agent.slug,
+      title: agent.title ?? null,
+      bio: agent.bio ?? null,
+      phone: agent.phone ?? null,
+      email: agent.email ?? null,
+      whatsapp: agent.whatsapp ?? null,
+      avatar_url: agent.avatar_url ?? null,
+      is_public: agent.is_public ?? false,
+      is_active: true,
+      profile_id: agent.profile_id ?? null,
+    }));
+
   return {
     kind: "ready",
     activeWorkspace: {
@@ -188,5 +207,6 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     properties: properties ?? [],
     agents: agents ?? [],
     teamMembers: normalizedTeamMembers,
+    standaloneAgents,
   };
 }

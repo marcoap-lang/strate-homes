@@ -76,3 +76,18 @@ export type TeamMemberRecord = {
     is_active: boolean;
   } | null;
 };
+
+export type StandaloneAgentRecord = {
+  id: string;
+  display_name: string;
+  slug: string;
+  title: string | null;
+  bio: string | null;
+  phone: string | null;
+  email: string | null;
+  whatsapp: string | null;
+  avatar_url: string | null;
+  is_public: boolean;
+  is_active: boolean;
+  profile_id: string | null;
+};

@@ -19,6 +19,11 @@ export type AgentProfileState = {
   message: string;
 };
 
+export type CreateAgentState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -30,6 +35,11 @@ const INITIAL_AGENT_PROFILE_STATE: AgentProfileState = {
 };
 
 const INITIAL_BOOTSTRAP_STATE: BootstrapOwnerState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_CREATE_AGENT_STATE: CreateAgentState = {
   success: false,
   message: "",
 };
@@ -112,7 +122,7 @@ function getAllowedAgentId({
   ownAgentId: string | null;
 }) {
   if (canManageFullInventory(activeRole)) {
-    return requestedAgentId;
+    return requestedAgentId ?? ownAgentId;
   }
 
   return ownAgentId;
@@ -266,6 +276,73 @@ export async function bootstrapInitialOwnerAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo habilitar el usuario inicial.",
+    };
+  }
+}
+
+export async function createAgentAction(
+  _prevState: CreateAgentState = INITIAL_CREATE_AGENT_STATE,
+  formData: FormData,
+): Promise<CreateAgentState> {
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+
+    if (!canManageAgentProfiles(activeWorkspace.role)) {
+      return { success: false, message: "Solo owner/admin pueden crear asesores." };
+    }
+
+    const accessType = formData.get("accessType")?.toString() === "with-access" ? "with-access" : "public-only";
+    const displayName = formData.get("displayName")?.toString().trim() ?? "";
+    const slug = slugify(formData.get("slug")?.toString() || displayName);
+    const email = normalizeNullable(formData.get("email"));
+
+    if (displayName.length < 3) {
+      return { success: false, message: "El nombre público del asesor debe tener al menos 3 caracteres." };
+    }
+
+    if (slug.length < 3) {
+      return { success: false, message: "El slug del asesor debe tener al menos 3 caracteres." };
+    }
+
+    if (accessType === "with-access" && !email) {
+      return { success: false, message: "Para invitar con acceso, el correo es obligatorio." };
+    }
+
+    const payload = {
+      workspace_id: activeWorkspace.workspaceId,
+      profile_id: null,
+      display_name: displayName,
+      slug,
+      title: normalizeNullable(formData.get("title")),
+      bio: normalizeNullable(formData.get("bio")),
+      phone: normalizeNullable(formData.get("phone")),
+      email,
+      whatsapp: normalizeNullable(formData.get("whatsapp")),
+      avatar_url: normalizeNullable(formData.get("avatarUrl")),
+      is_public: formData.get("isPublic") === "on",
+      is_active: true,
+    };
+
+    const { error } = await supabase.from("agents").insert(payload);
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/team");
+
+    return {
+      success: true,
+      message:
+        accessType === "with-access"
+          ? "Asesor creado con acceso básico preparado. Falta completar el alta de acceso más adelante."
+          : "Asesor creado correctamente.",
+    };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo crear el asesor.",
     };
   }
 }

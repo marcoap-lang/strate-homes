@@ -230,20 +230,20 @@ function PropertyForm({
         </label>
 
         <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Agente</span>
+          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
           <select
             name="agentId"
             defaultValue={property?.agent_id ?? ownAgentId ?? ""}
             disabled={!canManageAssignments}
             className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500"
           >
-            <option value="">Sin asignar</option>
+            <option value="">Sin asesor asignado</option>
             {visibleAgents.map((agent) => (
               <option key={agent.id} value={agent.id}>{agent.display_name}</option>
             ))}
           </select>
           {!canManageAssignments ? (
-            <p className="text-xs leading-5 text-stone-500">Tu rol no puede reasignar propiedades. La propiedad se guarda dentro de tu ámbito operativo.</p>
+            <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p>
           ) : null}
         </label>
       </div>
