@@ -5,6 +5,8 @@ export type PublicProperty = {
   slug: string;
   title: string;
   workspaceSlug: string | null;
+  workspaceName: string | null;
+  workspaceBrandName: string | null;
   locationLabel: string;
   city: string | null;
   state: string | null;
@@ -27,7 +29,21 @@ export type PublicProperty = {
     isCover: boolean;
     sortOrder: number;
   }>;
-  agent: { id: string; displayName: string } | null;
+  agent: {
+    id: string;
+    displayName: string;
+    title: string | null;
+    bio: string | null;
+    phone: string | null;
+    whatsapp: string | null;
+    avatarUrl: string | null;
+  } | null;
+  workspaceContactAgent: {
+    id: string;
+    displayName: string;
+    phone: string | null;
+    whatsapp: string | null;
+  } | null;
 };
 
 export type PublicPropertyFilters = {
@@ -69,6 +85,18 @@ function buildStorageUrl(path: string) {
   return `${baseUrl}/storage/v1/object/public/property-images/${path}`;
 }
 
+function extractWorkspaceContactAgent(record: any) {
+  const workspaceJoin = Array.isArray(record.workspace_contact_agents)
+    ? record.workspace_contact_agents[0]
+    : record.workspace_contact_agents;
+  const nestedAgents = workspaceJoin?.agents;
+  const agents = Array.isArray(nestedAgents) ? nestedAgents : nestedAgents ? [nestedAgents] : [];
+
+  return (
+    agents.find((agent: any) => agent?.is_public && agent?.is_active && (agent?.whatsapp || agent?.phone)) ?? null
+  );
+}
+
 function mapPublicProperty(record: any): PublicProperty {
   const images = (record.property_images ?? [])
     .slice()
@@ -87,12 +115,15 @@ function mapPublicProperty(record: any): PublicProperty {
   const coverImage = images.find((image: { isCover: boolean }) => image.isCover) ?? images[0] ?? null;
   const agent = Array.isArray(record.agents) ? record.agents[0] : record.agents;
   const workspace = Array.isArray(record.workspaces) ? record.workspaces[0] : record.workspaces;
+  const workspaceContactAgent = extractWorkspaceContactAgent(record);
 
   return {
     id: record.id,
     slug: record.slug,
     title: record.title,
     workspaceSlug: workspace?.slug ?? null,
+    workspaceName: workspace?.name ?? null,
+    workspaceBrandName: workspace?.brand_name ?? null,
     locationLabel: record.location_label,
     city: record.city ?? null,
     state: record.state ?? null,
@@ -109,7 +140,25 @@ function mapPublicProperty(record: any): PublicProperty {
     publicCode: record.public_code ?? null,
     coverImageUrl: coverImage?.url ?? null,
     images,
-    agent: agent ? { id: agent.id, displayName: agent.display_name } : null,
+    agent: agent
+      ? {
+          id: agent.id,
+          displayName: agent.display_name,
+          title: agent.title ?? null,
+          bio: agent.bio ?? null,
+          phone: agent.phone ?? null,
+          whatsapp: agent.whatsapp ?? null,
+          avatarUrl: agent.avatar_url ?? null,
+        }
+      : null,
+    workspaceContactAgent: workspaceContactAgent
+      ? {
+          id: workspaceContactAgent.id,
+          displayName: workspaceContactAgent.display_name,
+          phone: workspaceContactAgent.phone ?? null,
+          whatsapp: workspaceContactAgent.whatsapp ?? null,
+        }
+      : null,
   };
 }
 
@@ -128,47 +177,65 @@ function applyBedroomsFilter(query: any, bedrooms: string | null | undefined) {
   return query.gte("bedrooms", parsed);
 }
 
+const publicPropertySelect = `
+  id,
+  slug,
+  title,
+  location_label,
+  city,
+  state,
+  operation_type,
+  status,
+  property_type,
+  currency_code,
+  price_amount,
+  description,
+  bedrooms,
+  bathrooms,
+  construction_area_m2,
+  neighborhood,
+  public_code,
+  published_at,
+  is_featured,
+  workspaces:workspace_id (
+    slug,
+    name,
+    brand_name
+  ),
+  agents:agent_id (
+    id,
+    display_name,
+    title,
+    bio,
+    phone,
+    whatsapp,
+    avatar_url
+  ),
+  workspace_contact_agents:workspace_id (
+    agents (
+      id,
+      display_name,
+      phone,
+      whatsapp,
+      is_public,
+      is_active,
+      updated_at
+    )
+  ),
+  property_images (
+    id,
+    storage_path,
+    alt_text,
+    sort_order,
+    is_cover
+  )
+`;
+
 export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("properties")
-    .select(
-      `
-        id,
-        slug,
-        title,
-        location_label,
-        city,
-        state,
-        operation_type,
-        status,
-        property_type,
-        currency_code,
-        price_amount,
-        description,
-        bedrooms,
-        bathrooms,
-        construction_area_m2,
-        neighborhood,
-        public_code,
-        published_at,
-        is_featured,
-        workspaces:workspace_id (
-          slug
-        ),
-        agents:agent_id (
-          id,
-          display_name
-        ),
-        property_images (
-          id,
-          storage_path,
-          alt_text,
-          sort_order,
-          is_cover
-        )
-      `,
-    )
+    .select(publicPropertySelect)
     .eq("status", "active")
     .not("published_at", "is", null);
 
@@ -189,42 +256,7 @@ export async function getPublicPropertyBySlug(slug: string, workspaceSlug?: stri
   const supabase = await createSupabaseServerClient();
   let query = supabase
     .from("properties")
-    .select(
-      `
-        id,
-        slug,
-        title,
-        location_label,
-        city,
-        state,
-        operation_type,
-        status,
-        property_type,
-        currency_code,
-        price_amount,
-        description,
-        bedrooms,
-        bathrooms,
-        construction_area_m2,
-        neighborhood,
-        public_code,
-        published_at,
-        workspaces:workspace_id (
-          slug
-        ),
-        agents:agent_id (
-          id,
-          display_name
-        ),
-        property_images (
-          id,
-          storage_path,
-          alt_text,
-          sort_order,
-          is_cover
-        )
-      `,
-    )
+    .select(publicPropertySelect)
     .eq("slug", slug)
     .eq("status", "active")
     .not("published_at", "is", null);

@@ -7,7 +7,7 @@ export function PublicShareActions({
   whatsappUrl,
 }: {
   propertyUrl: string;
-  whatsappUrl: string;
+  whatsappUrl?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -23,14 +23,20 @@ export function PublicShareActions({
 
   return (
     <div className="mt-6 space-y-3">
-      <a
-        href={whatsappUrl}
-        target="_blank"
-        rel="noreferrer"
-        className="flex w-full items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-sky-100"
-      >
-        Contactar por WhatsApp
-      </a>
+      {whatsappUrl ? (
+        <a
+          href={whatsappUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="flex w-full items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-sky-100"
+        >
+          Contactar por WhatsApp
+        </a>
+      ) : (
+        <div className="flex w-full items-center justify-center rounded-full border border-slate-200 bg-slate-50 px-5 py-3 text-sm font-medium text-slate-600">
+          Sin WhatsApp disponible por ahora
+        </div>
+      )}
       <button
         type="button"
         onClick={handleCopy}

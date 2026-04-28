@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { PublicShareActions } from "@/components/ui/PublicShareActions";
-import { buildPublicAgentUrl, buildPublicPropertyUrl } from "@/lib/public-links";
+import { buildPublicPropertyUrl, buildWhatsAppPropertyMessage } from "@/lib/public-links";
 import type { PublicProperty } from "@/lib/public-properties";
 
 function formatOperation(operationType: string) {
@@ -27,6 +27,9 @@ export function PublicPropertyDetailPage({
   const propertyUrl = buildPublicPropertyUrl(property.slug, workspaceSlug ?? null);
   const locationText = [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || property.locationLabel;
   const priceLabel = `${property.currencyCode} ${property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}`;
+  const assignedAgent = property.agent;
+  const fallbackContact = property.workspaceContactAgent;
+  const contactEntity = assignedAgent?.whatsapp || assignedAgent?.phone ? assignedAgent : fallbackContact;
   const specsInline = [
     property.bedrooms ? `${property.bedrooms} recámaras` : null,
     property.bathrooms ? `${property.bathrooms} baños` : null,
@@ -34,7 +37,14 @@ export function PublicPropertyDetailPage({
   ]
     .filter(Boolean)
     .join(" · ");
-  const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`Hola, me interesa ${property.title}.\nUbicación: ${locationText}\nPrecio: ${priceLabel}\nMás información: ${propertyUrl}`)}`;
+  const whatsappMessage = buildWhatsAppPropertyMessage({
+    title: property.title,
+    locationLabel: locationText,
+    priceLabel,
+    propertyUrl,
+  });
+  const whatsappNumber = (contactEntity?.whatsapp ?? contactEntity?.phone ?? "").replace(/\D/g, "");
+  const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}` : null;
 
   return (
     <main className="min-h-screen bg-[#f7fbff] px-6 py-10 text-slate-950 lg:px-8">
@@ -60,9 +70,15 @@ export function PublicPropertyDetailPage({
               <p className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">{priceLabel}</p>
               {specsInline ? <p className="mt-5 text-base text-white/85">{specsInline}</p> : null}
               <div className="mt-8 flex flex-wrap gap-4">
-                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white shadow-[0_10px_30px_rgba(215,171,91,0.3)] transition hover:bg-[#c99a46]">
-                  Contactar por WhatsApp
-                </a>
+                {whatsappUrl ? (
+                  <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white shadow-[0_10px_30px_rgba(215,171,91,0.3)] transition hover:bg-[#c99a46]">
+                    Contactar por WhatsApp
+                  </a>
+                ) : (
+                  <span className="inline-flex rounded-full border border-white/20 bg-white/10 px-6 py-4 text-sm font-medium text-white/90">
+                    Contacto disponible próximamente
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -101,22 +117,53 @@ export function PublicPropertyDetailPage({
 
           <aside className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
             <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor inmobiliario</p>
-            {property.agent ? (
+            {assignedAgent ? (
               <div className="mt-6 text-center">
                 <div className="mx-auto flex h-28 w-28 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700">
-                  {property.agent.displayName.slice(0, 1).toUpperCase()}
+                  {assignedAgent.avatarUrl ? <Image src={assignedAgent.avatarUrl} alt={assignedAgent.displayName} fill className="object-cover" unoptimized /> : assignedAgent.displayName.slice(0, 1).toUpperCase()}
                 </div>
-                <p className="mt-6 text-3xl font-semibold text-slate-950">{property.agent.displayName}</p>
+                <p className="mt-6 text-3xl font-semibold text-slate-950">{assignedAgent.displayName}</p>
+                {assignedAgent.title ? <p className="mt-3 text-sm uppercase tracking-[0.25em] text-slate-500">{assignedAgent.title}</p> : null}
                 <p className="mt-3 text-sm leading-7 text-slate-600">
-                  Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda.
+                  {assignedAgent.bio ?? "Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda."}
                 </p>
+                {assignedAgent.whatsapp || assignedAgent.phone ? (
+                  <p className="mt-4 text-sm text-slate-500">{assignedAgent.whatsapp ?? assignedAgent.phone}</p>
+                ) : null}
                 <div className="mt-8 flex justify-center">
-                  <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
-                    Contactar por WhatsApp
-                  </a>
+                  {whatsappUrl ? (
+                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
+                      Contactar por WhatsApp
+                    </a>
+                  ) : (
+                    <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-6 py-3 text-sm font-medium text-slate-600">
+                      Sin WhatsApp disponible por ahora
+                    </span>
+                  )}
                 </div>
               </div>
-            ) : null}
+            ) : fallbackContact ? (
+              <div className="mt-6 text-center">
+                <p className="text-2xl font-semibold text-slate-950">{property.workspaceBrandName ?? property.workspaceName ?? "Inmobiliaria"}</p>
+                <p className="mt-3 text-sm leading-7 text-slate-600">
+                  Esta propiedad no tiene asesor público asignado visible en este momento. Puedes contactar al equipo comercial del workspace.
+                </p>
+                <p className="mt-4 text-sm text-slate-500">{fallbackContact.whatsapp ?? fallbackContact.phone}</p>
+                <div className="mt-8 flex justify-center">
+                  {whatsappUrl ? (
+                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
+                      Contactar por WhatsApp
+                    </a>
+                  ) : null}
+                </div>
+              </div>
+            ) : (
+              <div className="mt-6 text-center">
+                <p className="text-sm leading-7 text-slate-600">
+                  Esta propiedad no tiene un contacto público disponible en este momento.
+                </p>
+              </div>
+            )}
           </aside>
         </section>
 
@@ -154,11 +201,15 @@ export function PublicPropertyDetailPage({
               <p className="text-2xl font-semibold text-slate-950">¿Te interesa esta propiedad?</p>
               <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp y recibe más información sobre disponibilidad, ubicación y visita.</p>
             </div>
-            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>
+            {whatsappUrl ? (
+              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>
+            ) : (
+              <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">Sin contacto disponible por ahora</span>
+            )}
           </div>
         </section>
 
-        <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl} />
+        <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} />
         <PublicLegalDisclaimer />
       </div>
     </main>
