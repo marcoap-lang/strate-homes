@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useActionState, useMemo, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
@@ -39,6 +39,7 @@ const propertyTypes = ["house", "apartment", "land", "office", "commercial", "wa
 const operationTypes = ["sale", "rent", "both"];
 const statuses = ["draft", "active", "pending", "sold", "rented", "archived"];
 const suggestedPhotoShots = ["Fachada", "Sala", "Cocina", "Recámara principal", "Baño principal"];
+const wizardSteps = ["Base", "Ubicación", "Características", "Fotos", "Descripción", "Publicación", "Revisión"] as const;
 
 function normalizeText(value?: string | null) {
   return (value ?? "").toLowerCase();
@@ -154,104 +155,183 @@ function PropertyForm({
   const visibleAgents = canManageAssignments
     ? agents
     : agents.filter((agent) => !ownAgentId || agent.id === ownAgentId);
+  const storageKey = useMemo(() => `property-wizard:${mode}:${property?.id ?? "new"}`, [mode, property?.id]);
+  const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const form = document.getElementById(storageKey) as HTMLFormElement | null;
+    if (!form) return;
+
+    const saved = window.localStorage.getItem(storageKey);
+    if (!saved) return;
+
+    try {
+      const parsed = JSON.parse(saved) as Record<string, string | boolean>;
+      Object.entries(parsed).forEach(([name, value]) => {
+        const field = form.elements.namedItem(name);
+        if (!field) return;
+        if (field instanceof RadioNodeList) return;
+        if (field instanceof HTMLInputElement && field.type === "checkbox") {
+          field.checked = Boolean(value);
+          return;
+        }
+        if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
+          field.value = String(value);
+        }
+      });
+    } catch {}
+  }, [storageKey]);
+
+  function persistDraft(form: HTMLFormElement) {
+    if (typeof window === "undefined") return;
+    const data = new FormData(form);
+    const next: Record<string, string | boolean> = {};
+    for (const [key, value] of data.entries()) {
+      next[key] = value.toString();
+    }
+    const featured = form.querySelector('input[name="isFeatured"]') as HTMLInputElement | null;
+    if (featured) next.isFeatured = featured.checked;
+    window.localStorage.setItem(storageKey, JSON.stringify(next));
+  }
+
+  const stepCompletion = [
+    Boolean(property?.title),
+    Boolean(property?.location_label || property?.city || property?.state),
+    Boolean(property?.bedrooms || property?.bathrooms || property?.construction_area_m2),
+    Boolean(property?.property_images?.length),
+    Boolean(property?.description),
+    Boolean(property?.status || property?.operation_type),
+    false,
+  ];
+  const visibleCompletion = Math.round((((currentStep + 1) / wizardSteps.length) * 100));
 
   return (
-    <form action={formAction} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
-      <div className="flex items-center justify-between gap-3">
+    <form id={storageKey} action={formAction} onChange={(event) => persistDraft(event.currentTarget)} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
+      <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">{mode === "create" ? "Alta de propiedad" : property?.title}</h3>
+          <h3 className="mt-2 text-xl font-semibold text-stone-950">{mode === "create" ? "Alta guiada de propiedad" : property?.title}</h3>
           <p className="mt-2 text-sm text-stone-600">
-            {mode === "create"
-              ? "Captura una nueva propiedad en una vista enfocada y separada del listado principal."
-              : "Edita la información comercial y visual de esta propiedad en una vista dedicada."}
+            Completa la propiedad paso a paso para mantener claridad, progreso visible y una captura más fácil de terminar.
           </p>
+        </div>
+        <div className="min-w-[170px] rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Progreso</p>
+          <p className="mt-2 text-3xl font-semibold text-amber-950">{visibleCompletion}%</p>
+          <p className="mt-1 text-sm text-amber-800">Paso {currentStep + 1} de {wizardSteps.length}</p>
         </div>
       </div>
 
       {mode === "edit" ? <input type="hidden" name="propertyId" defaultValue={property?.id} /> : null}
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Field label="Título" name="title" defaultValue={property?.title} required placeholder="Casa amplia en zona norte" />
-        <Field label="Slug" name="slug" defaultValue={property?.slug} placeholder="casa-amplia-zona-norte" />
-        <Field label="Clave pública" name="publicCode" defaultValue={property?.public_code} placeholder="SH-102" />
-        <Field label="Ubicación corta" name="locationLabel" defaultValue={property?.location_label} required placeholder="Lomas del Valle" />
-        <Field label="Ciudad" name="city" defaultValue={property?.city} />
-        <Field label="Estado" name="state" defaultValue={property?.state} />
-        <Field label="Colonia / zona" name="neighborhood" defaultValue={property?.neighborhood} />
-        <Field label="Dirección" name="addressLine" defaultValue={property?.address_line} />
-        <Field label="Precio" name="priceAmount" defaultValue={property?.price_amount} />
-        <Field label="Moneda" name="currencyCode" defaultValue={property?.currency_code ?? "MXN"} />
-        <Field label="País" name="countryCode" defaultValue={property?.country_code ?? "MX"} />
-        <Field label="Recámaras" name="bedrooms" defaultValue={property?.bedrooms} />
-        <Field label="Baños" name="bathrooms" defaultValue={property?.bathrooms} />
-        <Field label="Estacionamientos" name="parkingSpots" defaultValue={property?.parking_spots} />
-        <Field label="Terreno m²" name="lotAreaM2" defaultValue={property?.lot_area_m2} />
-        <Field label="Construcción m²" name="constructionAreaM2" defaultValue={property?.construction_area_m2} />
-      </div>
-
-      <label className="space-y-2 text-sm text-stone-700">
-        <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Descripción</span>
-        <textarea
-          name="description"
-          defaultValue={property?.description ?? ""}
-          rows={4}
-          className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400"
-          placeholder="Describe lo más atractivo de la propiedad, su distribución y el valor comercial más claro."
-        />
-      </label>
-
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
-          <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
-            {propertyTypes.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
-          <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
-            {operationTypes.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estatus</span>
-          <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
-            {statuses.map((option) => (
-              <option key={option} value={option}>{option}</option>
-            ))}
-          </select>
-        </label>
-
-        <label className="space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
-          <select
-            name="agentId"
-            defaultValue={property?.agent_id ?? ownAgentId ?? ""}
-            disabled={!canManageAssignments}
-            className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500"
+      <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
+        {wizardSteps.map((step, index) => (
+          <button
+            key={step}
+            type="button"
+            onClick={() => setCurrentStep(index)}
+            className={`rounded-2xl border px-4 py-3 text-left transition ${index === currentStep ? "border-[#d7ab5b]/40 bg-[#fff8ec] text-stone-950" : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-white"}`}
           >
-            <option value="">Sin asesor asignado</option>
-            {visibleAgents.map((agent) => (
-              <option key={agent.id} value={agent.id}>{agent.display_name}</option>
-            ))}
-          </select>
-          {!canManageAssignments ? (
-            <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p>
-          ) : null}
-        </label>
+            <p className="text-[11px] uppercase tracking-[0.18em]">Paso {index + 1}</p>
+            <p className="mt-2 text-sm font-medium">{step}</p>
+            {stepCompletion[index] ? <p className="mt-2 text-xs text-emerald-600">Completo</p> : null}
+          </button>
+        ))}
       </div>
 
-      <label className="inline-flex items-center gap-3 text-sm text-stone-700">
-        <input type="checkbox" name="isFeatured" defaultChecked={property?.is_featured ?? false} className="size-4 rounded border-stone-300 bg-white" />
-        Marcar como destacada
-      </label>
+      {currentStep === 0 ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Título" name="title" defaultValue={property?.title} required placeholder="Casa amplia en zona norte" />
+          <Field label="Slug" name="slug" defaultValue={property?.slug} placeholder="casa-amplia-zona-norte" />
+          <Field label="Clave pública" name="publicCode" defaultValue={property?.public_code} placeholder="SH-102" />
+          <label className="space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
+            <select name="agentId" defaultValue={property?.agent_id ?? ownAgentId ?? ""} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
+              <option value="">Sin asesor asignado</option>
+              {visibleAgents.map((agent) => (
+                <option key={agent.id} value={agent.id}>{agent.display_name}</option>
+              ))}
+            </select>
+            {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p> : null}
+          </label>
+        </div>
+      ) : null}
+
+      {currentStep === 1 ? (
+        <div className="grid gap-4 md:grid-cols-2">
+          <Field label="Ubicación corta" name="locationLabel" defaultValue={property?.location_label} required placeholder="Lomas del Valle" />
+          <Field label="Ciudad" name="city" defaultValue={property?.city} />
+          <Field label="Estado" name="state" defaultValue={property?.state} />
+          <Field label="País" name="countryCode" defaultValue={property?.country_code ?? "MX"} />
+          <Field label="Colonia / zona" name="neighborhood" defaultValue={property?.neighborhood} />
+          <Field label="Dirección" name="addressLine" defaultValue={property?.address_line} />
+        </div>
+      ) : null}
+
+      {currentStep === 2 ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <label className="space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
+            <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{propertyTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+          </label>
+          <Field label="Recámaras" name="bedrooms" defaultValue={property?.bedrooms} />
+          <Field label="Baños" name="bathrooms" defaultValue={property?.bathrooms} />
+          <Field label="Estacionamientos" name="parkingSpots" defaultValue={property?.parking_spots} />
+          <Field label="Terreno m²" name="lotAreaM2" defaultValue={property?.lot_area_m2} />
+          <Field label="Construcción m²" name="constructionAreaM2" defaultValue={property?.construction_area_m2} />
+          <Field label="Precio" name="priceAmount" defaultValue={property?.price_amount} />
+          <Field label="Moneda" name="currencyCode" defaultValue={property?.currency_code ?? "MXN"} />
+        </div>
+      ) : null}
+
+      {currentStep === 3 ? (
+        <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
+          {mode === "edit" && property ? (
+            <div className="space-y-3">
+              <p className="font-semibold text-stone-900">Paso de fotos</p>
+              <p>Usa el módulo de galería en esta misma pantalla para subir, ordenar y definir la portada sin perder el flujo guiado.</p>
+              <p>Fotos actuales: <span className="font-medium text-stone-900">{property.property_images.length}</span></p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <p className="font-semibold text-stone-900">Paso de fotos</p>
+              <p>Primero guarda la propiedad para habilitar la galería. Después podrás volver a este paso y cargar fotos sin perder la captura.</p>
+            </div>
+          )}
+        </div>
+      ) : null}
+
+      {currentStep === 4 ? (
+        <label className="space-y-2 text-sm text-stone-700">
+          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Descripción</span>
+          <textarea name="description" defaultValue={property?.description ?? ""} rows={6} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" placeholder="Describe lo más atractivo de la propiedad, su distribución y el valor comercial más claro." />
+        </label>
+      ) : null}
+
+      {currentStep === 5 ? (
+        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <label className="space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
+            <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{operationTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+          </label>
+          <label className="space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estatus</span>
+            <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{statuses.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+          </label>
+          <label className="inline-flex items-center gap-3 text-sm text-stone-700 xl:col-span-2 xl:mt-8">
+            <input type="checkbox" name="isFeatured" defaultChecked={property?.is_featured ?? false} className="size-4 rounded border-stone-300 bg-white" />
+            Marcar como destacada
+          </label>
+        </div>
+      ) : null}
+
+      {currentStep === 6 ? (
+        <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
+          <p className="font-semibold text-stone-900">Revisión final</p>
+          <p className="mt-2">Revisa el progreso visible del wizard y guarda cuando la captura esté lista. El borrador local se conserva para no perder avances.</p>
+        </div>
+      ) : null}
 
       {state.message ? (
         <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
@@ -259,13 +339,23 @@ function PropertyForm({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap gap-3">
-        <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-          {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
-        </button>
-        <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
-          Volver al listado
-        </Link>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-3">
+          <button type="button" onClick={() => setCurrentStep((value) => Math.max(0, value - 1))} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
+            Anterior
+          </button>
+          <button type="button" onClick={() => setCurrentStep((value) => Math.min(wizardSteps.length - 1, value + 1))} disabled={currentStep === wizardSteps.length - 1} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
+            Siguiente
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+            {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
+          </button>
+          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            Volver al listado
+          </Link>
+        </div>
       </div>
     </form>
   );
