@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { PublicShareActions } from "@/components/ui/PublicShareActions";
-import { buildPublicPropertyUrl, buildWhatsAppPropertyMessage } from "@/lib/public-links";
+import { buildPublicPropertyUrl, buildWhatsAppPropertyMessage, buildWorkspaceAgentPath } from "@/lib/public-links";
 import type { PublicProperty } from "@/lib/public-properties";
 
 function formatOperation(operationType: string) {
@@ -123,6 +123,11 @@ export function PublicPropertyDetailPage({
                   {assignedAgent.avatarUrl ? <Image src={assignedAgent.avatarUrl} alt={assignedAgent.displayName} fill className="object-cover" unoptimized /> : assignedAgent.displayName.slice(0, 1).toUpperCase()}
                 </div>
                 <p className="mt-6 text-3xl font-semibold text-slate-950">{assignedAgent.displayName}</p>
+                {workspaceSlug && assignedAgent.slug ? (
+                  <Link href={buildWorkspaceAgentPath(workspaceSlug, assignedAgent.slug)} className="mt-3 inline-flex text-sm text-slate-600 transition hover:text-slate-950">
+                    Ver perfil del asesor
+                  </Link>
+                ) : null}
                 {assignedAgent.title ? <p className="mt-3 text-sm uppercase tracking-[0.25em] text-slate-500">{assignedAgent.title}</p> : null}
                 <p className="mt-3 text-sm leading-7 text-slate-600">
                   {assignedAgent.bio ?? "Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda."}
@@ -146,7 +151,7 @@ export function PublicPropertyDetailPage({
               <div className="mt-6 text-center">
                 <p className="text-2xl font-semibold text-slate-950">{property.workspaceBrandName ?? property.workspaceName ?? "Inmobiliaria"}</p>
                 <p className="mt-3 text-sm leading-7 text-slate-600">
-                  Esta propiedad no tiene asesor público asignado visible en este momento. Puedes contactar al equipo comercial del workspace.
+                  Un asesor de {property.workspaceBrandName ?? property.workspaceName ?? "la inmobiliaria"} puede ayudarte con esta propiedad.
                 </p>
                 <p className="mt-4 text-sm text-slate-500">{fallbackContact.whatsapp ?? fallbackContact.phone}</p>
                 <div className="mt-8 flex justify-center">

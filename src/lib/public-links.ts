@@ -30,8 +30,16 @@ export function buildPublicPropertyUrl(slug: string, workspaceSlug?: string | nu
   return `${getPublicBaseUrl()}${buildWorkspacePropertyPath(workspaceSlug, slug)}`;
 }
 
-export function buildPublicAgentUrl(slug: string) {
-  return `${getPublicBaseUrl()}/agents/${slug}`;
+export function buildWorkspaceAgentPath(workspaceSlug: string | null | undefined, agentSlug: string) {
+  if (workspaceSlug) {
+    return `/w/${workspaceSlug}/agents/${agentSlug}`;
+  }
+
+  return `/agents/${agentSlug}`;
+}
+
+export function buildPublicAgentUrl(agentSlug: string, workspaceSlug?: string | null) {
+  return `${getPublicBaseUrl()}${buildWorkspaceAgentPath(workspaceSlug, agentSlug)}`;
 }
 
 export function buildWhatsAppPropertyMessage({

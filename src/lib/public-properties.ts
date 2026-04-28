@@ -31,6 +31,7 @@ export type PublicProperty = {
   }>;
   agent: {
     id: string;
+    slug: string | null;
     displayName: string;
     title: string | null;
     bio: string | null;
@@ -143,6 +144,7 @@ function mapPublicProperty(record: any): PublicProperty {
     agent: agent
       ? {
           id: agent.id,
+          slug: agent.slug ?? null,
           displayName: agent.display_name,
           title: agent.title ?? null,
           bio: agent.bio ?? null,
@@ -204,6 +206,7 @@ const publicPropertySelect = `
   ),
   agents:agent_id (
     id,
+    slug,
     display_name,
     title,
     bio,
