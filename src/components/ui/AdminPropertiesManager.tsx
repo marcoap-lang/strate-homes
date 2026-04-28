@@ -434,8 +434,7 @@ function PropertyForm({
     setDraftSnapshot({});
   }, [state.success, storageKey]);
 
-  function persistDraft(form: HTMLFormElement) {
-    if (typeof window === "undefined") return;
+  function buildDraftSnapshot(form: HTMLFormElement) {
     const data = new FormData(form);
     const next: Record<string, string | boolean> = {};
     for (const [key, value] of data.entries()) {
@@ -443,6 +442,12 @@ function PropertyForm({
     }
     const featured = form.querySelector('input[name="isFeatured"]') as HTMLInputElement | null;
     if (featured) next.isFeatured = featured.checked;
+    return next;
+  }
+
+  function persistDraft(form: HTMLFormElement) {
+    if (typeof window === "undefined") return;
+    const next = buildDraftSnapshot(form);
     window.localStorage.setItem(storageKey, JSON.stringify(next));
     setDraftSnapshot(next);
   }
@@ -514,7 +519,19 @@ function PropertyForm({
   const visibleCompletion = Math.round((((currentStep + 1) / wizardSteps.length) * 100));
 
   return (
-    <form id={storageKey} action={formAction} onChange={(event) => persistDraft(event.currentTarget)} onSubmit={(event) => persistDraft(event.currentTarget)} className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
+    <form
+      id={storageKey}
+      action={formAction}
+      onChange={(event) => persistDraft(event.currentTarget)}
+      onSubmit={(event) => {
+        const next = buildDraftSnapshot(event.currentTarget);
+        setDraftSnapshot(next);
+        if (typeof window !== "undefined") {
+          window.localStorage.setItem(storageKey, JSON.stringify(next));
+        }
+      }}
+      className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40"
+    >
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
@@ -898,7 +915,7 @@ function PropertyForm({
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button type="submit" disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
           {currentStep === 5 ? (
