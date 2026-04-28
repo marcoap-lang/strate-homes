@@ -548,20 +548,42 @@ function PropertyForm({
       </div>
 
       {currentStep === 0 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
-          <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
-          <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
-          <label className="space-y-2 text-sm text-stone-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
-            <select name="agentId" defaultValue={String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "")} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
-              <option value="">Sin asesor asignado</option>
-              {visibleAgents.map((agent) => (
-                <option key={agent.id} value={agent.id}>{agent.display_name}</option>
-              ))}
-            </select>
-            {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p> : null}
-          </label>
+        <div className="space-y-5">
+          <SectionCard>
+            <p className="text-sm font-semibold text-stone-900">Operación</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Define desde el inicio si esta propiedad se trabajará para venta o renta.</p>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+              {[
+                { value: "sale", label: "Venta", description: "Propiedad orientada a compraventa." },
+                { value: "rent", label: "Renta", description: "Propiedad orientada a arrendamiento." },
+              ].map((option) => {
+                const selected = reviewOperation === option.value;
+                return (
+                  <label key={option.value} className={`cursor-pointer rounded-[1.5rem] border p-4 transition ${selected ? "border-[#d7ab5b]/40 bg-[#fff8ec]" : "border-stone-200 bg-stone-50 hover:bg-white"}`}>
+                    <input type="radio" name="operationType" value={option.value} defaultChecked={reviewOperation === option.value} className="sr-only" />
+                    <p className="text-base font-semibold text-stone-950">{option.label}</p>
+                    <p className="mt-2 text-sm leading-6 text-stone-600">{option.description}</p>
+                  </label>
+                );
+              })}
+            </div>
+          </SectionCard>
+
+          <div className="grid gap-4 md:grid-cols-2">
+            <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
+            <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
+            <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
+              <select name="agentId" defaultValue={String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "")} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
+                <option value="">Sin asesor asignado</option>
+                {visibleAgents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>{agent.display_name}</option>
+                ))}
+              </select>
+              {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p> : null}
+            </label>
+          </div>
         </div>
       ) : null}
 
@@ -738,13 +760,13 @@ function PropertyForm({
       {currentStep === 5 ? (
         <div className="space-y-5">
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <label className="space-y-2 text-sm text-stone-700">
+            <input type="hidden" name="operationType" value={reviewOperation} />
+            <div className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
-              <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
-                <option value="sale">Venta</option>
-                <option value="rent">Renta</option>
-              </select>
-            </label>
+              <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium text-stone-950">
+                {reviewOperation === "rent" ? "Renta" : "Venta"}
+              </div>
+            </div>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estado</span>
               <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
