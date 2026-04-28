@@ -157,6 +157,7 @@ function PropertyForm({
     : agents.filter((agent) => !ownAgentId || agent.id === ownAgentId);
   const storageKey = useMemo(() => `property-wizard:${mode}:${property?.id ?? "new"}`, [mode, property?.id]);
   const [currentStep, setCurrentStep] = useState(0);
+  const [draftSnapshot, setDraftSnapshot] = useState<Record<string, string | boolean>>({});
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -168,6 +169,7 @@ function PropertyForm({
 
     try {
       const parsed = JSON.parse(saved) as Record<string, string | boolean>;
+      setDraftSnapshot(parsed);
       Object.entries(parsed).forEach(([name, value]) => {
         const field = form.elements.namedItem(name);
         if (!field) return;
@@ -193,7 +195,32 @@ function PropertyForm({
     const featured = form.querySelector('input[name="isFeatured"]') as HTMLInputElement | null;
     if (featured) next.isFeatured = featured.checked;
     window.localStorage.setItem(storageKey, JSON.stringify(next));
+    setDraftSnapshot(next);
   }
+
+  const reviewTitle = String(draftSnapshot.title ?? property?.title ?? "Sin título");
+  const reviewOperation = String(draftSnapshot.operationType ?? property?.operation_type ?? "sale");
+  const reviewPrice = String(draftSnapshot.priceAmount ?? property?.price_amount ?? "");
+  const reviewCurrency = String(draftSnapshot.currencyCode ?? property?.currency_code ?? "MXN");
+  const reviewLocation = [draftSnapshot.locationLabel ?? property?.location_label, draftSnapshot.city ?? property?.city, draftSnapshot.state ?? property?.state].filter(Boolean).join(" · ");
+  const reviewSpecs = [
+    draftSnapshot.bedrooms ?? property?.bedrooms,
+    draftSnapshot.bathrooms ?? property?.bathrooms,
+    draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2,
+  ];
+  const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
+  const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
+  const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
+  const reviewDescription = String(draftSnapshot.description ?? property?.description ?? "");
+  const photosCount = property?.property_images.length ?? 0;
+  const reviewChecklist = [
+    { label: "Datos base", done: Boolean(reviewTitle && reviewTitle !== "Sin título") },
+    { label: "Ubicación", done: Boolean(reviewLocation) },
+    { label: "Precio", done: Boolean(reviewPrice) },
+    { label: "Descripción", done: Boolean(reviewDescription.trim()) },
+    { label: "Fotos", done: photosCount > 0 },
+    { label: "Asesor", done: Boolean(reviewAgent) },
+  ];
 
   const stepCompletion = [
     Boolean(property?.title),
@@ -327,9 +354,57 @@ function PropertyForm({
       ) : null}
 
       {currentStep === 6 ? (
-        <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
-          <p className="font-semibold text-stone-900">Revisión final</p>
-          <p className="mt-2">Revisa el progreso visible del wizard y guarda cuando la captura esté lista. El borrador local se conserva para no perder avances.</p>
+        <div className="space-y-5">
+          <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
+            <p className="font-semibold text-stone-900">Revisión final</p>
+            <p className="mt-2">Antes de guardar, revisa el resumen general y detecta rápido qué falta completar.</p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <SectionCard>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Título</p>
+              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewTitle}</p>
+            </SectionCard>
+            <SectionCard>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Operación</p>
+              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewOperation}</p>
+            </SectionCard>
+            <SectionCard>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Precio</p>
+              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewPrice ? `${reviewCurrency} ${reviewPrice}` : "Pendiente"}</p>
+            </SectionCard>
+            <SectionCard>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Ubicación</p>
+              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewLocation || "Pendiente"}</p>
+            </SectionCard>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Resumen comercial</p>
+              <div className="mt-4 space-y-3 text-sm text-stone-600">
+                <p><span className="font-medium text-stone-900">Specs principales:</span> {[reviewSpecs[0] ? `${reviewSpecs[0]} recámaras` : null, reviewSpecs[1] ? `${reviewSpecs[1]} baños` : null, reviewSpecs[2] ? `${reviewSpecs[2]} m²` : null].filter(Boolean).join(" · ") || "Pendientes"}</p>
+                <p><span className="font-medium text-stone-900">Asesor asignado:</span> {reviewAgent?.display_name ?? "Pendiente"}</p>
+                <p><span className="font-medium text-stone-900">Estado / publicación:</span> {reviewStatus}</p>
+                <p><span className="font-medium text-stone-900">Fotos disponibles:</span> {photosCount ? `${photosCount} cargadas` : mode === "create" ? "Se habilitan después de guardar" : "Pendientes"}</p>
+                <p><span className="font-medium text-stone-900">Descripción:</span> {reviewDescription.trim() ? "Lista" : "Pendiente"}</p>
+              </div>
+            </SectionCard>
+
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Checklist de completitud</p>
+              <div className="mt-4 space-y-3">
+                {reviewChecklist.map((item) => (
+                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                    <span className="text-stone-800">{item.label}</span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                      {item.done ? "Listo" : "Falta"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </SectionCard>
+          </div>
         </div>
       ) : null}
 
@@ -350,8 +425,13 @@ function PropertyForm({
         </div>
         <div className="flex flex-wrap gap-3">
           <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {pending ? "Guardando..." : mode === "create" ? "Crear propiedad" : "Guardar cambios"}
+            {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
+          {property?.id ? (
+            <a href={buildPublicPropertyUrl(property.slug)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+              Ver pública
+            </a>
+          ) : null}
           <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado
           </Link>
