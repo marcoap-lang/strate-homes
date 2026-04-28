@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PublicLeadCaptureForm } from "@/components/ui/PublicLeadCaptureForm";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { PublicShareActions } from "@/components/ui/PublicShareActions";
 import { buildPublicPropertyUrl, buildWhatsAppPropertyMessage, buildWorkspaceAgentPath } from "@/lib/public-links";
@@ -200,18 +201,21 @@ export function PublicPropertyDetailPage({
           </section>
         ) : null}
 
-        <section className="rounded-[2rem] bg-white px-8 py-8 shadow-sm">
-          <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="text-2xl font-semibold text-slate-950">¿Te interesa esta propiedad?</p>
-              <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp y recibe más información sobre disponibilidad, ubicación y visita.</p>
+        <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-[2rem] bg-white px-8 py-8 shadow-sm">
+            <div className="flex flex-col gap-5">
+              <div>
+                <p className="text-2xl font-semibold text-slate-950">¿Te interesa esta propiedad?</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp o deja tus datos para recibir más información sobre disponibilidad, ubicación y visita.</p>
+              </div>
+              {whatsappUrl ? (
+                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>
+              ) : (
+                <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">Sin contacto disponible por ahora</span>
+              )}
             </div>
-            {whatsappUrl ? (
-              <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>
-            ) : (
-              <span className="inline-flex rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">Sin contacto disponible por ahora</span>
-            )}
           </div>
+          <PublicLeadCaptureForm propertyId={property.id} workspaceId={property.workspaceId ?? ""} />
         </section>
 
         <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} />

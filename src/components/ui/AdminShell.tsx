@@ -13,6 +13,7 @@ import { getPublicBaseUrl } from "@/lib/public-links";
 const navItems = [
   { label: "Inicio", href: "/admin" },
   { label: "Propiedades", href: "/admin/properties" },
+  { label: "Leads", href: "/admin/leads" },
   { label: "Equipo", href: "/admin/team" },
 ];
 

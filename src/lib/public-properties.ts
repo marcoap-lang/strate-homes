@@ -4,6 +4,7 @@ export type PublicProperty = {
   id: string;
   slug: string;
   title: string;
+  workspaceId: string | null;
   workspaceSlug: string | null;
   workspaceName: string | null;
   workspaceBrandName: string | null;
@@ -122,6 +123,7 @@ function mapPublicProperty(record: any): PublicProperty {
     id: record.id,
     slug: record.slug,
     title: record.title,
+    workspaceId: record.workspace_id ?? null,
     workspaceSlug: workspace?.slug ?? null,
     workspaceName: workspace?.name ?? null,
     workspaceBrandName: workspace?.brand_name ?? null,
@@ -199,6 +201,7 @@ const publicPropertySelect = `
   public_code,
   published_at,
   is_featured,
+  workspace_id,
   workspaces:workspace_id (
     slug,
     name,

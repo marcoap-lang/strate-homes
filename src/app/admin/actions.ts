@@ -24,6 +24,11 @@ export type CreateAgentState = {
   message: string;
 };
 
+export type LeadCaptureState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -40,6 +45,11 @@ const INITIAL_BOOTSTRAP_STATE: BootstrapOwnerState = {
 };
 
 const INITIAL_CREATE_AGENT_STATE: CreateAgentState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_LEAD_CAPTURE_STATE: LeadCaptureState = {
   success: false,
   message: "",
 };
@@ -276,6 +286,61 @@ export async function bootstrapInitialOwnerAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo habilitar el usuario inicial.",
+    };
+  }
+}
+
+export async function captureLeadFromPropertyAction(
+  _prevState: LeadCaptureState = INITIAL_LEAD_CAPTURE_STATE,
+  formData: FormData,
+): Promise<LeadCaptureState> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const propertyId = formData.get("propertyId")?.toString();
+    const workspaceId = formData.get("workspaceId")?.toString();
+    const fullName = formData.get("fullName")?.toString().trim() ?? "";
+    const phone = formData.get("phone")?.toString().trim() ?? "";
+
+    if (!propertyId || !workspaceId) {
+      return { success: false, message: "No pudimos relacionar tu mensaje con la propiedad." };
+    }
+
+    if (fullName.length < 3 || phone.length < 7) {
+      return { success: false, message: "Comparte al menos tu nombre y un teléfono válido." };
+    }
+
+    const { data: lead, error: leadError } = await supabase
+      .from("leads")
+      .insert({
+        workspace_id: workspaceId,
+        full_name: fullName,
+        phone,
+        email: normalizeNullable(formData.get("email")),
+        message: normalizeNullable(formData.get("message")),
+        status: "new",
+      })
+      .select("id")
+      .single();
+
+    if (leadError || !lead?.id) {
+      return { success: false, message: leadError?.message ?? "No pudimos guardar tu contacto." };
+    }
+
+    const { error: interestError } = await supabase.from("lead_property_interests").insert({
+      workspace_id: workspaceId,
+      lead_id: lead.id,
+      property_id: propertyId,
+    });
+
+    if (interestError) {
+      return { success: false, message: interestError.message };
+    }
+
+    return { success: true, message: "Gracias. Ya recibimos tus datos y te contactaremos pronto." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No pudimos guardar tu interés.",
     };
   }
 }

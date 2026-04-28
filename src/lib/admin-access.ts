@@ -1,5 +1,16 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AgentOption, PropertyRecord, StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
+
+type LeadRecord = {
+  id: string;
+  full_name: string;
+  phone: string;
+  email: string | null;
+  message: string | null;
+  status: string;
+  created_at: string;
+  property_title: string | null;
+};
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 export type AdminAccessState =
@@ -17,6 +28,7 @@ export type AdminAccessState =
       agents: AgentOption[];
       teamMembers: TeamMemberRecord[];
       standaloneAgents: StandaloneAgentRecord[];
+      leads: LeadRecord[];
     }
   | {
       kind: "first-access" | "no-workspace";
@@ -57,7 +69,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   }
 
-  const [{ data: properties, error: propertiesError }, { data: agents, error: agentsError }, { data: teamMembers, error: teamError }] = await Promise.all([
+  const [{ data: properties, error: propertiesError }, { data: agents, error: agentsError }, { data: teamMembers, error: teamError }, { data: leads, error: leadsError }] = await Promise.all([
     supabase
       .from("properties")
       .select(
@@ -135,11 +147,33 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .eq("workspace_id", activeWorkspace.workspaceId)
       .eq("is_active", true)
       .order("created_at", { ascending: true }),
+    supabase
+      .from("lead_property_interests")
+      .select(
+        `
+          created_at,
+          leads:lead_id (
+            id,
+            full_name,
+            phone,
+            email,
+            message,
+            status,
+            created_at
+          ),
+          properties:property_id (
+            title
+          )
+        `,
+      )
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (propertiesError) throw propertiesError;
   if (agentsError) throw agentsError;
   if (teamError) throw teamError;
+  if (leadsError) throw leadsError;
 
   const agentByProfileId = new Map(
     (agents ?? [])
@@ -208,5 +242,15 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     agents: agents ?? [],
     teamMembers: normalizedTeamMembers,
     standaloneAgents,
+    leads: (leads ?? []).map((item: any) => ({
+      id: Array.isArray(item.leads) ? item.leads[0]?.id : item.leads?.id,
+      full_name: Array.isArray(item.leads) ? item.leads[0]?.full_name : item.leads?.full_name,
+      phone: Array.isArray(item.leads) ? item.leads[0]?.phone : item.leads?.phone,
+      email: Array.isArray(item.leads) ? item.leads[0]?.email ?? null : item.leads?.email ?? null,
+      message: Array.isArray(item.leads) ? item.leads[0]?.message ?? null : item.leads?.message ?? null,
+      status: Array.isArray(item.leads) ? item.leads[0]?.status : item.leads?.status,
+      created_at: Array.isArray(item.leads) ? item.leads[0]?.created_at : item.leads?.created_at,
+      property_title: Array.isArray(item.properties) ? item.properties[0]?.title ?? null : item.properties?.title ?? null,
+    })),
   };
 }
