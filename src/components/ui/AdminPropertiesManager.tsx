@@ -94,57 +94,156 @@ function getPropertyTypeLabel(value?: string | null) {
   return "propiedad";
 }
 
+function pickVariant(options: string[], seed: string) {
+  const total = seed.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
+  return options[total % options.length];
+}
+
 function buildSuggestedDescription({
   type,
   tone,
+  operation,
   location,
   price,
   bedrooms,
   bathrooms,
   area,
+  advisor,
 }: {
   type: string;
   tone: string;
+  operation: string;
   location: string;
   price: string;
   bedrooms: string;
   bathrooms: string;
   area: string;
+  advisor: string;
 }) {
   const typeLabel = getPropertyTypeLabel(type);
+  const operationLabel = operation === "rent" ? "renta" : "venta";
   const specs = [
     bedrooms ? `${bedrooms} recámaras` : null,
     bathrooms ? `${bathrooms} baños` : null,
-    area ? `${area} m² de construcción` : null,
+    area ? `${area} m²` : null,
   ].filter(Boolean).join(", ");
+  const seed = `${tone}-${type}-${location}-${price}-${bedrooms}-${bathrooms}-${area}-${advisor}`;
 
-  const intros: Record<string, string> = {
-    premium: `Descubre esta ${typeLabel} con una presencia cuidada, espacios bien resueltos y una ubicación que eleva la experiencia de vivir o invertir.`,
-    familiar: `Una ${typeLabel} pensada para quienes buscan comodidad, buena ubicación y una vida diaria más práctica para su familia.`,
-    inversion: `Una ${typeLabel} con atributos atractivos para quien busca proteger capital, rentabilizar ubicación y mantener flexibilidad comercial.`,
-    ejecutivo: `Una ${typeLabel} funcional y bien ubicada para quienes priorizan operación eficiente, imagen profesional y buena conectividad.`,
-    comercial: `Una ${typeLabel} con condiciones claras para activar operación, recibir clientes y aprovechar mejor su zona inmediata.`,
+  const variants: Record<string, { intros: string[]; bodies: string[]; closes: string[] }> = {
+    premium: {
+      intros: [
+        `Descubre esta ${typeLabel} diseñada para quienes valoran ubicación, presencia y una experiencia patrimonial más aspiracional.`,
+        `Esta ${typeLabel} proyecta una lectura elegante desde el primer contacto y se posiciona bien dentro de una búsqueda orientada a plusvalía.`,
+      ],
+      bodies: [
+        `Su propuesta en ${location || "una zona atractiva"}${price ? `, con un precio de referencia de ${price},` : ""} la convierte en una opción con narrativa sólida para ${operationLabel}.`,
+        `${location ? `Ubicada en ${location},` : ""}${price ? ` con un precio de ${price},` : ""} ofrece una combinación especialmente atractiva entre percepción, valor y proyección de largo plazo.`,
+      ],
+      closes: [
+        `${specs ? `Además, ${specs} ayudan a sostener una experiencia residencial más completa. ` : ""}${advisor ? `${advisor} puede presentarla con una conversación más estratégica y orientada a valor.` : "Es una opción que puede destacar por su equilibrio entre presencia, funcionalidad y proyección."}`,
+        `${specs ? `Sus atributos clave —${specs}— refuerzan una propuesta elegante y bien resuelta. ` : ""}Es una propiedad con argumentos claros para comunicar calidad, ubicación y plusvalía.`,
+      ],
+    },
+    familiar: {
+      intros: [
+        `Una ${typeLabel} pensada para quienes buscan comodidad, espacios funcionales y una mejor vida diaria.`,
+        `Esta ${typeLabel} destaca por ofrecer una base práctica para una rutina más cómoda y bien resuelta en familia.`,
+      ],
+      bodies: [
+        `${location ? `En ${location},` : ""}${price ? ` con un precio de ${price},` : ""} reúne elementos que ayudan a imaginar una vida cotidiana más sencilla, cercana y ordenada.`,
+        `${location ? `Su ubicación en ${location}` : "Su ubicación"}${price ? `, junto con un precio de referencia de ${price},` : ""} suma valor para quienes priorizan estabilidad, distribución y entorno.`,
+      ],
+      closes: [
+        `${specs ? `Con ${specs},` : "Con una distribución clara,"} puede conectar bien con clientes que buscan practicidad, calidez y espacio suficiente para su etapa actual.`,
+        `${specs ? `Sus espacios —${specs}—` : "Su distribución"} ayudan a sostener una experiencia más cómoda, funcional y cercana para la vida diaria.`,
+      ],
+    },
+    inversion: {
+      intros: [
+        `Una ${typeLabel} con condiciones atractivas para quienes analizan plusvalía, ubicación y potencial comercial.`,
+        `Esta ${typeLabel} se puede leer como una oportunidad alineada con criterios de ubicación, rentabilidad y resguardo de valor.`,
+      ],
+      bodies: [
+        `${location ? `Ubicada en ${location},` : ""}${price ? ` con un precio de ${price},` : ""} ofrece un punto de entrada interesante para evaluar retorno, demanda y posición dentro de su zona.`,
+        `${location ? `Su presencia en ${location}` : "Su ubicación"}${price ? ` y su referencia de ${price}` : ""} permiten construir una conversación enfocada en plusvalía, comparables y rentabilidad potencial.`,
+      ],
+      closes: [
+        `${specs ? `Atributos como ${specs}` : "Sus atributos clave"} ayudan a sostener una propuesta más clara para compradores que valoran eficiencia de capital y proyección.`,
+        `${advisor ? `${advisor} puede comunicarla mejor desde un ángulo de retorno, mercado y oportunidad. ` : ""}Es una opción que puede defenderse bien frente a clientes con mirada patrimonial o de inversión.`,
+      ],
+    },
+    ejecutivo: {
+      intros: [
+        `Una ${typeLabel} orientada a quienes priorizan practicidad, conectividad y operación diaria eficiente.`,
+        `Esta ${typeLabel} ofrece una lectura clara para perfiles que valoran funcionalidad, tiempos de traslado y uso práctico del espacio.`,
+      ],
+      bodies: [
+        `${location ? `Desde ${location},` : ""}${price ? ` con un precio de ${price},` : ""} responde bien a una búsqueda donde ubicación, orden y desempeño del espacio pesan más que el discurso decorativo.`,
+        `${location ? `Su base en ${location}` : "Su ubicación"}${price ? `, junto con un precio de ${price},` : ""} refuerza una propuesta orientada a eficiencia, conectividad y operación cotidiana.`,
+      ],
+      closes: [
+        `${specs ? `Con ${specs},` : "Con una estructura funcional,"} puede conectar con clientes que quieren resolver su necesidad con claridad y sin fricción.`,
+        `Es una opción especialmente útil para una conversación comercial enfocada en funcionalidad, movilidad y decisión práctica${specs ? `, apoyada por ${specs}` : ""}.`,
+      ],
+    },
+    comercial: {
+      intros: [
+        `Una ${typeLabel} con lectura comercial clara para quien necesita visibilidad, operación y una ubicación estratégica.`,
+        `Esta ${typeLabel} reúne atributos valiosos para negocios o actividades que dependen de flujo, presencia y ejecución ágil.`,
+      ],
+      bodies: [
+        `${location ? `En ${location},` : ""}${price ? ` con un precio de ${price},` : ""} puede sostener una conversación enfocada en exposición, funcionamiento y aprovechamiento del punto.`,
+        `${location ? `Su posición en ${location}` : "Su ubicación"}${price ? `, sumada a un precio de ${price},` : ""} ayuda a leerla desde la lógica de operación, captación y desempeño comercial.`,
+      ],
+      closes: [
+        `${specs ? `Características como ${specs}` : "Sus características principales"} refuerzan una propuesta con buena lógica para operación y atención al cliente.`,
+        `${advisor ? `${advisor} puede presentarla mejor desde una narrativa operativa y estratégica. ` : ""}Es una propiedad que puede destacar por visibilidad, uso claro y potencial de activación.`,
+      ],
+    },
   };
 
-  return [
-    intros[tone] ?? intros.premium,
-    location ? `Se encuentra en ${location}${price ? `, con un precio de referencia de ${price}` : ""}.` : null,
-    specs ? `Destaca por ${specs}, ofreciendo una propuesta equilibrada entre valor, funcionalidad y presentación.` : null,
-    "Es una opción que puede comunicar mejor su valor desde la primera visita y facilitar una conversación comercial más clara con el cliente adecuado.",
-  ].filter(Boolean).join(" ");
+  const selected = variants[tone] ?? variants.premium;
+  return [pickVariant(selected.intros, `${seed}-intro`), pickVariant(selected.bodies, `${seed}-body`), pickVariant(selected.closes, `${seed}-close`)].join(" ");
 }
 
 function buildSuggestedShortDescription({
   type,
+  tone,
+  operation,
   location,
   price,
 }: {
   type: string;
+  tone: string;
+  operation: string;
   location: string;
   price: string;
 }) {
   const typeLabel = getPropertyTypeLabel(type);
-  return `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Ideal para compartir rápido con clientes interesados.`;
+  const variants: Record<string, string[]> = {
+    premium: [
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} ${operation === "rent" ? "en renta" : "en venta"}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Presencia, ubicación y plusvalía.`,
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Opción premium con excelente percepción comercial.`,
+    ],
+    familiar: [
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Espacios cómodos para una vida diaria más práctica.`,
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} ${operation === "rent" ? "en renta" : "en venta"}${location ? ` en ${location}` : ""}. Ideal para comodidad y rutina familiar.`,
+    ],
+    inversion: [
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Ubicación y valor para mirada de inversión.`,
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} ${operation === "rent" ? "en renta" : "en venta"}${location ? ` en ${location}` : ""}. Buena base para plusvalía y retorno.`,
+    ],
+    ejecutivo: [
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Funcional, conectada y fácil de operar.`,
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} ${operation === "rent" ? "en renta" : "en venta"}${location ? ` en ${location}` : ""}. Practicidad y buena conectividad.`,
+    ],
+    comercial: [
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)}${location ? ` en ${location}` : ""}${price ? ` · ${price}` : ""}. Visibilidad y operación en punto estratégico.`,
+      `${typeLabel.charAt(0).toUpperCase() + typeLabel.slice(1)} ${operation === "rent" ? "en renta" : "en venta"}${location ? ` en ${location}` : ""}. Buena base para flujo y actividad comercial.`,
+    ],
+  };
+
+  return pickVariant(variants[tone] ?? variants.premium, `${tone}-${type}-${location}-${price}-${operation}-short`);
 }
 
 function Field({
@@ -221,6 +320,10 @@ function PropertyForm({
   const storageKey = useMemo(() => `property-wizard:${mode}:${property?.id ?? "new"}`, [mode, property?.id]);
   const [currentStep, setCurrentStep] = useState(0);
   const [draftSnapshot, setDraftSnapshot] = useState<Record<string, string | boolean>>({});
+  const [descriptionToneState, setDescriptionToneState] = useState("premium");
+  const [descriptionValue, setDescriptionValue] = useState("");
+  const [shortDescriptionValue, setShortDescriptionValue] = useState("");
+  const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -233,6 +336,7 @@ function PropertyForm({
     try {
       const parsed = JSON.parse(saved) as Record<string, string | boolean>;
       setDraftSnapshot(parsed);
+      setDescriptionToneState(String(parsed.descriptionTone ?? "premium"));
       Object.entries(parsed).forEach(([name, value]) => {
         const field = form.elements.namedItem(name);
         if (!field) return;
@@ -278,19 +382,30 @@ function PropertyForm({
   const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
   const suggestedDescription = buildSuggestedDescription({
     type: reviewType,
-    tone: reviewTone,
+    tone: descriptionToneState,
+    operation: reviewOperation,
     location: reviewLocation,
     price: reviewPrice ? `${reviewCurrency} ${reviewPrice}` : "",
     bedrooms: String(draftSnapshot.bedrooms ?? property?.bedrooms ?? ""),
     bathrooms: String(draftSnapshot.bathrooms ?? property?.bathrooms ?? ""),
     area: String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? ""),
+    advisor: reviewAgent?.display_name ?? "",
   });
   const suggestedShortDescription = buildSuggestedShortDescription({
     type: reviewType,
+    tone: descriptionToneState,
+    operation: reviewOperation,
     location: reviewLocation,
     price: reviewPrice ? `${reviewCurrency} ${reviewPrice}` : "",
   });
-  const reviewDescription = String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
+  useEffect(() => {
+    if (!descriptionEditedManually) {
+      setDescriptionValue(String(draftSnapshot.description ?? property?.description ?? suggestedDescription));
+      setShortDescriptionValue(String(draftSnapshot.shortDescription ?? suggestedShortDescription));
+    }
+  }, [draftSnapshot.description, draftSnapshot.shortDescription, property?.description, suggestedDescription, suggestedShortDescription, descriptionEditedManually]);
+
+  const reviewDescription = descriptionValue || String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
   const photosCount = property?.property_images.length ?? 0;
   const reviewChecklist = [
     { label: "Datos base", done: Boolean(reviewTitle && reviewTitle !== "Sin título") },
@@ -477,7 +592,7 @@ function PropertyForm({
               <div className="mt-4 space-y-3">
                 <label className="space-y-2 text-sm text-stone-700">
                   <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
-                  <select name="descriptionTone" defaultValue="premium" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                  <select name="descriptionTone" value={descriptionToneState} onChange={(event) => setDescriptionToneState(event.target.value)} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
                     {descriptionTones.map((tone) => (
                       <option key={tone} value={tone}>{tone}</option>
                     ))}
@@ -495,12 +610,21 @@ function PropertyForm({
               <p className="mt-2 text-sm leading-6 text-stone-600">Puedes usar la propuesta sugerida tal como está o editarla para adaptarla a tu estilo comercial.</p>
               <label className="mt-4 block space-y-2 text-sm text-stone-700">
                 <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
-                <textarea name="description" defaultValue={property?.description ?? suggestedDescription} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+                <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
               </label>
               <label className="mt-4 block space-y-2 text-sm text-stone-700">
                 <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión corta para WhatsApp / redes</span>
-                <textarea name="shortDescription" defaultValue={String(draftSnapshot.shortDescription ?? suggestedShortDescription)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+                <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
               </label>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button type="button" onClick={() => { setDescriptionValue(suggestedDescription); setShortDescriptionValue(suggestedShortDescription); setDescriptionEditedManually(false); }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+                  Generar descripción
+                </button>
+                <button type="button" onClick={() => { setDescriptionValue(suggestedDescription); setShortDescriptionValue(suggestedShortDescription); setDescriptionEditedManually(false); }} className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100">
+                  Regenerar con este tono
+                </button>
+                {descriptionEditedManually ? <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-xs text-slate-600">Edición manual detectada</span> : null}
+              </div>
             </SectionCard>
           </div>
         </div>
