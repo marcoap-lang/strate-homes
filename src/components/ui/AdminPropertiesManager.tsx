@@ -915,11 +915,11 @@ function PropertyForm({
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button type="submit" disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button type="submit" name="intent" value="draft" disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
           {currentStep === 5 ? (
-            <button type="submit" disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+            <button type="submit" name="intent" value="publish" disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
               Publicar propiedad
             </button>
           ) : null}

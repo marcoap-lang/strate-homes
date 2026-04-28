@@ -748,11 +748,13 @@ export async function createPropertyAction(
 ): Promise<PropertyFormState> {
   try {
     const { supabase, activeWorkspace, user, agentRecord } = await getWorkspaceContext();
+    const intent = formData.get("intent")?.toString() ?? "draft";
     const title = formData.get("title")?.toString().trim() ?? "";
     const locationLabel = formData.get("locationLabel")?.toString().trim() ?? "";
     const propertyType = formData.get("propertyType")?.toString() ?? "house";
     const operationType = formData.get("operationType")?.toString() ?? "sale";
-    const status = formData.get("status")?.toString() ?? "draft";
+    const requestedStatus = formData.get("status")?.toString() ?? "draft";
+    const status = intent === "publish" ? "active" : requestedStatus;
 
     if (activeWorkspace.role === "staff" && !agentRecord?.id) {
       return { success: false, message: "Tu rol actual no puede crear propiedades si no tienes perfil comercial activo." };
@@ -762,12 +764,18 @@ export async function createPropertyAction(
       return { success: false, message: "Necesitas un perfil comercial de agente activo para crear propiedades en este workspace." };
     }
 
-    if (title.length < 4) {
-      return { success: false, message: "El título debe tener al menos 4 caracteres." };
-    }
+    if (intent === "publish") {
+      if (title.length < 4) {
+        return { success: false, message: "El título debe tener al menos 4 caracteres." };
+      }
 
-    if (locationLabel.length < 3) {
-      return { success: false, message: "La ubicación corta es obligatoria." };
+      if (locationLabel.length < 3) {
+        return { success: false, message: "La ubicación corta es obligatoria." };
+      }
+
+      if (!normalizeNumber(formData.get("priceAmount"))) {
+        return { success: false, message: "El precio es obligatorio para publicar." };
+      }
     }
 
     const payload = {
@@ -778,15 +786,15 @@ export async function createPropertyAction(
         activeRole: activeWorkspace.role,
         ownAgentId: agentRecord?.id ?? null,
       }),
-      title,
-      slug: slugify(formData.get("slug")?.toString() || title),
+      title: title || "Propiedad en borrador",
+      slug: slugify(formData.get("slug")?.toString() || title || `propiedad-${Date.now()}`),
       public_code: normalizeNullable(formData.get("publicCode")),
       description: normalizeNullable(formData.get("description")),
       property_type: propertyType,
       status: canArchiveOrCloseProperty(activeWorkspace.role) ? status : status === "active" ? "active" : "draft",
       operation_type: operationType,
       is_featured: formData.get("isFeatured") === "on",
-      location_label: locationLabel,
+      location_label: normalizeNullable(formData.get("locationLabel")),
       address_line: normalizeNullable(formData.get("addressLine")),
       neighborhood: normalizeNullable(formData.get("neighborhood")),
       city: normalizeNullable(formData.get("city")),
@@ -810,7 +818,7 @@ export async function createPropertyAction(
 
     revalidatePath("/admin");
     revalidatePath("/admin/properties");
-    return { success: true, message: "Propiedad creada correctamente." };
+    return { success: true, message: intent === "publish" ? "Propiedad publicada correctamente." : "Borrador guardado correctamente." };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo crear la propiedad." };
   }
@@ -822,9 +830,11 @@ export async function updatePropertyAction(
 ): Promise<PropertyFormState> {
   try {
     const propertyId = formData.get("propertyId")?.toString();
+    const intent = formData.get("intent")?.toString() ?? "draft";
     const title = formData.get("title")?.toString().trim() ?? "";
     const locationLabel = formData.get("locationLabel")?.toString().trim() ?? "";
-    const status = formData.get("status")?.toString() ?? "draft";
+    const requestedStatus = formData.get("status")?.toString() ?? "draft";
+    const status = intent === "publish" ? "active" : requestedStatus;
 
     if (!propertyId) {
       return { success: false, message: "Falta identificar la propiedad a editar." };
@@ -836,12 +846,18 @@ export async function updatePropertyAction(
       return { success: false, message: "Solo puedes editar propiedades asignadas a ti dentro de este workspace." };
     }
 
-    if (title.length < 4) {
-      return { success: false, message: "El título debe tener al menos 4 caracteres." };
-    }
+    if (intent === "publish") {
+      if (title.length < 4) {
+        return { success: false, message: "El título debe tener al menos 4 caracteres." };
+      }
 
-    if (locationLabel.length < 3) {
-      return { success: false, message: "La ubicación corta es obligatoria." };
+      if (locationLabel.length < 3) {
+        return { success: false, message: "La ubicación corta es obligatoria." };
+      }
+
+      if (!normalizeNumber(formData.get("priceAmount"))) {
+        return { success: false, message: "El precio es obligatorio para publicar." };
+      }
     }
 
     const payload = {
@@ -851,15 +867,15 @@ export async function updatePropertyAction(
         activeRole: activeWorkspace.role,
         ownAgentId: agentRecord?.id ?? null,
       }),
-      title,
-      slug: slugify(formData.get("slug")?.toString() || title),
+      title: title || "Propiedad en borrador",
+      slug: slugify(formData.get("slug")?.toString() || title || `propiedad-${propertyId}`),
       public_code: normalizeNullable(formData.get("publicCode")),
       description: normalizeNullable(formData.get("description")),
       property_type: formData.get("propertyType")?.toString() ?? "house",
       status: isFullAccessRole ? status : status === "active" ? "active" : "draft",
       operation_type: formData.get("operationType")?.toString() ?? "sale",
       is_featured: formData.get("isFeatured") === "on",
-      location_label: locationLabel,
+      location_label: normalizeNullable(formData.get("locationLabel")),
       address_line: normalizeNullable(formData.get("addressLine")),
       neighborhood: normalizeNullable(formData.get("neighborhood")),
       city: normalizeNullable(formData.get("city")),
@@ -888,7 +904,7 @@ export async function updatePropertyAction(
     revalidatePath("/admin");
     revalidatePath("/admin/properties");
     revalidatePath(`/admin/properties/${propertyId}`);
-    return { success: true, message: "Propiedad actualizada correctamente." };
+    return { success: true, message: intent === "publish" ? "Propiedad publicada correctamente." : "Borrador actualizado correctamente." };
   } catch (error) {
     return { success: false, message: error instanceof Error ? error.message : "No se pudo actualizar la propiedad." };
   }
