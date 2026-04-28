@@ -398,19 +398,71 @@ function PropertyForm({
       ) : null}
 
       {currentStep === 5 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <label className="space-y-2 text-sm text-stone-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
-            <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{operationTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-          </label>
-          <label className="space-y-2 text-sm text-stone-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estatus</span>
-            <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{statuses.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-          </label>
-          <label className="inline-flex items-center gap-3 text-sm text-stone-700 xl:col-span-2 xl:mt-8">
-            <input type="checkbox" name="isFeatured" defaultChecked={property?.is_featured ?? false} className="size-4 rounded border-stone-300 bg-white" />
-            Marcar como destacada
-          </label>
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
+              <select name="operationType" defaultValue={property?.operation_type ?? "sale"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                <option value="sale">Venta</option>
+                <option value="rent">Renta</option>
+              </select>
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estado</span>
+              <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                <option value="draft">Borrador</option>
+                <option value="active">Activa</option>
+                <option value="archived">Archivada</option>
+                {property?.status === "pending" ? <option value="pending">Pendiente</option> : null}
+                {property?.status === "sold" ? <option value="sold">Vendida</option> : null}
+                {property?.status === "rented" ? <option value="rented">Rentada</option> : null}
+              </select>
+            </label>
+            <label className="inline-flex items-center gap-3 text-sm text-stone-700 xl:col-span-2 xl:mt-8">
+              <input type="checkbox" name="isFeatured" defaultChecked={property?.is_featured ?? false} className="size-4 rounded border-stone-300 bg-white" />
+              Marcar como destacada
+            </label>
+          </div>
+
+          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Visibilidad actual</p>
+              <div className="mt-4 space-y-3 text-sm text-stone-600">
+                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                  <span>Estado de la propiedad</span>
+                  <span className="font-semibold text-stone-950">{reviewStatus === "active" ? "Activa" : reviewStatus === "archived" ? "Archivada" : "Borrador"}</span>
+                </div>
+                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                  <span>Visibilidad</span>
+                  <span className="font-semibold text-stone-950">{reviewStatus === "active" ? "Visible en el sitio público" : "No visible para clientes"}</span>
+                </div>
+                <div className={`rounded-2xl border px-4 py-4 ${reviewStatus === "active" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
+                  {reviewStatus === "active" ? "Esta propiedad será visible en el sitio público." : "Esta propiedad no será visible hasta activarla."}
+                </div>
+              </div>
+            </SectionCard>
+
+            <SectionCard>
+              <p className="text-sm font-semibold text-stone-900">Avisos antes de publicar</p>
+              <div className="mt-4 space-y-3">
+                {[
+                  { label: "Precio", ok: Boolean(reviewPrice) },
+                  { label: "Ubicación", ok: Boolean(reviewLocation) },
+                  { label: "Fotos", ok: photosCount > 0 },
+                ].map((item) => (
+                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                    <span className="text-stone-800">{item.label}</span>
+                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                      {item.ok ? "Listo" : "Revisar"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-sm leading-6 text-stone-600">
+                Si faltan datos clave, puedes guardar como borrador y completarlos después. Por ahora esto es una advertencia visual, no un bloqueo.
+              </p>
+            </SectionCard>
+          </div>
         </div>
       ) : null}
 
@@ -488,7 +540,12 @@ function PropertyForm({
           <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
-          {property?.id ? (
+          {currentStep === 5 ? (
+            <button type="submit" disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+              Publicar propiedad
+            </button>
+          ) : null}
+          {property?.id && property.status === "active" ? (
             <a href={buildPublicPropertyUrl(property.slug)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Ver pública
             </a>
