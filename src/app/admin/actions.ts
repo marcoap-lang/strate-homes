@@ -327,6 +327,7 @@ export async function captureLeadFromPropertyAction(
         phone,
         email: normalizeNullable(formData.get("email")),
         message: normalizeNullable(formData.get("message")),
+        source_type: normalizeNullable(formData.get("sourceType")) ?? "property_form",
         status: "new",
       })
       .select("id")

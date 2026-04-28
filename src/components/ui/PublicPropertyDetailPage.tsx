@@ -205,8 +205,9 @@ export function PublicPropertyDetailPage({
           <div className="rounded-[2rem] bg-white px-8 py-8 shadow-sm">
             <div className="flex flex-col gap-5">
               <div>
-                <p className="text-2xl font-semibold text-slate-950">¿Te interesa esta propiedad?</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp o deja tus datos para recibir más información sobre disponibilidad, ubicación y visita.</p>
+                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Contacto directo</p>
+                <p className="mt-3 text-2xl font-semibold text-slate-950">¿Prefieres una respuesta inmediata?</p>
+                <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp o, si prefieres, deja tus datos en el bloque de solicitar información.</p>
               </div>
               {whatsappUrl ? (
                 <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>

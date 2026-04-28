@@ -12,10 +12,12 @@ export function PublicLeadCaptureForm({ propertyId, workspaceId }: { propertyId:
     <form action={action} className="space-y-4 rounded-[2rem] bg-white p-6 shadow-sm">
       <input type="hidden" name="propertyId" value={propertyId} />
       <input type="hidden" name="workspaceId" value={workspaceId} />
+      <input type="hidden" name="sourceType" value="property_form" />
 
       <div>
-        <p className="text-2xl font-semibold text-slate-950">¿Te interesa esta propiedad?</p>
-        <p className="mt-2 text-sm leading-7 text-slate-600">Déjanos tus datos y un asesor te contactará con más información.</p>
+        <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Solicitar información</p>
+        <p className="mt-3 text-2xl font-semibold text-slate-950">Déjanos tus datos y te contactamos</p>
+        <p className="mt-2 text-sm leading-7 text-slate-600">Si quieres más detalles sobre disponibilidad, precio, visita o proceso, comparte tus datos y un asesor te contactará.</p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
@@ -29,7 +31,7 @@ export function PublicLeadCaptureForm({ propertyId, workspaceId }: { propertyId:
       {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
 
       <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-        {pending ? "Enviando..." : "Enviar mis datos"}
+        {pending ? "Enviando..." : "Solicitar información"}
       </button>
     </form>
   );
