@@ -1373,7 +1373,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                     <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
                       Editar
                     </Link>
-                    <Link href={`/admin/properties/${property.id}#interesados`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <Link href={`/admin/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                       Ver interesados
                     </Link>
                     <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
@@ -1408,6 +1408,48 @@ export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">)
         }
       />
       <PropertyForm mode="create" agents={agents} activeRole={activeWorkspace?.role} ownAgentId={null} />
+    </div>
+  );
+}
+
+export function AdminPropertyInterestedView({ property }: { property: PropertyRecord }) {
+  return (
+    <div className="space-y-6">
+      <PropertiesHeader
+        title={`Interesados · ${property.title}`}
+        description="Gestiona aquí el seguimiento comercial de esta propiedad sin mezclarlo con la edición de ficha."
+        action={
+          <div className="flex flex-wrap gap-3">
+            <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+              Volver a edición
+            </Link>
+            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+              Volver al listado
+            </Link>
+          </div>
+        }
+      />
+
+      <div className="grid gap-4 md:grid-cols-4">
+        <SectionCard>
+          <p className="text-sm text-stone-500">Interesados</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.lead_interests?.length ?? 0}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Estatus propiedad</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.status}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Operación</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.operation_type}</p>
+        </SectionCard>
+        <SectionCard>
+          <p className="text-sm text-stone-500">Precio</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}</p>
+        </SectionCard>
+      </div>
+
+      <PropertyLeadInterestsManager property={property} />
     </div>
   );
 }
@@ -1451,8 +1493,6 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
           <p className="mt-3 text-2xl font-semibold text-stone-950">{coverage.completion}%</p>
         </SectionCard>
       </div>
-
-      <PropertyLeadInterestsManager property={property} />
 
       <div className="space-y-6 xl:grid xl:grid-cols-[0.95fr_1.05fr] xl:gap-6 xl:space-y-0">
         <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
