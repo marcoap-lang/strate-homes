@@ -41,6 +41,23 @@ const statuses = ["draft", "active", "pending", "sold", "rented", "archived"];
 const suggestedPhotoShots = ["Fachada", "Sala", "Cocina", "Recámara principal", "Baño principal"];
 const wizardSteps = ["Base", "Ubicación", "Características", "Fotos", "Descripción", "Publicación", "Revisión"] as const;
 const descriptionTones = ["premium", "familiar", "inversion", "ejecutivo", "comercial"] as const;
+const amenityOptions = [
+  "terraza",
+  "jardín",
+  "alberca",
+  "seguridad",
+  "balcón",
+  "roof garden",
+  "vista al mar",
+  "cocina integral",
+  "cuarto de lavado",
+  "estacionamiento techado",
+  "portón eléctrico",
+  "alta plusvalía",
+  "cerca de playa",
+  "cerca de centros comerciales",
+  "ideal para inversión",
+] as const;
 
 function normalizeText(value?: string | null) {
   return (value ?? "").toLowerCase();
@@ -109,6 +126,8 @@ function buildSuggestedDescription({
   bathrooms,
   area,
   advisor,
+  amenities,
+  extraFeatures,
 }: {
   type: string;
   tone: string;
@@ -119,6 +138,8 @@ function buildSuggestedDescription({
   bathrooms: string;
   area: string;
   advisor: string;
+  amenities: string[];
+  extraFeatures: string;
 }) {
   const typeLabel = getPropertyTypeLabel(type);
   const operationLabel = operation === "rent" ? "renta" : "venta";
@@ -127,7 +148,7 @@ function buildSuggestedDescription({
     bathrooms ? `${bathrooms} baños` : null,
     area ? `${area} m²` : null,
   ].filter(Boolean).join(", ");
-  const seed = `${tone}-${type}-${location}-${price}-${bedrooms}-${bathrooms}-${area}-${advisor}`;
+  const seed = `${tone}-${type}-${location}-${price}-${bedrooms}-${bathrooms}-${area}-${advisor}-${amenities.join("|")}-${extraFeatures}`;
 
   const variants: Record<string, { intros: string[]; bodies: string[]; closes: string[] }> = {
     premium: {
@@ -203,7 +224,14 @@ function buildSuggestedDescription({
   };
 
   const selected = variants[tone] ?? variants.premium;
-  return [pickVariant(selected.intros, `${seed}-intro`), pickVariant(selected.bodies, `${seed}-body`), pickVariant(selected.closes, `${seed}-close`)].join(" ");
+  const amenitiesText = [...amenities, extraFeatures].filter(Boolean).join(", ");
+
+  return [
+    pickVariant(selected.intros, `${seed}-intro`),
+    pickVariant(selected.bodies, `${seed}-body`),
+    amenitiesText ? `Entre sus atributos más vendibles destacan ${amenitiesText}.` : null,
+    pickVariant(selected.closes, `${seed}-close`),
+  ].filter(Boolean).join(" ");
 }
 
 function buildSuggestedShortDescription({
@@ -377,6 +405,8 @@ function PropertyForm({
     draftSnapshot.bathrooms ?? property?.bathrooms,
     draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2,
   ];
+  const reviewAmenities = amenityOptions.filter((amenity) => Boolean(draftSnapshot[`amenity:${amenity}`]));
+  const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? "");
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
   const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
@@ -390,6 +420,8 @@ function PropertyForm({
     bathrooms: String(draftSnapshot.bathrooms ?? property?.bathrooms ?? ""),
     area: String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? ""),
     advisor: reviewAgent?.display_name ?? "",
+    amenities: reviewAmenities,
+    extraFeatures: reviewExtraFeatures,
   });
   const suggestedShortDescription = buildSuggestedShortDescription({
     type: reviewType,
@@ -491,18 +523,37 @@ function PropertyForm({
       ) : null}
 
       {currentStep === 2 ? (
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <label className="space-y-2 text-sm text-stone-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
-            <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{propertyTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
-          </label>
-          <Field label="Recámaras" name="bedrooms" defaultValue={property?.bedrooms} />
-          <Field label="Baños" name="bathrooms" defaultValue={property?.bathrooms} />
-          <Field label="Estacionamientos" name="parkingSpots" defaultValue={property?.parking_spots} />
-          <Field label="Terreno m²" name="lotAreaM2" defaultValue={property?.lot_area_m2} />
-          <Field label="Construcción m²" name="constructionAreaM2" defaultValue={property?.construction_area_m2} />
-          <Field label="Precio" name="priceAmount" defaultValue={property?.price_amount} />
-          <Field label="Moneda" name="currencyCode" defaultValue={property?.currency_code ?? "MXN"} />
+        <div className="space-y-5">
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
+              <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{propertyTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+            </label>
+            <Field label="Recámaras" name="bedrooms" defaultValue={property?.bedrooms} />
+            <Field label="Baños" name="bathrooms" defaultValue={property?.bathrooms} />
+            <Field label="Estacionamientos" name="parkingSpots" defaultValue={property?.parking_spots} />
+            <Field label="Terreno m²" name="lotAreaM2" defaultValue={property?.lot_area_m2} />
+            <Field label="Construcción m²" name="constructionAreaM2" defaultValue={property?.construction_area_m2} />
+            <Field label="Precio" name="priceAmount" defaultValue={property?.price_amount} />
+            <Field label="Moneda" name="currencyCode" defaultValue={property?.currency_code ?? "MXN"} />
+          </div>
+
+          <SectionCard>
+            <p className="text-sm font-semibold text-stone-900">Amenidades y atributos vendibles</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona rápido lo que mejor ayuda a vender o posicionar esta propiedad.</p>
+            <div className="mt-4 flex flex-wrap gap-3">
+              {amenityOptions.map((amenity) => (
+                <label key={amenity} className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
+                  <input type="checkbox" name={`amenity:${amenity}`} defaultChecked={Boolean(draftSnapshot[`amenity:${amenity}`])} className="size-4 rounded border-stone-300 bg-white" />
+                  {amenity}
+                </label>
+              ))}
+            </div>
+            <label className="mt-4 block space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Otras características</span>
+              <input name="extraFeatures" defaultValue={reviewExtraFeatures} placeholder="Ej. doble altura, pet friendly, vista panorámica" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+          </SectionCard>
         </div>
       ) : null}
 
@@ -733,6 +784,7 @@ function PropertyForm({
                 <p><span className="font-medium text-stone-900">Asesor asignado:</span> {reviewAgent?.display_name ?? "Pendiente"}</p>
                 <p><span className="font-medium text-stone-900">Estado / publicación:</span> {reviewStatus}</p>
                 <p><span className="font-medium text-stone-900">Fotos disponibles:</span> {photosCount ? `${photosCount} cargadas` : mode === "create" ? "Se habilitan después de guardar" : "Pendientes"}</p>
+                <p><span className="font-medium text-stone-900">Amenidades:</span> {[...reviewAmenities, reviewExtraFeatures].filter(Boolean).join(", ") || "Pendientes"}</p>
                 <p><span className="font-medium text-stone-900">Descripción:</span> {reviewDescription.trim() ? "Lista" : "Pendiente"}</p>
               </div>
             </SectionCard>
