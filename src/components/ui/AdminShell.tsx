@@ -10,13 +10,9 @@ import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 
 const navItems = [
-  { label: "Inicio", href: "/admin", comingSoon: false },
-  { label: "Propiedades", href: "/admin/properties", comingSoon: false },
-  { label: "Leads", href: "#", comingSoon: true },
-  { label: "Recorridos", href: "#", comingSoon: true },
-  { label: "Equipo", href: "/admin/team", comingSoon: false },
-  { label: "Sitio público", href: "#", comingSoon: true },
-  { label: "Configuración", href: "#", comingSoon: true },
+  { label: "Inicio", href: "/admin" },
+  { label: "Propiedades", href: "/admin/properties" },
+  { label: "Equipo", href: "/admin/team" },
 ];
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
@@ -51,23 +47,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               {user?.email ? `Sesión: ${user.email}` : "Inicia sesión para operar tu admin."}
             </p>
 
-            {null}
           </div>
 
           <nav className="mt-8 space-y-2">
             {navItems.map((item) => {
-              const isActive = item.href !== "#" && (pathname === item.href || pathname.startsWith(`${item.href}/`));
-              const classes = `flex items-center justify-between rounded-[1.4rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/40 bg-slate-900 text-white shadow-[0_16px_40px_rgba(15,23,42,0.16)]" : item.comingSoon ? "border-slate-200 bg-slate-50 text-slate-400" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
+              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              const classes = `flex items-center justify-between rounded-[1.4rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/30 bg-[#fff8ec] text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
 
-              return item.href === "#" ? (
-                <div key={item.label} className={classes}>
-                  <p className="text-sm font-medium">{item.label}</p>
-                  {item.comingSoon ? <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-slate-500">Próximamente</span> : null}
-                </div>
-              ) : (
+              return (
                 <Link key={item.label} href={item.href} className={classes}>
                   <p className="text-sm font-medium">{item.label}</p>
-                  {item.comingSoon ? <span className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] uppercase tracking-[0.18em] text-white/80">Próximamente</span> : null}
                 </Link>
               );
             })}

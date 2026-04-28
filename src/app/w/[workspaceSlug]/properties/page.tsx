@@ -42,6 +42,9 @@ export default async function WorkspacePropertiesPage({
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
             <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Propiedades publicadas de este workspace.</h1>
+            <p className="mt-5 text-base leading-8 text-slate-600">
+              Filtra por operación, ubicación, precio o recámaras y encuentra propiedades con una lectura clara, visual y consistente con la ficha principal.
+            </p>
           </div>
           <div>
             <PublicLuxuryFilters compact basePath={`/w/${workspaceSlug}/properties`} current={{
@@ -54,7 +57,7 @@ export default async function WorkspacePropertiesPage({
         </section>
 
         <section className="grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
-          {properties.map((property) => {
+          {properties.length ? properties.map((property) => {
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
               property.bathrooms ? `${property.bathrooms} baños` : null,
@@ -77,7 +80,9 @@ export default async function WorkspacePropertiesPage({
                 </div>
               </article>
             );
-          })}
+          }) : (
+            <div className="text-sm text-slate-600 md:col-span-2 xl:col-span-3">No encontramos propiedades con esos filtros. Prueba otra combinación.</div>
+          )}
         </section>
 
         <PublicLegalDisclaimer />

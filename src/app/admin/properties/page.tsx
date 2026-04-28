@@ -11,7 +11,7 @@ export default async function AdminPropertiesPage() {
       {access.kind === "no-session" ? (
         <AdminAccessClient />
       ) : access.kind === "ready" ? (
-        <AdminPropertiesIndex workspaceName={access.activeWorkspace.workspaceName} properties={access.properties} />
+        <AdminPropertiesIndex workspaceName={access.activeWorkspace.workspaceName} workspaceSlug={access.activeWorkspace.workspaceSlug} properties={access.properties} />
       ) : (
         <AdminAccessClient />
       )}

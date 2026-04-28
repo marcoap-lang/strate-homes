@@ -10,6 +10,7 @@ export function AdminAccessGate({
   activeWorkspace: {
     workspaceId: string;
     workspaceName: string | null | undefined;
+    workspaceSlug?: string | null | undefined;
   } | null;
   properties: PropertyRecord[];
   agents: AgentOption[];
@@ -18,5 +19,5 @@ export function AdminAccessGate({
     return <AdminAccessClient />;
   }
 
-  return <AdminPropertiesIndex workspaceName={activeWorkspace.workspaceName} properties={properties} />;
+  return <AdminPropertiesIndex workspaceName={activeWorkspace.workspaceName} workspaceSlug={activeWorkspace.workspaceSlug} properties={properties} />;
 }

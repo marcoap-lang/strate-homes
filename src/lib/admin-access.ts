@@ -11,6 +11,7 @@ export type AdminAccessState =
       activeWorkspace: {
         workspaceId: string;
         workspaceName: string | null | undefined;
+        workspaceSlug: string | null | undefined;
       };
       properties: PropertyRecord[];
       agents: AgentOption[];
@@ -182,6 +183,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     activeWorkspace: {
       workspaceId: activeWorkspace.workspaceId,
       workspaceName: activeWorkspace.workspaceName,
+      workspaceSlug: activeWorkspace.workspaceSlug,
     },
     properties: properties ?? [],
     agents: agents ?? [],

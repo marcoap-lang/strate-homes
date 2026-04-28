@@ -18,6 +18,7 @@ import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 
 type SharedProps = {
   workspaceName: string | null | undefined;
+  workspaceSlug?: string | null | undefined;
   properties: PropertyRecord[];
   agents: AgentOption[];
 };
@@ -561,7 +562,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   );
 }
 
-export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedProps, "workspaceName" | "properties">) {
+export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties }: Pick<SharedProps, "workspaceName" | "workspaceSlug" | "properties">) {
   return (
     <div className="space-y-6">
       <PropertiesHeader
@@ -598,7 +599,6 @@ export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedP
           properties.map((property) => {
             const coverage = getPhotoCoverage(property);
             const coverImage = property.property_images.find((image) => image.is_cover) ?? property.property_images[0] ?? null;
-            const publicWorkspaceSlug = workspaceName?.toLowerCase().replace(/[^a-z0-9]+/g, "-") ?? null;
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
               property.bathrooms ? `${property.bathrooms} baños` : null,
@@ -634,7 +634,7 @@ export function AdminPropertiesIndex({ workspaceName, properties }: Pick<SharedP
                     <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
                       Editar
                     </Link>
-                    <a href={publicWorkspaceSlug ? `/w/${publicWorkspaceSlug}/properties/${property.slug}` : `/properties/${property.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <a href={workspaceSlug ? `/w/${workspaceSlug}/properties/${property.slug}` : `/properties/${property.slug}`} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                       Ver pública
                     </a>
                   </div>

@@ -46,6 +46,11 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
             <p className="mt-7 max-w-xl text-lg leading-9 text-slate-600">
               Explora la selección pública del workspace y entra directamente a cada propiedad publicada.
             </p>
+            <div className="mt-9 flex flex-wrap gap-4">
+              <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                Ver propiedades
+              </Link>
+            </div>
           </div>
 
           <div className="relative">
@@ -53,6 +58,18 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
               {heroProperty?.coverImageUrl ? <Image src={heroProperty.coverImageUrl} alt={heroProperty.title} fill className="object-cover" unoptimized /> : null}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/22 via-slate-950/5 to-transparent" />
             </div>
+            {heroProperty ? (
+              <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between gap-4 rounded-[1.8rem] bg-white/90 px-5 py-4 backdrop-blur-sm">
+                <div>
+                  <p className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Propiedad destacada</p>
+                  <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{heroProperty.title}</h2>
+                  <p className="mt-2 text-sm text-slate-600">{heroProperty.locationLabel}</p>
+                </div>
+                <Link href={`/w/${workspaceSlug}/properties/${heroProperty.slug}`} className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                  Ver propiedad
+                </Link>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -62,22 +79,45 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-18">
-        <div className="grid gap-x-8 gap-y-12 lg:grid-cols-3">
-          {properties.slice(0, 6).map((property) => (
-            <article key={property.id} className="group space-y-5">
-              <div className="relative h-80 overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 to-white shadow-[0_20px_60px_rgba(15,23,42,0.06)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
-                {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
-              </div>
-              <div>
-                <h3 className="text-2xl font-semibold text-slate-950">{property.title}</h3>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                <p className="mt-4 text-base font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
-                <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                  Ver propiedad
-                </Link>
-              </div>
-            </article>
-          ))}
+        <div className="flex items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades destacadas</p>
+            <h2 className="mt-3 text-4xl font-semibold tracking-tight text-slate-950 sm:text-5xl">Opciones bien ubicadas, con presencia y valor residencial.</h2>
+          </div>
+          <Link href={`/w/${workspaceSlug}/properties`} className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-900 transition hover:bg-slate-50 md:inline-flex">
+            Ver más propiedades
+          </Link>
+        </div>
+
+        <div className="mt-12 grid gap-x-8 gap-y-14 md:grid-cols-2 xl:grid-cols-3">
+          {properties.slice(0, 6).map((property) => {
+            const specsInline = [
+              property.bedrooms ? `${property.bedrooms} recámaras` : null,
+              property.bathrooms ? `${property.bathrooms} baños` : null,
+              property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : null,
+            ].filter(Boolean).join(" · ");
+
+            return (
+              <article key={property.id} className="group space-y-5">
+                <div className="relative h-[24rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_20px_60px_rgba(15,23,42,0.06)] transition duration-300 group-hover:-translate-y-1 group-hover:shadow-[0_24px_70px_rgba(15,23,42,0.10)]">
+                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
+                </div>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-slate-500">
+                    <span>{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible"}</span>
+                    <span>{property.publicCode ?? "Disponible"}</span>
+                  </div>
+                  <h3 className="text-2xl font-semibold text-slate-950">{property.title}</h3>
+                  <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
+                  <p className="text-lg font-medium text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
+                  {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
+                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                    Ver propiedad
+                  </Link>
+                </div>
+              </article>
+            );
+          })}
         </div>
       </section>
 
