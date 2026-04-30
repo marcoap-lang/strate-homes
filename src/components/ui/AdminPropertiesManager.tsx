@@ -2,8 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
-import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
   createPropertyAction,
@@ -40,7 +40,6 @@ const initialState: PropertyFormState = { success: false, message: "" };
 const initialPropertyLeadCreateState: PropertyLeadCreateState = { success: false, message: "" };
 
 const propertyTypes = ["house", "apartment", "land", "office", "commercial", "warehouse", "building", "development", "mixed_use"];
-const operationTypes = ["sale", "rent", "both"];
 const statuses = ["draft", "active", "pending", "sold", "rented", "archived"];
 const suggestedPhotoShots = ["Fachada", "Sala", "Cocina", "Recámara principal", "Baño principal"];
 const wizardSteps = ["Base", "Ubicación", "Características", "Fotos", "Descripción", "Publicación", "Revisión"] as const;
@@ -388,6 +387,7 @@ function PropertyForm({
   ownAgentId?: string | null;
 }) {
   const action = mode === "create" ? createPropertyAction : updatePropertyAction;
+  const router = useRouter();
   const [state, formAction, pending] = useActionState(action, initialState);
   const canManageAssignments = activeRole === "owner" || activeRole === "admin";
   const visibleAgents = canManageAssignments
@@ -396,10 +396,24 @@ function PropertyForm({
   const storageKey = useMemo(() => `property-wizard:${mode}:${property?.id ?? "new"}`, [mode, property?.id]);
   const [currentStep, setCurrentStep] = useState(0);
   const [draftSnapshot, setDraftSnapshot] = useState<Record<string, string | boolean>>({});
+  const draftPropertyId = typeof draftSnapshot.__createdPropertyId === "string" ? draftSnapshot.__createdPropertyId : "";
   const [descriptionToneState, setDescriptionToneState] = useState("premium");
   const [descriptionValue, setDescriptionValue] = useState("");
   const [shortDescriptionValue, setShortDescriptionValue] = useState("");
   const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
+  const currentStepFieldNames = useMemo(() => {
+    const fieldsByStep = [
+      ["operationType", "title", "slug", "publicCode", "agentId"],
+      ["locationLabel", "city", "state", "countryCode", "neighborhood", "addressLine"],
+      ["propertyType", "bedrooms", "bathrooms", "parkingSpots", "lotAreaM2", "constructionAreaM2", "priceAmount", "currencyCode", "extraFeatures", ...amenityOptions.map((amenity) => `amenity:${amenity}`)],
+      [],
+      ["descriptionTone", "description", "shortDescription"],
+      ["operationType", "status", "isFeatured"],
+      [],
+    ];
+
+    return new Set(fieldsByStep[currentStep] ?? []);
+  }, [currentStep]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -411,8 +425,10 @@ function PropertyForm({
 
     try {
       const parsed = JSON.parse(saved) as Record<string, string | boolean>;
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates the saved client draft after reading localStorage.
       setDraftSnapshot(parsed);
       setDescriptionToneState(String(parsed.descriptionTone ?? "premium"));
+      if (typeof parsed.__currentStep === "string") setCurrentStep(Math.min(wizardSteps.length - 1, Math.max(0, Number(parsed.__currentStep) || 0)));
       Object.entries(parsed).forEach(([name, value]) => {
         const field = form.elements.namedItem(name);
         if (!field) return;
@@ -430,24 +446,44 @@ function PropertyForm({
 
   useEffect(() => {
     if (!state.success || typeof window === "undefined") return;
+
+    if (mode === "create" && state.propertyId) {
+      const nextStorageKey = `property-wizard:edit:${state.propertyId}`;
+      const migratedDraft = {
+        ...draftSnapshot,
+        __createdPropertyId: state.propertyId,
+        __currentStep: String(currentStep),
+      };
+      window.localStorage.setItem(nextStorageKey, JSON.stringify(migratedDraft));
+      window.localStorage.removeItem(storageKey);
+      router.push(`/admin/properties/${state.propertyId}`);
+      return;
+    }
+
     window.localStorage.removeItem(storageKey);
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Clears persisted client draft after successful server action.
     setDraftSnapshot({});
-  }, [state.success, storageKey]);
+  }, [currentStep, draftSnapshot, mode, router, state.propertyId, state.success, storageKey]);
 
   function buildDraftSnapshot(form: HTMLFormElement) {
     const data = new FormData(form);
-    const next: Record<string, string | boolean> = {};
+    const next: Record<string, string | boolean> = {
+      ...draftSnapshot,
+      __currentStep: String(currentStep),
+    };
     for (const [key, value] of data.entries()) {
+      if (key.startsWith("__")) continue;
       next[key] = value.toString();
     }
     const featured = form.querySelector('input[name="isFeatured"]') as HTMLInputElement | null;
     if (featured) next.isFeatured = featured.checked;
+    if (mode === "create" && state.propertyId) next.__createdPropertyId = state.propertyId;
     return next;
   }
 
-  function persistDraft(form: HTMLFormElement) {
+  function persistDraft(form: HTMLFormElement, step = currentStep) {
     if (typeof window === "undefined") return;
-    const next = buildDraftSnapshot(form);
+    const next = { ...buildDraftSnapshot(form), __currentStep: String(step) };
     window.localStorage.setItem(storageKey, JSON.stringify(next));
     setDraftSnapshot(next);
   }
@@ -458,7 +494,6 @@ function PropertyForm({
   const reviewCurrency = String(draftSnapshot.currencyCode ?? property?.currency_code ?? "MXN");
   const reviewLocation = [draftSnapshot.locationLabel ?? property?.location_label, draftSnapshot.city ?? property?.city, draftSnapshot.state ?? property?.state].filter(Boolean).join(" · ");
   const reviewType = String(draftSnapshot.propertyType ?? property?.property_type ?? "house");
-  const reviewTone = String(draftSnapshot.descriptionTone ?? "premium");
   const reviewSpecs = [
     draftSnapshot.bedrooms ?? property?.bedrooms,
     draftSnapshot.bathrooms ?? property?.bathrooms,
@@ -491,6 +526,7 @@ function PropertyForm({
   });
   useEffect(() => {
     if (!descriptionEditedManually) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncs generated copy while the user has not manually edited it.
       setDescriptionValue(String(draftSnapshot.description ?? property?.description ?? suggestedDescription));
       setShortDescriptionValue(String(draftSnapshot.shortDescription ?? suggestedShortDescription));
     }
@@ -548,13 +584,18 @@ function PropertyForm({
       </div>
 
       {mode === "edit" ? <input type="hidden" name="propertyId" defaultValue={property?.id} /> : null}
+      {mode === "create" && draftPropertyId ? <input type="hidden" name="draftPropertyId" value={draftPropertyId} /> : null}
 
       <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
         {wizardSteps.map((step, index) => (
           <button
             key={step}
             type="button"
-            onClick={() => setCurrentStep(index)}
+            onClick={(event) => {
+              const form = event.currentTarget.form;
+              if (form) persistDraft(form, index);
+              setCurrentStep(index);
+            }}
             className={`rounded-2xl border px-4 py-3 text-left transition ${index === currentStep ? "border-[#d7ab5b]/40 bg-[#fff8ec] text-stone-950" : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-white"}`}
           >
             <p className="text-[11px] uppercase tracking-[0.18em]">Paso {index + 1}</p>
@@ -899,27 +940,33 @@ function PropertyForm({
         </div>
       ) : null}
 
+      {Object.entries(draftSnapshot)
+        .filter(([name]) => !name.startsWith("__") && !currentStepFieldNames.has(name))
+        .map(([name, value]) => (
+          <input key={`draft-${name}`} type="hidden" name={name} value={String(value)} />
+        ))}
+
       {state.message ? (
-        <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
+        <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success || state.localOnly ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
           {state.message}
         </p>
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-3">
-          <button type="button" onClick={() => setCurrentStep((value) => Math.max(0, value - 1))} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
+          <button type="button" onClick={(event) => { const nextStep = Math.max(0, currentStep - 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
             Anterior
           </button>
-          <button type="button" onClick={() => setCurrentStep((value) => Math.min(wizardSteps.length - 1, value + 1))} disabled={currentStep === wizardSteps.length - 1} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
+          <button type="button" onClick={(event) => { const nextStep = Math.min(wizardSteps.length - 1, currentStep + 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === wizardSteps.length - 1} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
             Siguiente
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button type="submit" name="intent" value="draft" disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button type="submit" name="intent" value="draft" formNoValidate disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
           {currentStep === 5 ? (
-            <button type="submit" name="intent" value="publish" disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+            <button type="submit" name="intent" value="publish" formNoValidate disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
               Publicar propiedad
             </button>
           ) : null}
