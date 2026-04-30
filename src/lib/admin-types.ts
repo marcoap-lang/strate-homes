@@ -37,6 +37,9 @@ export type PropertyRecord = {
   currency_code: string;
   public_code: string | null;
   description?: string | null;
+  short_description?: string | null;
+  amenities?: string[] | null;
+  extra_features?: string | null;
   address_line?: string | null;
   neighborhood?: string | null;
   country_code?: string;

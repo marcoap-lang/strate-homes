@@ -179,6 +179,29 @@ function getPropertySlug(formData: FormData, title: string, fallback: string) {
   return slugify(formData.get("slug")?.toString() || title || fallback);
 }
 
+function formDataHasAny(formData: FormData, names: string[]) {
+  return names.some((name) => formData.has(name));
+}
+
+function getSelectedAmenities(formData: FormData) {
+  return Array.from(formData.entries())
+    .filter(([name, value]) => name.startsWith("amenity:") && ["on", "true", "1"].includes(value.toString()))
+    .map(([name]) => name.replace(/^amenity:/, ""))
+    .filter(Boolean);
+}
+
+function assignIfPresent<T extends Record<string, unknown>>(
+  payload: T,
+  formData: FormData,
+  key: keyof T,
+  fieldName: string,
+  normalize: (value: FormDataEntryValue | null) => unknown = normalizeNullable,
+) {
+  if (formData.has(fieldName)) {
+    payload[key] = normalize(formData.get(fieldName)) as T[keyof T];
+  }
+}
+
 function getSafePropertyStatus({
   requestedStatus,
   intent,
@@ -857,6 +880,9 @@ export async function createPropertyAction(
       slug,
       public_code: normalizeNullable(formData.get("publicCode")),
       description: normalizeNullable(formData.get("description")),
+      short_description: normalizeNullable(formData.get("shortDescription")),
+      amenities: getSelectedAmenities(formData),
+      extra_features: normalizeNullable(formData.get("extraFeatures")),
       property_type: formData.get("propertyType")?.toString() ?? "house",
       status,
       operation_type: formData.get("operationType")?.toString() ?? "sale",
@@ -950,7 +976,7 @@ export async function updatePropertyAction(
       return { success: false, message: "No se pudo guardar, tu información sigue aquí. El slug debe tener al menos 3 caracteres." };
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       workspace_id: activeWorkspace.workspaceId,
       agent_id: getAllowedAgentId({
         requestedAgentId: normalizeNullable(formData.get("agentId")),
@@ -960,7 +986,6 @@ export async function updatePropertyAction(
       title,
       slug,
       public_code: normalizeNullable(formData.get("publicCode")),
-      description: normalizeNullable(formData.get("description")),
       property_type: formData.get("propertyType")?.toString() ?? "house",
       status,
       operation_type: formData.get("operationType")?.toString() ?? "sale",
@@ -980,6 +1005,13 @@ export async function updatePropertyAction(
       construction_area_m2: normalizeNumber(formData.get("constructionAreaM2")),
       published_at: status === "active" ? new Date().toISOString() : null,
     };
+
+    assignIfPresent(payload, formData, "description", "description");
+    assignIfPresent(payload, formData, "short_description", "shortDescription");
+    assignIfPresent(payload, formData, "extra_features", "extraFeatures");
+    if (formDataHasAny(formData, Array.from(formData.keys()).filter((key) => key.startsWith("amenity:")))) {
+      payload.amenities = getSelectedAmenities(formData);
+    }
 
     const { error } = await supabase
       .from("properties")

@@ -565,8 +565,21 @@ function PropertyForm({
     draftSnapshot.bathrooms ?? property?.bathrooms,
     draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2,
   ];
-  const reviewAmenities = amenityOptions.filter((amenity) => draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on");
-  const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? "");
+  function hasDraftField(name: string) {
+    return Object.prototype.hasOwnProperty.call(draftSnapshot, name);
+  }
+
+  function isAmenitySelected(amenity: string) {
+    const draftName = `amenity:${amenity}`;
+    if (hasDraftField(draftName)) {
+      return draftSnapshot[draftName] === true || draftSnapshot[draftName] === "on";
+    }
+
+    return property?.amenities?.includes(amenity) ?? false;
+  }
+
+  const reviewAmenities = amenityOptions.filter((amenity) => isAmenitySelected(amenity));
+  const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? property?.extra_features ?? "");
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
   const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
@@ -594,9 +607,9 @@ function PropertyForm({
     if (!descriptionEditedManually) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Syncs generated copy while the user has not manually edited it.
       setDescriptionValue(String(draftSnapshot.description ?? property?.description ?? suggestedDescription));
-      setShortDescriptionValue(String(draftSnapshot.shortDescription ?? suggestedShortDescription));
+      setShortDescriptionValue(String(draftSnapshot.shortDescription ?? property?.short_description ?? suggestedShortDescription));
     }
-  }, [draftSnapshot.description, draftSnapshot.shortDescription, property?.description, suggestedDescription, suggestedShortDescription, descriptionEditedManually]);
+  }, [draftSnapshot.description, draftSnapshot.shortDescription, property?.description, property?.short_description, suggestedDescription, suggestedShortDescription, descriptionEditedManually]);
 
   const reviewDescription = descriptionValue || String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
   const photosCount = property?.property_images.length ?? 0;
@@ -755,7 +768,7 @@ function PropertyForm({
                     type="checkbox"
                     name={`amenity:${amenity}`}
                     value="on"
-                    checked={draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on"}
+                    checked={isAmenitySelected(amenity)}
                     onChange={(event) => {
                       const form = event.currentTarget.form;
                       if (form) persistDraft(form);
