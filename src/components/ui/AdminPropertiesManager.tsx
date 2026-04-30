@@ -108,6 +108,10 @@ function formatImagePublicUrl(path: string) {
   return data.publicUrl;
 }
 
+function isDraftFieldPersistedOnly(name: string) {
+  return name === "extraFeatures" || name === "shortDescription" || name.startsWith("amenity:");
+}
+
 function getReadableGalleryError(error: unknown) {
   const message = error instanceof Error ? error.message : "No pudimos guardar el orden de la galería.";
   const normalized = message.toLowerCase();
@@ -479,6 +483,12 @@ function PropertyForm({
     };
   }, []);
 
+  function getPersistedOnlyDraftFields(snapshot: Record<string, string | boolean>) {
+    return Object.fromEntries(
+      Object.entries(snapshot).filter(([name]) => name.startsWith("__") || isDraftFieldPersistedOnly(name)),
+    ) as Record<string, string | boolean>;
+  }
+
   useEffect(() => {
     if (!state.success || typeof window === "undefined") return;
 
@@ -495,9 +505,27 @@ function PropertyForm({
       return;
     }
 
-    window.localStorage.removeItem(storageKey);
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Clears persisted client draft after successful server action.
-    setDraftSnapshot({});
+    let latestDraft = draftSnapshot;
+    const savedDraft = window.localStorage.getItem(storageKey);
+    if (savedDraft) {
+      try {
+        latestDraft = JSON.parse(savedDraft) as Record<string, string | boolean>;
+      } catch {}
+    }
+
+    const persistedOnlyDraft = getPersistedOnlyDraftFields({
+      ...latestDraft,
+      __currentStep: String(currentStep),
+    });
+
+    if (Object.keys(persistedOnlyDraft).length > 1) {
+      window.localStorage.setItem(storageKey, JSON.stringify(persistedOnlyDraft));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- Keeps draft-only fields that are not persisted by the server schema yet.
+      setDraftSnapshot(persistedOnlyDraft);
+    } else {
+      window.localStorage.removeItem(storageKey);
+      setDraftSnapshot({});
+    }
   }, [currentStep, draftSnapshot, mode, router, state.propertyId, state.success, storageKey]);
 
   function buildDraftSnapshot(form: HTMLFormElement) {
@@ -723,7 +751,17 @@ function PropertyForm({
             <div className="mt-4 flex flex-wrap gap-3">
               {amenityOptions.map((amenity) => (
                 <label key={amenity} className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
-                  <input type="checkbox" name={`amenity:${amenity}`} defaultChecked={draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on"} className="size-4 rounded border-stone-300 bg-white" />
+                  <input
+                    type="checkbox"
+                    name={`amenity:${amenity}`}
+                    value="on"
+                    checked={draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on"}
+                    onChange={(event) => {
+                      const form = event.currentTarget.form;
+                      if (form) persistDraft(form);
+                    }}
+                    className="size-4 rounded border-stone-300 bg-white"
+                  />
                   {amenity}
                 </label>
               ))}
