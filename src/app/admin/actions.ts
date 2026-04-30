@@ -788,6 +788,7 @@ export async function createPropertyAction(
   _prevState: PropertyFormState = INITIAL_STATE,
   formData: FormData,
 ): Promise<PropertyFormState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace, user, agentRecord } = await getWorkspaceContext();
     const existingDraftPropertyId = normalizeNullable(formData.get("draftPropertyId"));
@@ -902,6 +903,7 @@ export async function updatePropertyAction(
   _prevState: PropertyFormState = INITIAL_STATE,
   formData: FormData,
 ): Promise<PropertyFormState> {
+  void _prevState;
   try {
     const propertyId = formData.get("propertyId")?.toString();
     const intent = formData.get("intent")?.toString() ?? "draft";
@@ -1092,6 +1094,7 @@ export async function updatePropertyImagesAction(formData: FormData) {
   const normalizedImages = images
     .filter((image) => image.storage_path?.trim())
     .map((image, index) => ({
+      id: image.id,
       workspace_id: activeWorkspace.workspaceId,
       property_id: propertyId,
       storage_bucket: "property-images",
@@ -1111,17 +1114,48 @@ export async function updatePropertyImagesAction(formData: FormData) {
     is_cover: coverIndex === -1 ? index === 0 : index === coverIndex,
   }));
 
-  const { error: deleteError } = await supabase
-    .from("property_images")
-    .delete()
-    .eq("property_id", propertyId)
-    .eq("workspace_id", activeWorkspace.workspaceId);
+  const existingImages = finalImages.filter((image) => image.id);
+  const newImages = finalImages.filter((image) => !image.id).map((image) => ({
+    workspace_id: image.workspace_id,
+    property_id: image.property_id,
+    storage_bucket: image.storage_bucket,
+    storage_path: image.storage_path,
+    alt_text: image.alt_text,
+    sort_order: image.sort_order,
+    is_cover: image.is_cover,
+  }));
 
-  if (deleteError) throw deleteError;
+  for (const image of existingImages) {
+    const { error: updateError } = await supabase
+      .from("property_images")
+      .update({
+        alt_text: image.alt_text,
+        sort_order: image.sort_order,
+        is_cover: image.is_cover,
+      })
+      .eq("id", image.id as string)
+      .eq("property_id", propertyId)
+      .eq("workspace_id", activeWorkspace.workspaceId);
 
-  const { error: insertError } = await supabase.from("property_images").insert(finalImages);
+    if (updateError) throw updateError;
+  }
 
-  if (insertError) throw insertError;
+  if (newImages.length) {
+    const { error: insertError } = await supabase.from("property_images").upsert(newImages, { onConflict: "storage_bucket,storage_path" });
+    if (insertError) throw insertError;
+  }
+
+  const submittedIds = images.map((image) => image.id).filter(Boolean);
+  if (submittedIds.length) {
+    const { error: deleteError } = await supabase
+      .from("property_images")
+      .delete()
+      .eq("property_id", propertyId)
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .not("id", "in", `(${submittedIds.join(",")})`);
+
+    if (deleteError) throw deleteError;
+  }
 
   revalidatePath("/admin");
   revalidatePath("/admin/properties");

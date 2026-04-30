@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useActionState, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import {
   createPropertyAction,
@@ -106,6 +106,21 @@ function formatImagePublicUrl(path: string) {
   const supabase = createSupabaseBrowserClient();
   const { data } = supabase.storage.from("property-images").getPublicUrl(path);
   return data.publicUrl;
+}
+
+function getReadableGalleryError(error: unknown) {
+  const message = error instanceof Error ? error.message : "No pudimos guardar el orden de la galería.";
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("row-level security") || normalized.includes("permission")) {
+    return "No tienes permiso para guardar esta galería en el workspace activo. La selección visible se conserva.";
+  }
+
+  if (normalized.includes("duplicate") || normalized.includes("unique")) {
+    return "Ya existe una foto con esa ruta. La galería visible se conserva; intenta guardar de nuevo o recarga la propiedad.";
+  }
+
+  return "No pudimos guardar el orden de la galería. La selección visible se conserva para intentar de nuevo.";
 }
 
 function getPropertyTypeLabel(value?: string | null) {
@@ -388,7 +403,10 @@ function PropertyForm({
 }) {
   const action = mode === "create" ? createPropertyAction : updatePropertyAction;
   const router = useRouter();
-  const [state, formAction, pending] = useActionState(action, initialState);
+  const [state, formAction] = useActionState(action, initialState);
+  const [isFormSaving, setIsFormSaving] = useState(false);
+  const [formTimeoutMessage, setFormTimeoutMessage] = useState<string | null>(null);
+  const formSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const canManageAssignments = activeRole === "owner" || activeRole === "admin";
   const visibleAgents = canManageAssignments
     ? agents
@@ -434,7 +452,7 @@ function PropertyForm({
         if (!field) return;
         if (field instanceof RadioNodeList) return;
         if (field instanceof HTMLInputElement && field.type === "checkbox") {
-          field.checked = Boolean(value);
+          field.checked = value === true || value === "on";
           return;
         }
         if (field instanceof HTMLInputElement || field instanceof HTMLTextAreaElement || field instanceof HTMLSelectElement) {
@@ -443,6 +461,23 @@ function PropertyForm({
       });
     } catch {}
   }, [storageKey]);
+
+  useEffect(() => {
+    if (!state.message && !state.success) return;
+    if (formSaveTimeoutRef.current) {
+      clearTimeout(formSaveTimeoutRef.current);
+      formSaveTimeoutRef.current = null;
+    }
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Server action returned; unlocks the submit button after success or visible error.
+    setIsFormSaving(false);
+    setFormTimeoutMessage(null);
+  }, [state.message, state.success]);
+
+  useEffect(() => {
+    return () => {
+      if (formSaveTimeoutRef.current) clearTimeout(formSaveTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     if (!state.success || typeof window === "undefined") return;
@@ -471,6 +506,9 @@ function PropertyForm({
       ...draftSnapshot,
       __currentStep: String(currentStep),
     };
+    form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((field) => {
+      if (field.name) next[field.name] = field.checked;
+    });
     for (const [key, value] of data.entries()) {
       if (key.startsWith("__")) continue;
       next[key] = value.toString();
@@ -499,7 +537,7 @@ function PropertyForm({
     draftSnapshot.bathrooms ?? property?.bathrooms,
     draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2,
   ];
-  const reviewAmenities = amenityOptions.filter((amenity) => Boolean(draftSnapshot[`amenity:${amenity}`]));
+  const reviewAmenities = amenityOptions.filter((amenity) => draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on");
   const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? "");
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
@@ -562,6 +600,13 @@ function PropertyForm({
       onSubmit={(event) => {
         const next = buildDraftSnapshot(event.currentTarget);
         setDraftSnapshot(next);
+        setIsFormSaving(true);
+        setFormTimeoutMessage(null);
+        if (formSaveTimeoutRef.current) clearTimeout(formSaveTimeoutRef.current);
+        formSaveTimeoutRef.current = setTimeout(() => {
+          setIsFormSaving(false);
+          setFormTimeoutMessage("No se pudo confirmar el guardado. Tu información sigue aquí; revisa conexión e intenta de nuevo.");
+        }, 30000);
         if (typeof window !== "undefined") {
           window.localStorage.setItem(storageKey, JSON.stringify(next));
         }
@@ -678,7 +723,7 @@ function PropertyForm({
             <div className="mt-4 flex flex-wrap gap-3">
               {amenityOptions.map((amenity) => (
                 <label key={amenity} className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
-                  <input type="checkbox" name={`amenity:${amenity}`} defaultChecked={Boolean(draftSnapshot[`amenity:${amenity}`])} className="size-4 rounded border-stone-300 bg-white" />
+                  <input type="checkbox" name={`amenity:${amenity}`} defaultChecked={draftSnapshot[`amenity:${amenity}`] === true || draftSnapshot[`amenity:${amenity}`] === "on"} className="size-4 rounded border-stone-300 bg-white" />
                   {amenity}
                 </label>
               ))}
@@ -951,6 +996,11 @@ function PropertyForm({
           {state.message}
         </p>
       ) : null}
+      {formTimeoutMessage ? (
+        <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+          {formTimeoutMessage}
+        </p>
+      ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap gap-3">
@@ -962,11 +1012,11 @@ function PropertyForm({
           </button>
         </div>
         <div className="flex flex-wrap gap-3">
-          <button type="submit" name="intent" value="draft" formNoValidate disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {pending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
+          <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+            {isFormSaving ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
           {currentStep === 5 ? (
-            <button type="submit" name="intent" value="publish" formNoValidate disabled={pending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+            <button type="submit" name="intent" value="publish" formNoValidate disabled={isFormSaving} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
               Publicar propiedad
             </button>
           ) : null}
@@ -1055,8 +1105,9 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         previewUrl: formatImagePublicUrl(image.storage_path),
       })),
   );
-  const [isUploading, startUploadTransition] = useTransition();
-  const [isSavingGallery, startSaveTransition] = useTransition();
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSavingGallery, setIsSavingGallery] = useState(false);
+  const [isRemovingImage, setIsRemovingImage] = useState(false);
   const [clientMessage, setClientMessage] = useState<string | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
   const coverage = useMemo(() => getPhotoCoverageFromDraft(gallery), [gallery]);
@@ -1089,28 +1140,30 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
     updateGallery(nextGallery);
   }
 
-  function removeFromGallery(index: number) {
+  async function removeFromGallery(index: number) {
     const image = gallery[index];
+    if (!image || isRemovingImage) return;
 
-    startSaveTransition(async () => {
-      try {
-        if (image.id) {
-          const formData = new FormData();
-          formData.set("imageId", image.id);
-          formData.set("storagePath", image.storage_path);
-          await deletePropertyImageAction(formData);
-        } else {
-          await supabase.storage.from("property-images").remove([image.storage_path]);
-        }
-
-        updateGallery(gallery.filter((_, currentIndex) => currentIndex !== index));
-        setClientMessage("Foto eliminada.");
-        setClientError(null);
-      } catch {
-        setClientError("No pudimos eliminar la foto. Intenta de nuevo.");
-        setClientMessage(null);
+    setIsRemovingImage(true);
+    try {
+      if (image.id) {
+        const formData = new FormData();
+        formData.set("imageId", image.id);
+        formData.set("storagePath", image.storage_path);
+        await deletePropertyImageAction(formData);
+      } else {
+        await supabase.storage.from("property-images").remove([image.storage_path]);
       }
-    });
+
+      updateGallery(gallery.filter((_, currentIndex) => currentIndex !== index));
+      setClientMessage("Foto eliminada.");
+      setClientError(null);
+    } catch {
+      setClientError("No pudimos eliminar la foto. La galería visible se conserva para que puedas intentar de nuevo.");
+      setClientMessage(null);
+    } finally {
+      setIsRemovingImage(false);
+    }
   }
 
   async function handleFileSelection(event: React.ChangeEvent<HTMLInputElement>) {
@@ -1130,10 +1183,10 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
       return;
     }
 
-    startUploadTransition(async () => {
-      const uploaded: GalleryImageDraft[] = [];
+    const uploaded: GalleryImageDraft[] = [];
+    setIsUploading(true);
 
-      try {
+    try {
         for (const originalFile of files) {
           if (!originalFile.type.startsWith("image/")) {
             throw new Error(`El archivo ${originalFile.name} no es una imagen válida.`);
@@ -1188,23 +1241,25 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         } else {
           setClientError(message);
         }
-      } finally {
-        if (fileInputRef.current) fileInputRef.current.value = "";
-      }
-    });
+    } finally {
+      setIsUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   }
 
   function handleAltTextChange(index: number, value: string) {
     updateGallery(gallery.map((image, currentIndex) => (currentIndex === index ? { ...image, alt_text: value } : image)));
   }
 
-  function saveGallery() {
+  async function saveGallery() {
+    if (isSavingGallery) return;
+
     setClientError(null);
     setClientMessage(null);
+    setIsSavingGallery(true);
 
-    startSaveTransition(async () => {
-      try {
-        const formData = new FormData();
+    try {
+      const formData = new FormData();
         formData.set("propertyId", property.id);
         formData.set(
           "images",
@@ -1219,12 +1274,13 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
           ),
         );
 
-        await updatePropertyImagesAction(formData);
-        setClientMessage("Galería guardada correctamente.");
-      } catch {
-        setClientError("No pudimos guardar el orden de la galería. Intenta de nuevo.");
-      }
-    });
+      await updatePropertyImagesAction(formData);
+      setClientMessage("Galería guardada correctamente.");
+    } catch (error) {
+      setClientError(getReadableGalleryError(error));
+    } finally {
+      setIsSavingGallery(false);
+    }
   }
 
   return (
@@ -1277,7 +1333,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             <p className="text-sm font-semibold text-stone-900">Agregar fotos</p>
             <p className="mt-2 text-sm text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
           </div>
-          <label className="inline-flex cursor-pointer items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
+          <label className={`inline-flex items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] ${isUploading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
             {isUploading ? "Subiendo..." : "Seleccionar fotos"}
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelection} />
           </label>
@@ -1319,7 +1375,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
                   <button type="button" onClick={() => handleSelectCover(index)} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50">
                     {image.is_cover ? "Portada activa" : "Usar como portada"}
                   </button>
-                  <button type="button" onClick={() => removeFromGallery(index)} className="rounded-full border border-rose-200 px-3 py-2 text-xs text-rose-700 transition hover:bg-rose-50">
+                  <button type="button" onClick={() => removeFromGallery(index)} disabled={isRemovingImage} className="rounded-full border border-rose-200 px-3 py-2 text-xs text-rose-700 transition hover:bg-rose-50 disabled:opacity-60">
                     Eliminar
                   </button>
                 </div>
@@ -1335,7 +1391,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
       {gallery.length ? (
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={saveGallery} disabled={isSavingGallery} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button type="button" onClick={saveGallery} disabled={isSavingGallery || isUploading || isRemovingImage} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {isSavingGallery ? "Guardando galería..." : "Guardar orden y portada"}
           </button>
         </div>
