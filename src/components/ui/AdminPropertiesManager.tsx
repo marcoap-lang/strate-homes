@@ -407,7 +407,7 @@ function PropertyForm({
 }) {
   const action = mode === "create" ? createPropertyAction : updatePropertyAction;
   const router = useRouter();
-  const [state, formAction] = useActionState(action, initialState);
+  const [state, formAction, isFormPending] = useActionState(action, initialState);
   const [isFormSaving, setIsFormSaving] = useState(false);
   const [formTimeoutMessage, setFormTimeoutMessage] = useState<string | null>(null);
   const formSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -419,10 +419,12 @@ function PropertyForm({
   const [currentStep, setCurrentStep] = useState(0);
   const [draftSnapshot, setDraftSnapshot] = useState<Record<string, string | boolean>>({});
   const draftPropertyId = typeof draftSnapshot.__createdPropertyId === "string" ? draftSnapshot.__createdPropertyId : "";
+  const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => property?.amenities ?? []);
   const [descriptionToneState, setDescriptionToneState] = useState("premium");
   const [descriptionValue, setDescriptionValue] = useState("");
   const [shortDescriptionValue, setShortDescriptionValue] = useState("");
   const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
+  const [publicationStatus, setPublicationStatus] = useState(property?.status ?? "draft");
   const currentStepFieldNames = useMemo(() => {
     const fieldsByStep = [
       ["operationType", "title", "slug", "publicCode", "agentId"],
@@ -450,6 +452,9 @@ function PropertyForm({
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates the saved client draft after reading localStorage.
       setDraftSnapshot(parsed);
       setDescriptionToneState(String(parsed.descriptionTone ?? "premium"));
+      setPublicationStatus(String(parsed.status ?? property?.status ?? "draft"));
+      const hasAmenityDraft = amenityOptions.some((amenity) => Object.prototype.hasOwnProperty.call(parsed, `amenity:${amenity}`));
+      setSelectedAmenities(hasAmenityDraft ? amenityOptions.filter((amenity) => parsed[`amenity:${amenity}`] === true || parsed[`amenity:${amenity}`] === "on") : property?.amenities ?? []);
       if (typeof parsed.__currentStep === "string") setCurrentStep(Math.min(wizardSteps.length - 1, Math.max(0, Number(parsed.__currentStep) || 0)));
       Object.entries(parsed).forEach(([name, value]) => {
         const field = form.elements.namedItem(name);
@@ -464,18 +469,18 @@ function PropertyForm({
         }
       });
     } catch {}
-  }, [storageKey]);
+  }, [property?.amenities, property?.status, storageKey]);
 
   useEffect(() => {
-    if (!state.message && !state.success) return;
+    if (isFormPending || !isFormSaving) return;
     if (formSaveTimeoutRef.current) {
       clearTimeout(formSaveTimeoutRef.current);
       formSaveTimeoutRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- Server action returned; unlocks the submit button after success or visible error.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- Server action finished; unlocks the submit button even if the same validation message repeats.
     setIsFormSaving(false);
     setFormTimeoutMessage(null);
-  }, [state.message, state.success]);
+  }, [isFormPending, isFormSaving]);
 
   useEffect(() => {
     return () => {
@@ -565,20 +570,28 @@ function PropertyForm({
     draftSnapshot.bathrooms ?? property?.bathrooms,
     draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2,
   ];
-  function hasDraftField(name: string) {
-    return Object.prototype.hasOwnProperty.call(draftSnapshot, name);
-  }
-
   function isAmenitySelected(amenity: string) {
-    const draftName = `amenity:${amenity}`;
-    if (hasDraftField(draftName)) {
-      return draftSnapshot[draftName] === true || draftSnapshot[draftName] === "on";
-    }
-
-    return property?.amenities?.includes(amenity) ?? false;
+    return selectedAmenities.includes(amenity);
   }
 
-  const reviewAmenities = amenityOptions.filter((amenity) => isAmenitySelected(amenity));
+  function updateAmenitySelection(amenity: string, checked: boolean, form: HTMLFormElement | null) {
+    const nextAmenities = checked
+      ? Array.from(new Set([...selectedAmenities, amenity]))
+      : selectedAmenities.filter((item) => item !== amenity);
+    const amenityDraft = Object.fromEntries(amenityOptions.map((item) => [`amenity:${item}`, nextAmenities.includes(item)]));
+    const nextDraft = {
+      ...draftSnapshot,
+      ...amenityDraft,
+      __currentStep: String(currentStep),
+      [`amenity:${amenity}`]: checked,
+    };
+    setSelectedAmenities(nextAmenities);
+    setDraftSnapshot(nextDraft);
+    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+    if (form) window.requestAnimationFrame(() => persistDraft(form));
+  }
+
+  const reviewAmenities = selectedAmenities;
   const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? property?.extra_features ?? "");
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
@@ -795,10 +808,7 @@ function PropertyForm({
                     name={`amenity:${amenity}`}
                     value="on"
                     checked={isAmenitySelected(amenity)}
-                    onChange={(event) => {
-                      const form = event.currentTarget.form;
-                      if (form) persistDraft(form);
-                    }}
+                    onChange={(event) => updateAmenitySelection(amenity, event.currentTarget.checked, event.currentTarget.form)}
                     className="size-4 rounded border-stone-300 bg-white"
                   />
                   {amenity}
@@ -899,7 +909,19 @@ function PropertyForm({
               <div className="mt-4 space-y-3">
                 <label className="space-y-2 text-sm text-stone-700">
                   <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
-                  <select name="descriptionTone" value={descriptionToneState} onChange={(event) => setDescriptionToneState(event.target.value)} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+                  <select
+                    name="descriptionTone"
+                    value={descriptionToneState}
+                    onChange={(event) => {
+                      const nextTone = event.target.value;
+                      setDescriptionToneState(nextTone);
+                      setDescriptionEditedManually(false);
+                      const nextDraft = { ...draftSnapshot, descriptionTone: nextTone };
+                      setDraftSnapshot(nextDraft);
+                      if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+                    }}
+                    className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
+                  >
                     {descriptionTones.map((tone) => (
                       <option key={tone} value={tone}>{tone}</option>
                     ))}
@@ -924,10 +946,24 @@ function PropertyForm({
                 <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
               </label>
               <div className="mt-4 flex flex-wrap gap-3">
-                <button type="button" onClick={() => { setDescriptionValue(suggestedDescription); setShortDescriptionValue(suggestedShortDescription); setDescriptionEditedManually(false); }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+                <button type="button" onClick={() => {
+                  const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState };
+                  setDescriptionValue(suggestedDescription);
+                  setShortDescriptionValue(suggestedShortDescription);
+                  setDescriptionEditedManually(false);
+                  setDraftSnapshot(nextDraft);
+                  if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+                }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
                   Generar descripción
                 </button>
-                <button type="button" onClick={() => { setDescriptionValue(suggestedDescription); setShortDescriptionValue(suggestedShortDescription); setDescriptionEditedManually(false); }} className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100">
+                <button type="button" onClick={() => {
+                  const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState };
+                  setDescriptionValue(suggestedDescription);
+                  setShortDescriptionValue(suggestedShortDescription);
+                  setDescriptionEditedManually(false);
+                  setDraftSnapshot(nextDraft);
+                  if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+                }} className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100">
                   Regenerar con este tono
                 </button>
                 {descriptionEditedManually ? <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-xs text-slate-600">Edición manual detectada</span> : null}
@@ -949,7 +985,7 @@ function PropertyForm({
             </div>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Estado</span>
-              <select name="status" defaultValue={property?.status ?? "draft"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+              <select name="status" value={publicationStatus} onChange={(event) => { setPublicationStatus(event.target.value); persistDraft(event.currentTarget.form!); }} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
                 <option value="draft">Borrador</option>
                 <option value="active">Activa</option>
                 <option value="archived">Archivada</option>
@@ -1089,12 +1125,12 @@ function PropertyForm({
           </button>
         </div>
         <div className="mt-2 grid gap-2 sm:mt-0 sm:flex sm:flex-wrap sm:gap-3">
-          <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {isFormSaving ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
+          <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+            {isFormSaving || isFormPending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
           {currentStep === 5 ? (
-            <button type="submit" name="intent" value="publish" formNoValidate disabled={isFormSaving} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
-              Publicar propiedad
+            <button type="submit" name="intent" value="publish" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+              {isFormSaving || isFormPending ? "Publicando..." : "Publicar propiedad"}
             </button>
           ) : null}
           {property?.id && property.status === "active" ? (

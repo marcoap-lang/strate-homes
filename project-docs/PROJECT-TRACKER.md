@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: wizard bloqueante corregido para amenidades, descripción generada y desbloqueo de publicación; lint/build pasan
 ✅ Reentrada 2026-05-04: login/admin sin sesión simplificado y landing SaaS temporal más profesional; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard móvil reforzado con botonera sticky y galería móvil más cómoda; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard de propiedades ajustado para móvil; selector compacto reemplaza lista larga de pasos; lint/build pasan
