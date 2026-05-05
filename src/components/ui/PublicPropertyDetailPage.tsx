@@ -50,9 +50,26 @@ export function PublicPropertyDetailPage({
   });
   const whatsappNumber = (contactEntity?.whatsapp ?? contactEntity?.phone ?? "").replace(/\D/g, "");
   const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}` : null;
+  const highlights = [
+    {
+      label: "Ubicación",
+      value: property.neighborhood ?? property.locationLabel,
+      description: property.city || property.state ? [property.city, property.state].filter(Boolean).join(" · ") : "Zona seleccionada para vivir o invertir con mejor contexto.",
+    },
+    {
+      label: "Distribución",
+      value: specsInline || "Espacios por confirmar",
+      description: property.constructionAreaM2 ? `${property.constructionAreaM2} m² para evaluar amplitud, uso y potencial.` : "Ficha preparada para completar medidas y características clave.",
+    },
+    {
+      label: "Oportunidad",
+      value: formatOperation(property.operationType),
+      description: `${priceLabel} · información presentada para una primera revisión comercial clara.`,
+    },
+  ];
 
   return (
-    <main className="min-h-screen bg-[#f7fbff] px-6 py-10 text-slate-950 lg:px-8">
+    <main className="min-h-screen bg-[#f7fbff] px-6 pb-28 pt-10 text-slate-950 md:pb-10 lg:px-8">
       <PublicBrandHeader
         brandName={property.workspaceBrandName ?? property.workspaceName ?? "Strate Homes"}
         logoUrl={property.workspaceLogoUrl}
@@ -92,6 +109,28 @@ export function PublicPropertyDetailPage({
                 )}
               </div>
             </div>
+          </div>
+        </section>
+
+        <section className="rounded-[2.2rem] border border-slate-200/80 bg-white/82 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.06)] backdrop-blur sm:p-7">
+          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
+            <div>
+              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Por qué destaca</p>
+              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Lectura rápida para decidir mejor</h2>
+            </div>
+            <span className="w-fit rounded-full border border-[#d7ab5b]/30 bg-[#fff8ec] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#9b6f21]">
+              Ficha inteligente
+            </span>
+          </div>
+
+          <div className="mt-7 grid gap-4 md:grid-cols-3">
+            {highlights.map((highlight) => (
+              <article key={highlight.label} className="rounded-[1.6rem] border border-slate-100 bg-slate-50/70 p-5">
+                <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">{highlight.label}</p>
+                <h3 className="mt-3 text-xl font-semibold leading-snug text-slate-950">{highlight.value}</h3>
+                <p className="mt-3 text-sm leading-6 text-slate-600">{highlight.description}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -250,6 +289,7 @@ export function PublicPropertyDetailPage({
         <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} />
         <PublicLegalDisclaimer />
       </div>
+      <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} sticky />
     </main>
   );
 }
