@@ -48,14 +48,24 @@ export function AgentAvatarUploadField({
           .toLowerCase()
           .replace(/[^a-z0-9.]+/g, "-")
           .replace(/(^-|-$)/g, "");
-        const path = `${workspaceId}/agents/${agentKey}/${Date.now()}-${crypto.randomUUID()}-${safeName || `image.${extension}`}`;
+        const workspaceSegment = workspaceId.trim();
+        const agentSegment = agentKey.trim();
+        if (!workspaceSegment || !agentSegment) throw new Error("Falta identificar el workspace o asesor para subir la foto.");
+
+        const path = `${workspaceSegment}/agents/${agentSegment}/${Date.now()}-${crypto.randomUUID()}-${safeName || `image.${extension}`}`;
 
         const { error: uploadError } = await supabase.storage.from("property-images").upload(path, file, {
           upsert: false,
           contentType: file.type,
         });
 
-        if (uploadError) throw new Error(uploadError.message);
+        if (uploadError) {
+          const normalized = uploadError.message.toLowerCase();
+          if (normalized.includes("row-level security") || normalized.includes("permission") || normalized.includes("not authorized")) {
+            throw new Error("No tienes permiso para subir la foto en este workspace. Vuelve a iniciar sesión o revisa que el workspace activo sea correcto.");
+          }
+          throw new Error(uploadError.message);
+        }
 
         const publicUrl = supabase.storage.from("property-images").getPublicUrl(path).data.publicUrl;
         onChange(publicUrl);

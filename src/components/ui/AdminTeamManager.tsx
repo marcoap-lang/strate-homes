@@ -118,7 +118,7 @@ function NewAgentForm() {
   );
 }
 
-function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
+function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord; workspaceId: string }) {
   const [open, setOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(member.agent_profile?.avatar_url ?? member.avatar_url ?? "");
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
@@ -180,8 +180,8 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
           </div>
 
           <AgentAvatarUploadField
-            workspaceId={member.agent_profile?.id ? member.agent_profile.id : member.membership_id}
-            agentKey={member.profile_id}
+            workspaceId={workspaceId}
+            agentKey={member.agent_profile?.id ?? member.profile_id}
             value={avatarUrl}
             onChange={setAvatarUrl}
             label="Foto"
@@ -380,7 +380,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
               </div>
             </div>
 
-            <AgentProfileEditor member={member} />
+            <AgentProfileEditor member={member} workspaceId={workspaceId} />
           </div>
         ))}
       </div>
