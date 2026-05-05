@@ -625,6 +625,33 @@ function PropertyForm({
   }, [draftSnapshot.description, draftSnapshot.shortDescription, property?.description, property?.short_description, suggestedDescription, suggestedShortDescription, descriptionEditedManually]);
 
   const reviewDescription = descriptionValue || String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
+  const submissionFallbackFields: Record<string, string> = {
+    operationType: reviewOperation,
+    title: reviewTitle === "Sin título" ? "" : reviewTitle,
+    slug: String(draftSnapshot.slug ?? property?.slug ?? ""),
+    publicCode: String(draftSnapshot.publicCode ?? property?.public_code ?? ""),
+    agentId: reviewAgentId,
+    locationLabel: String(draftSnapshot.locationLabel ?? property?.location_label ?? ""),
+    city: String(draftSnapshot.city ?? property?.city ?? ""),
+    state: String(draftSnapshot.state ?? property?.state ?? ""),
+    countryCode: String(draftSnapshot.countryCode ?? property?.country_code ?? "MX"),
+    neighborhood: String(draftSnapshot.neighborhood ?? property?.neighborhood ?? ""),
+    addressLine: String(draftSnapshot.addressLine ?? property?.address_line ?? ""),
+    propertyType: reviewType,
+    bedrooms: String(draftSnapshot.bedrooms ?? property?.bedrooms ?? ""),
+    bathrooms: String(draftSnapshot.bathrooms ?? property?.bathrooms ?? ""),
+    parkingSpots: String(draftSnapshot.parkingSpots ?? property?.parking_spots ?? ""),
+    lotAreaM2: String(draftSnapshot.lotAreaM2 ?? property?.lot_area_m2 ?? ""),
+    constructionAreaM2: String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? ""),
+    priceAmount: reviewPrice,
+    currencyCode: reviewCurrency,
+    extraFeatures: reviewExtraFeatures,
+    descriptionTone: descriptionToneState,
+    description: reviewDescription,
+    shortDescription: shortDescriptionValue || String(draftSnapshot.shortDescription ?? property?.short_description ?? suggestedShortDescription),
+    status: publicationStatus,
+  };
+  const draftFieldNames = new Set(Object.keys(draftSnapshot).filter((name) => !name.startsWith("__")));
   const photosCount = property?.property_images.length ?? 0;
   const reviewChecklist = [
     { label: "Datos base", done: Boolean(reviewTitle && reviewTitle !== "Sin título") },
@@ -903,40 +930,36 @@ function PropertyForm({
 
       {currentStep === 4 ? (
         <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-[0.8fr_1.2fr]">
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Tono de la descripción</p>
-              <div className="mt-4 space-y-3">
-                <label className="space-y-2 text-sm text-stone-700">
-                  <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
-                  <select
-                    name="descriptionTone"
-                    value={descriptionToneState}
-                    onChange={(event) => {
-                      const nextTone = event.target.value;
-                      setDescriptionToneState(nextTone);
-                      setDescriptionEditedManually(false);
-                      const nextDraft = { ...draftSnapshot, descriptionTone: nextTone };
-                      setDraftSnapshot(nextDraft);
-                      if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
-                    }}
-                    className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
-                  >
-                    {descriptionTones.map((tone) => (
-                      <option key={tone} value={tone}>{tone}</option>
-                    ))}
-                  </select>
-                </label>
-                <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
-                  <p className="font-medium text-stone-900">Plantilla sugerida</p>
-                  <p className="mt-2">La propuesta se arma con tipo de propiedad, ubicación, precio y características ya capturadas para que no empieces desde cero.</p>
-                </div>
+          <SectionCard>
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+              <div>
+                <p className="text-sm font-semibold text-stone-900">Descripción comercial</p>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">Genera una base con los datos capturados y edítala aquí mismo antes de guardar.</p>
               </div>
-            </SectionCard>
-
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Descripción comercial</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">Puedes usar la propuesta sugerida tal como está o editarla para adaptarla a tu estilo comercial.</p>
+              <label className="w-full space-y-2 text-sm text-stone-700 lg:max-w-xs">
+                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
+                <select
+                  name="descriptionTone"
+                  value={descriptionToneState}
+                  onChange={(event) => {
+                    const nextTone = event.target.value;
+                    setDescriptionToneState(nextTone);
+                    setDescriptionEditedManually(false);
+                    const nextDraft = { ...draftSnapshot, descriptionTone: nextTone };
+                    setDraftSnapshot(nextDraft);
+                    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+                  }}
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
+                >
+                  {descriptionTones.map((tone) => (
+                    <option key={tone} value={tone}>{tone}</option>
+                  ))}
+                </select>
+              </label>
+            </div>
+            <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
+              La propuesta se arma con tipo de propiedad, ubicación, precio, amenidades y características ya capturadas para que no empieces desde cero.
+            </div>
               <label className="mt-4 block space-y-2 text-sm text-stone-700">
                 <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
                 <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
@@ -969,7 +992,6 @@ function PropertyForm({
                 {descriptionEditedManually ? <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-xs text-slate-600">Edición manual detectada</span> : null}
               </div>
             </SectionCard>
-          </div>
         </div>
       ) : null}
 
@@ -1099,9 +1121,14 @@ function PropertyForm({
       ) : null}
 
       {Object.entries(draftSnapshot)
-        .filter(([name]) => !name.startsWith("__") && !currentStepFieldNames.has(name))
+        .filter(([name, value]) => !name.startsWith("__") && !currentStepFieldNames.has(name) && !(String(value) === "" && submissionFallbackFields[name]))
         .map(([name, value]) => (
           <input key={`draft-${name}`} type="hidden" name={name} value={String(value)} />
+        ))}
+      {Object.entries(submissionFallbackFields)
+        .filter(([name, value]) => !currentStepFieldNames.has(name) && value !== "" && (!draftFieldNames.has(name) || String(draftSnapshot[name]) === ""))
+        .map(([name, value]) => (
+          <input key={`fallback-${name}`} type="hidden" name={name} value={value} />
         ))}
 
       {state.message ? (
@@ -1712,27 +1739,26 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
         </SectionCard>
       </div>
 
-      <div className="space-y-6 xl:grid xl:grid-cols-[0.95fr_1.05fr] xl:gap-6 xl:space-y-0">
-        <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
-        <div className="space-y-6">
-          <SectionCard>
-            <p className="text-sm font-semibold text-stone-900">Cambio rápido de estatus</p>
-            <p className="mt-2 text-sm text-stone-600">Ajusta el estatus desde esta vista sin volver al listado general.</p>
-            <form action={updatePropertyStatusAction} className="mt-4 flex flex-wrap gap-3">
-              {activeWorkspace?.role !== "owner" && activeWorkspace?.role !== "admin" ? (
-                <p className="w-full text-xs leading-5 text-stone-500">Si operas desde perfil comercial puedes mover la propiedad entre draft y active. Archivar, vender o cerrar queda reservado para owner/admin.</p>
-              ) : null}
-              <input type="hidden" name="propertyId" value={property.id} />
-              <select name="status" defaultValue={property.status} className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
-                {statuses.map((status) => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-              <button className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">Guardar estatus</button>
-            </form>
-          </SectionCard>
-          <PropertyImagesManager property={property} />
-        </div>
+      <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
+
+      <div className="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+        <SectionCard>
+          <p className="text-sm font-semibold text-stone-900">Cambio rápido de estatus</p>
+          <p className="mt-2 text-sm text-stone-600">Ajusta el estatus desde esta vista sin volver al listado general.</p>
+          <form action={updatePropertyStatusAction} className="mt-4 flex flex-wrap gap-3">
+            {activeWorkspace?.role !== "owner" && activeWorkspace?.role !== "admin" ? (
+              <p className="w-full text-xs leading-5 text-stone-500">Si operas desde perfil comercial puedes mover la propiedad entre draft y active. Archivar, vender o cerrar queda reservado para owner/admin.</p>
+            ) : null}
+            <input type="hidden" name="propertyId" value={property.id} />
+            <select name="status" defaultValue={property.status} className="rounded-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">
+              {statuses.map((status) => (
+                <option key={status} value={status}>{status}</option>
+              ))}
+            </select>
+            <button className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">Guardar estatus</button>
+          </form>
+        </SectionCard>
+        <PropertyImagesManager property={property} />
       </div>
     </div>
   );

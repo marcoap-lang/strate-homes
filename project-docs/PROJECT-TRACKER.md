@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: wizard corregido para guardar descripción desde pasos internos y layout desktop sin columnas apretadas; lint/build pasan
 ✅ Reentrada 2026-05-04: upload de foto de asesor corregido para usar prefijo de workspace en Storage; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard bloqueante corregido para amenidades, descripción generada y desbloqueo de publicación; lint/build pasan
 ✅ Reentrada 2026-05-04: login/admin sin sesión simplificado y landing SaaS temporal más profesional; lint/build pasan
