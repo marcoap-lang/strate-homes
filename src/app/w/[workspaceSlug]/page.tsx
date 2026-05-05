@@ -1,11 +1,34 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicBrandHeader } from "@/components/ui/PublicBrandHeader";
 import { PublicLuxuryFilters } from "@/components/ui/PublicLuxuryFilters";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import { getPublicProperties } from "@/lib/public-properties";
+import { buildSeoMetadata, compactDescription } from "@/lib/seo";
+
+export async function generateMetadata({ params }: { params: Promise<{ workspaceSlug: string }> }): Promise<Metadata> {
+  const { workspaceSlug } = await params;
+  const supabase = await createSupabaseServerClient();
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("name, brand_name, public_claim, public_bio, public_logo_url, public_hero_url")
+    .eq("slug", workspaceSlug)
+    .maybeSingle();
+
+  if (!workspace) return {};
+
+  const brandName = workspace.brand_name ?? workspace.name;
+
+  return buildSeoMetadata({
+    title: `${brandName} | Propiedades inmobiliarias`,
+    description: compactDescription(workspace.public_bio, workspace.public_claim ?? `Propiedades publicadas por ${brandName}.`),
+    path: `/w/${workspaceSlug}`,
+    image: workspace.public_hero_url ?? workspace.public_logo_url,
+  });
+}
 
 export default async function WorkspacePublicHome({ params }: { params: Promise<{ workspaceSlug: string }> }) {
   const { workspaceSlug } = await params;

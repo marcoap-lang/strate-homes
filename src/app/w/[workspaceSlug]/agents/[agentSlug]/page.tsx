@@ -1,9 +1,31 @@
 import Image from "next/image";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PublicBrandHeader } from "@/components/ui/PublicBrandHeader";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { getPublicAgentBySlug } from "@/lib/public-agents";
+import { buildSeoMetadata, compactDescription } from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ workspaceSlug: string; agentSlug: string }>;
+}): Promise<Metadata> {
+  const { workspaceSlug, agentSlug } = await params;
+  const agent = await getPublicAgentBySlug(workspaceSlug, agentSlug);
+
+  if (!agent) return {};
+
+  const brandName = agent.workspace.brandName ?? agent.workspace.name;
+
+  return buildSeoMetadata({
+    title: `${agent.displayName} | Asesor inmobiliario en ${brandName}`,
+    description: compactDescription(agent.bio, `${agent.displayName} te acompaña a encontrar propiedades publicadas por ${brandName}.`),
+    path: `/w/${workspaceSlug}/agents/${agentSlug}`,
+    image: agent.avatarUrl ?? agent.workspace.publicLogoUrl ?? agent.workspace.publicHeroUrl,
+  });
+}
 
 export default async function WorkspaceAgentPage({
   params,
