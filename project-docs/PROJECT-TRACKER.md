@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: links públicos ajustados a rutas canónicas por workspace; páginas públicas reforzadas en móvil; migración preparada para inventario público anónimo seguro; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard corregido para guardar descripción desde pasos internos y layout desktop sin columnas apretadas; lint/build pasan
 ✅ Reentrada 2026-05-04: upload de foto de asesor corregido para usar prefijo de workspace en Storage; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard bloqueante corregido para amenidades, descripción generada y desbloqueo de publicación; lint/build pasan
@@ -45,11 +46,11 @@
 
 ## Bloque actual
 
-🟨 En curso: validar admin/login/landing en móvil real y ajustar percepción visual
+🟨 En curso: aplicar/validar políticas públicas en Supabase remoto y revisar links canónicos en producción/incógnito
 
 ## Siguiente bloque
 
-⬜ Validación manual en celular real + links públicos canónicos en incógnito
+⬜ Validación manual en celular real + flujo admin completo después de políticas públicas
 
 ---
 

@@ -8,6 +8,7 @@ export type PublicProperty = {
   workspaceSlug: string | null;
   workspaceName: string | null;
   workspaceBrandName: string | null;
+  workspaceLogoUrl: string | null;
   locationLabel: string;
   city: string | null;
   state: string | null;
@@ -74,6 +75,7 @@ type PublicWorkspaceRecord = {
   slug?: string | null;
   name?: string | null;
   brand_name?: string | null;
+  public_logo_url?: string | null;
 };
 
 type PublicPropertyImageRecord = {
@@ -187,6 +189,7 @@ function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
     workspaceSlug: workspace?.slug ?? null,
     workspaceName: workspace?.name ?? null,
     workspaceBrandName: workspace?.brand_name ?? null,
+    workspaceLogoUrl: workspace?.public_logo_url ?? null,
     locationLabel: record.location_label,
     city: record.city ?? null,
     state: record.state ?? null,
@@ -262,10 +265,11 @@ const publicPropertySelect = `
   published_at,
   is_featured,
   workspace_id,
-  workspaces:workspace_id (
+  workspaces:workspace_id!inner (
     slug,
     name,
-    brand_name
+    brand_name,
+    public_logo_url
   ),
   agents:agent_id (
     id,

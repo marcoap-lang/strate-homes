@@ -29,7 +29,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="pb-8 lg:pb-14">
             <p className="text-xs uppercase tracking-[0.38em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-7 max-w-5xl text-6xl font-semibold leading-[0.9] tracking-tight text-slate-950 sm:text-7xl lg:text-[6.25rem]">
+            <h1 className="mt-7 max-w-5xl text-4xl font-semibold leading-[0.95] tracking-tight text-slate-950 sm:text-6xl sm:leading-[0.92] lg:text-[6.25rem]">
               {workspace.public_claim ?? "Encuentra tu próximo hogar en Veracruz"}
             </h1>
             <p className="mt-8 max-w-lg text-base leading-8 text-slate-600">
@@ -48,18 +48,18 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           </div>
 
           <div className="relative">
-            <div className="relative min-h-[40rem] overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-sky-100 to-white shadow-[0_30px_90px_rgba(15,23,42,0.10)] lg:min-h-[50rem]">
+            <div className="relative min-h-[28rem] overflow-hidden rounded-[2rem] bg-gradient-to-br from-sky-100 to-white shadow-[0_30px_90px_rgba(15,23,42,0.10)] sm:rounded-[2.8rem] lg:min-h-[50rem]">
               {(workspace.public_hero_url ?? heroProperty?.coverImageUrl) ? <Image src={workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? ""} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="object-cover object-center" unoptimized /> : null}
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/28 via-slate-950/8 to-transparent" />
             </div>
             {heroProperty ? (
-              <div className="absolute bottom-8 left-8 right-8 flex items-end justify-between gap-4 rounded-[2rem] bg-white/92 px-6 py-5 backdrop-blur-md shadow-[0_18px_45px_rgba(15,23,42,0.12)]">
+              <div className="mt-4 flex flex-col gap-4 rounded-[1.6rem] bg-white/92 px-5 py-5 backdrop-blur-md shadow-[0_18px_45px_rgba(15,23,42,0.12)] sm:absolute sm:bottom-8 sm:left-8 sm:right-8 sm:mt-0 sm:flex-row sm:items-end sm:justify-between sm:rounded-[2rem] sm:px-6">
                 <div>
                   <p className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Propiedad destacada</p>
                   <h2 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">{heroProperty.title}</h2>
                   <p className="mt-2 text-sm text-slate-600">{heroProperty.locationLabel}</p>
                 </div>
-                <Link href={`/w/${workspaceSlug}/properties/${heroProperty.slug}`} className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                <Link href={`/w/${workspaceSlug}/properties/${heroProperty.slug}`} className="shrink-0 rounded-full border border-slate-200 bg-white px-4 py-2 text-center text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                   Ver propiedad
                 </Link>
               </div>
@@ -101,7 +101,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                     <span>{property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible"}</span>
                     <span>{property.publicCode ?? "Disponible"}</span>
                   </div>
-                  <h3 className="text-[2rem] font-semibold leading-tight text-slate-950">{property.title}</h3>
+                  <h3 className="text-2xl font-semibold leading-tight text-slate-950 sm:text-[2rem]">{property.title}</h3>
                   <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="text-2xl font-semibold tracking-tight text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}

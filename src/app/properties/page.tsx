@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PublicLuxuryFilters } from "@/components/ui/PublicLuxuryFilters";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
+import { buildWorkspacePropertyPath } from "@/lib/public-links";
 import { getPublicProperties, type PublicPropertyFilters } from "@/lib/public-properties";
 
 export default async function PropertiesPage({
@@ -32,7 +33,7 @@ export default async function PropertiesPage({
         <section className="grid gap-10 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades en Veracruz</p>
-            <h1 className="mt-3 text-5xl font-semibold tracking-tight sm:text-6xl">Opciones bien ubicadas para vivir, invertir o rentar.</h1>
+            <h1 className="mt-3 text-4xl font-semibold leading-tight tracking-tight sm:text-6xl">Opciones bien ubicadas para vivir, invertir o rentar.</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
               Filtra por operación, ubicación, precio o recámaras y encuentra propiedades con una lectura clara, visual y consistente con la ficha principal.
             </p>
@@ -77,7 +78,7 @@ export default async function PropertiesPage({
                       {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
                     </p>
                     {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
-                    <Link href={`/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                    <Link href={buildWorkspacePropertyPath(property.workspaceSlug, property.slug)} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                       Ver propiedad
                     </Link>
                   </div>

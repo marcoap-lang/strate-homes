@@ -46,7 +46,7 @@ export async function getPublicAgentBySlug(workspaceSlug: string, agentSlug: str
         whatsapp,
         email,
         workspace_id,
-        workspaces:workspace_id (
+        workspaces:workspace_id!inner (
           id,
           slug,
           name,

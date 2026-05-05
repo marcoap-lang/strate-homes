@@ -43,7 +43,7 @@ export default async function WorkspacePropertiesPage({
         <section className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="max-w-2xl">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
-            <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.5rem]">{workspace.public_claim ?? "Encuentra propiedades seleccionadas en las mejores zonas."}</h1>
+            <h1 className="mt-4 text-4xl font-semibold leading-[0.98] tracking-tight text-slate-950 sm:text-6xl sm:leading-[0.94] lg:text-[4.5rem]">{workspace.public_claim ?? "Encuentra propiedades seleccionadas en las mejores zonas."}</h1>
             <p className="mt-5 text-base leading-8 text-slate-600">
               Filtra por operación, ubicación, precio o recámaras y descubre opciones ideales para vivir, invertir o cambiar de estilo de vida.
             </p>
@@ -72,7 +72,7 @@ export default async function WorkspacePropertiesPage({
                   {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
                 </div>
                 <div className="space-y-3">
-                  <h2 className="text-[2rem] font-semibold leading-tight text-slate-950">{property.title}</h2>
+                  <h2 className="text-2xl font-semibold leading-tight text-slate-950 sm:text-[2rem]">{property.title}</h2>
                   <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="text-2xl font-semibold tracking-tight text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
