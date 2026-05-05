@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: wizard de propiedades ajustado para móvil; selector compacto reemplaza lista larga de pasos; lint/build pasan
 ✅ Reentrada 2026-05-04: primer pase de admin móvil aplicado en shell, navegación, cards, formularios y botones; lint/build pasan
 ✅ Reentrada 2026-05-04: documentación reconciliada con leads y branding público; lint/build pasan sin warnings; property tours reclasificado como borrador no desarrollado
 ✅ Reentrada 2026-04-29: lint quedó sin errores y build validado después de tipar leads/branding/propiedades públicas y limpiar warnings críticos
@@ -39,7 +40,7 @@
 
 ## Bloque actual
 
-🟨 En curso: validar admin móvil en celular real y ajustar fricciones restantes
+🟨 En curso: validar admin móvil en celular real, especialmente wizard/galería/formularios
 
 ## Siguiente bloque
 

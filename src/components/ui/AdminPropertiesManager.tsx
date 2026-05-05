@@ -652,27 +652,53 @@ function PropertyForm({
           window.localStorage.setItem(storageKey, JSON.stringify(next));
         }
       }}
-      className="space-y-5 rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40"
+      className="space-y-5 rounded-[1.35rem] border border-stone-200 bg-white p-4 shadow-sm shadow-stone-200/40 sm:rounded-[1.75rem] sm:p-6"
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">{mode === "create" ? "Alta guiada de propiedad" : property?.title}</h3>
-          <p className="mt-2 text-sm text-stone-600">
+          <h3 className="mt-2 text-xl font-semibold leading-tight text-stone-950">{mode === "create" ? "Alta guiada de propiedad" : property?.title}</h3>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
             Completa la propiedad paso a paso para mantener claridad, progreso visible y una captura más fácil de terminar.
           </p>
         </div>
-        <div className="min-w-[170px] rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 sm:min-w-[170px] sm:px-5 sm:py-4">
           <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Progreso</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-950">{visibleCompletion}%</p>
-          <p className="mt-1 text-sm text-amber-800">Paso {currentStep + 1} de {wizardSteps.length}</p>
+          <div className="mt-2 flex items-end justify-between gap-4 sm:block">
+            <p className="text-2xl font-semibold text-amber-950 sm:text-3xl">{visibleCompletion}%</p>
+            <p className="text-sm text-amber-800 sm:mt-1">Paso {currentStep + 1} de {wizardSteps.length}</p>
+          </div>
         </div>
       </div>
 
       {mode === "edit" ? <input type="hidden" name="propertyId" defaultValue={property?.id} /> : null}
       {mode === "create" && draftPropertyId ? <input type="hidden" name="draftPropertyId" value={draftPropertyId} /> : null}
 
-      <div className="grid gap-3 md:grid-cols-4 xl:grid-cols-7">
+      <div className="rounded-3xl border border-stone-200 bg-stone-50 p-3 md:hidden">
+        <label className="block space-y-2 text-sm text-stone-700">
+          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Paso actual</span>
+          <select
+            value={currentStep}
+            onChange={(event) => {
+              const index = Number(event.target.value);
+              const form = event.currentTarget.form;
+              if (form) persistDraft(form, index);
+              setCurrentStep(index);
+            }}
+            className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400"
+          >
+            {wizardSteps.map((step, index) => (
+              <option key={step} value={index}>{index + 1}. {step}{stepCompletion[index] ? " ✓" : ""}</option>
+            ))}
+          </select>
+        </label>
+        <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
+          <div className="h-full rounded-full bg-[#d7ab5b] transition-all" style={{ width: `${visibleCompletion}%` }} />
+        </div>
+        <p className="mt-2 text-sm font-medium text-stone-900">{wizardSteps[currentStep]}</p>
+      </div>
+
+      <div className="hidden gap-3 md:grid md:grid-cols-4 xl:grid-cols-7">
         {wizardSteps.map((step, index) => (
           <button
             key={step}
