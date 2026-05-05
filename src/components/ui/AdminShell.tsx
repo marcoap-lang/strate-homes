@@ -12,6 +12,7 @@ import { getPublicBaseUrl } from "@/lib/public-links";
 const primaryNavItems = [
   { label: "Inicio", href: "/admin" },
   { label: "Propiedades", href: "/admin/properties" },
+  { label: "Recorridos", href: "/admin/tours" },
   { label: "Leads", href: "/admin/leads" },
   { label: "Equipo", href: "/admin/team" },
 ];

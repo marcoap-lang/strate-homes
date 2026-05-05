@@ -16,7 +16,6 @@ import {
   updatePropertyStatusAction,
 } from "@/app/admin/actions";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
-import { AdminTourCreator } from "@/components/ui/AdminTourCreator";
 import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 import { buildPublicPropertyUrl } from "@/lib/public-links";
 
@@ -1555,8 +1554,6 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
           </Link>
         }
       />
-
-      <AdminTourCreator properties={properties} />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <SectionCard>

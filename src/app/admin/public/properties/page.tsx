@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { AdminShell } from "@/components/ui/AdminShell";
 import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
-import { AdminTourCreator } from "@/components/ui/AdminTourCreator";
 import { getAdminAccessState } from "@/lib/admin-access";
 import { buildPublicPropertyUrl } from "@/lib/public-links";
 
@@ -19,8 +18,6 @@ export default async function AdminPublicPropertiesPage() {
             <h3 className="mt-2 text-2xl font-semibold text-slate-950">Propiedades públicas</h3>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Separación clara entre inventario interno y lo que sí sale al sitio público.</p>
           </div>
-
-          <AdminTourCreator properties={access.properties} />
 
           <div className="grid gap-4">
             {access.properties.map((property) => (

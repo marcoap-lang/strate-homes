@@ -13,6 +13,17 @@ export type LeadRecord = {
   property_title: string | null;
   tours?: Array<{ id: string; title: string; slug: string }>;
 };
+
+export type PropertyTourRecord = {
+  id: string;
+  title: string;
+  slug: string;
+  intro_message: string | null;
+  created_at: string;
+  public_enabled: boolean;
+  lead: { full_name: string | null; phone: string | null } | null;
+  properties: Array<{ id: string; title: string; slug: string; sort_order: number }>;
+};
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 type JoinedLeadRecord = {
@@ -34,6 +45,20 @@ type LeadPropertyInterestRecord = {
 
 type LeadInterestListItem = LeadPropertyInterestRecord & {
   properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
+};
+
+type PropertyTourListItem = {
+  id: string;
+  title: string;
+  slug: string;
+  intro_message: string | null;
+  created_at: string;
+  public_enabled: boolean;
+  leads?: { full_name?: string | null; phone?: string | null } | Array<{ full_name?: string | null; phone?: string | null }> | null;
+  property_tour_items?: Array<{
+    sort_order?: number | null;
+    properties?: { id?: string | null; title?: string | null; slug?: string | null } | Array<{ id?: string | null; title?: string | null; slug?: string | null }> | null;
+  }> | null;
 };
 
 function firstJoined<T>(value: T | T[] | null | undefined): T | null {
@@ -65,6 +90,7 @@ export type AdminAccessState =
       teamMembers: TeamMemberRecord[];
       standaloneAgents: StandaloneAgentRecord[];
       leads: LeadRecord[];
+      tours: PropertyTourRecord[];
     }
   | {
       kind: "first-access" | "no-workspace";
@@ -105,7 +131,13 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   }
 
-  const [{ data: properties, error: propertiesError }, { data: agents, error: agentsError }, { data: teamMembers, error: teamError }, { data: leads, error: leadsError }] = await Promise.all([
+  const [
+    { data: properties, error: propertiesError },
+    { data: agents, error: agentsError },
+    { data: teamMembers, error: teamError },
+    { data: leads, error: leadsError },
+    { data: tours, error: toursError },
+  ] = await Promise.all([
     supabase
       .from("properties")
       .select(
@@ -226,12 +258,39 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       )
       .eq("workspace_id", activeWorkspace.workspaceId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("property_tours")
+      .select(
+        `
+          id,
+          title,
+          slug,
+          intro_message,
+          created_at,
+          public_enabled,
+          leads:lead_id (
+            full_name,
+            phone
+          ),
+          property_tour_items (
+            sort_order,
+            properties:property_id (
+              id,
+              title,
+              slug
+            )
+          )
+        `,
+      )
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (propertiesError) throw propertiesError;
   if (agentsError) throw agentsError;
   if (teamError) throw teamError;
   if (leadsError) throw leadsError;
+  if (toursError) throw toursError;
 
   const agentByProfileId = new Map(
     (agents ?? [])
@@ -335,6 +394,33 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     })
     .filter((lead) => lead !== null);
 
+  const normalizedTours: PropertyTourRecord[] = ((tours ?? []) as PropertyTourListItem[]).map((tour) => {
+    const lead = firstJoined(tour.leads);
+    return {
+      id: tour.id,
+      title: tour.title,
+      slug: tour.slug,
+      intro_message: tour.intro_message,
+      created_at: tour.created_at,
+      public_enabled: tour.public_enabled,
+      lead: lead ? { full_name: lead.full_name ?? null, phone: lead.phone ?? null } : null,
+      properties: (tour.property_tour_items ?? [])
+        .slice()
+        .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+        .map((item) => {
+          const property = firstJoined(item.properties);
+          if (!property?.id || !property.title || !property.slug) return null;
+          return {
+            id: property.id,
+            title: property.title,
+            slug: property.slug,
+            sort_order: item.sort_order ?? 0,
+          };
+        })
+        .filter((property) => property !== null),
+    };
+  });
+
   return {
     kind: "ready",
     activeWorkspace: {
@@ -355,5 +441,6 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     teamMembers: normalizedTeamMembers,
     standaloneAgents,
     leads: normalizedLeads,
+    tours: normalizedTours,
   };
 }

@@ -48,6 +48,11 @@ export type PropertyTourCreateState = {
   tourUrl?: string;
 };
 
+export type PropertyTourDeleteState = {
+  success: boolean;
+  message: string;
+};
+
 export type WorkspaceBrandingState = {
   success: boolean;
   message: string;
@@ -89,6 +94,11 @@ const INITIAL_PROPERTY_LEAD_CREATE_STATE: PropertyLeadCreateState = {
 };
 
 const INITIAL_PROPERTY_TOUR_CREATE_STATE: PropertyTourCreateState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_PROPERTY_TOUR_DELETE_STATE: PropertyTourDeleteState = {
   success: false,
   message: "",
 };
@@ -634,6 +644,7 @@ export async function createPropertyTourAction(
     const tourUrl = buildPublicTourUrl(slug, activeWorkspace.workspaceSlug ?? null);
 
     revalidatePath("/admin/leads");
+    revalidatePath("/admin/tours");
     revalidatePath("/admin/public/properties");
     revalidatePath(`/w/${activeWorkspace.workspaceSlug}/tours/${slug}`);
     return { success: true, message: "Recorrido creado correctamente. Ya puedes abrir el link público.", tourUrl };
@@ -641,6 +652,40 @@ export async function createPropertyTourAction(
     return {
       success: false,
       message: error instanceof Error ? error.message : "No se pudo crear el recorrido.",
+    };
+  }
+}
+
+export async function deletePropertyTourAction(
+  _prevState: PropertyTourDeleteState = INITIAL_PROPERTY_TOUR_DELETE_STATE,
+  formData: FormData,
+): Promise<PropertyTourDeleteState> {
+  void _prevState;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const tourId = formData.get("tourId")?.toString();
+
+    if (!tourId) {
+      return { success: false, message: "No encontramos el recorrido a borrar." };
+    }
+
+    const { error } = await supabase
+      .from("property_tours")
+      .delete()
+      .eq("id", tourId)
+      .eq("workspace_id", activeWorkspace.workspaceId);
+
+    if (error) {
+      return { success: false, message: error.message };
+    }
+
+    revalidatePath("/admin/tours");
+    revalidatePath("/admin/leads");
+    return { success: true, message: "Recorrido borrado correctamente." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo borrar el recorrido.",
     };
   }
 }
