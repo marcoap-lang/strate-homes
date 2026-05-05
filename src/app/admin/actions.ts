@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { buildPublicTourUrl } from "@/lib/public-links";
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 export type BootstrapOwnerState = {
@@ -44,6 +45,7 @@ export type PropertyLeadCreateState = {
 export type PropertyTourCreateState = {
   success: boolean;
   message: string;
+  tourUrl?: string;
 };
 
 export type WorkspaceBrandingState = {
@@ -596,15 +598,15 @@ export async function createPropertyTourAction(
     const slug = slugify(requestedSlug || `${title}-${Date.now().toString(36)}`);
     const selectedPropertyIds = formData.getAll("propertyIds").map((value) => value.toString()).filter(Boolean);
 
-    if (!leadId || title.length < 3 || slug.length < 3 || !selectedPropertyIds.length) {
-      return { success: false, message: "Completa lead, título, slug y al menos una propiedad." };
+    if (title.length < 3 || slug.length < 3 || !selectedPropertyIds.length) {
+      return { success: false, message: "Completa título, slug y al menos una propiedad." };
     }
 
     const { data: tour, error: tourError } = await supabase
       .from("property_tours")
       .insert({
         workspace_id: activeWorkspace.workspaceId,
-        lead_id: leadId,
+        lead_id: leadId || null,
         agent_id: agentRecord?.id ?? null,
         slug,
         title,
@@ -629,9 +631,12 @@ export async function createPropertyTourAction(
       return { success: false, message: itemsError.message };
     }
 
+    const tourUrl = buildPublicTourUrl(slug, activeWorkspace.workspaceSlug ?? null);
+
     revalidatePath("/admin/leads");
+    revalidatePath("/admin/public/properties");
     revalidatePath(`/w/${activeWorkspace.workspaceSlug}/tours/${slug}`);
-    return { success: true, message: "Recorrido creado correctamente. Ya puedes abrirlo desde este lead." };
+    return { success: true, message: "Recorrido creado correctamente. Ya puedes abrir el link público.", tourUrl };
   } catch (error) {
     return {
       success: false,

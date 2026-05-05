@@ -18,7 +18,7 @@
 
 ## Prioridad baja por ahora
 13. Iterar property tours MVP: edición de recorridos, expiración opcional, analytics de apertura/clics y mejor copy para WhatsApp.
-14. Validar en producción la creación real de un recorrido desde `/admin/leads` con un lead existente.
+14. Validar en producción la creación real de un recorrido desde `/admin/leads` y otro sin lead desde `/admin/public/properties`.
 15. Profundizar diseño de bot de WhatsApp por capas.
 16. Diseñar analítica comercial inicial.
 17. Evaluar SEO schema y slugs finales.

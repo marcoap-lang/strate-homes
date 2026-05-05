@@ -7,7 +7,7 @@
 
 ## Último bloque completado
 
-✅ Reentrada 2026-05-04: property tours MVP activado: creación desde leads, ruta pública de recorrido y políticas públicas seguras aplicadas; lint/build pasan
+✅ Reentrada 2026-05-04: property tours MVP activado: creación desde leads y sin lead, ruta pública de recorrido y políticas públicas seguras aplicadas; lint/build pasan
 ✅ Reentrada 2026-05-04: links públicos ajustados a rutas canónicas por workspace; páginas públicas reforzadas en móvil; migración pública anónima segura aplicada y validada en producción/incógnito; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard corregido para guardar descripción desde pasos internos y layout desktop sin columnas apretadas; lint/build pasan
 ✅ Reentrada 2026-05-04: upload de foto de asesor corregido para usar prefijo de workspace en Storage; lint/build pasan
