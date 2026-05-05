@@ -4,8 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { AuthStatusBadge } from "@/components/ui/AuthStatusBadge";
-import { WorkspaceStatusBadge } from "@/components/ui/WorkspaceStatusBadge";
+
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import { getPublicBaseUrl } from "@/lib/public-links";
@@ -140,20 +139,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <section className="rounded-[1.5rem] border border-slate-200 bg-white/94 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur sm:rounded-[2rem] sm:p-6 lg:rounded-[2.2rem] lg:p-8 lg:shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4 sm:gap-4 sm:pb-6">
-            <div className="min-w-0">
-              <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500 sm:text-xs sm:tracking-[0.3em]">Panel principal</p>
-              <h2 className="mt-2 text-2xl font-semibold leading-tight text-slate-950 sm:mt-3 sm:text-3xl">Operación inmobiliaria</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:leading-7">
-                Administra propiedades, leads, equipo y presencia pública desde un panel más claro.
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-              <AuthStatusBadge />
-              <WorkspaceStatusBadge />
-            </div>
-          </div>
-          <div className="mt-5 sm:mt-8">{children}</div>
+          {children}
         </section>
       </div>
     </div>
