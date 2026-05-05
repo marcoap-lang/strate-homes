@@ -592,7 +592,8 @@ export async function createPropertyTourAction(
     const { supabase, activeWorkspace, agentRecord } = await getWorkspaceContext();
     const leadId = formData.get("leadId")?.toString();
     const title = formData.get("title")?.toString().trim() ?? "";
-    const slug = slugify(formData.get("slug")?.toString() || title);
+    const requestedSlug = formData.get("slug")?.toString();
+    const slug = slugify(requestedSlug || `${title}-${Date.now().toString(36)}`);
     const selectedPropertyIds = formData.getAll("propertyIds").map((value) => value.toString()).filter(Boolean);
 
     if (!leadId || title.length < 3 || slug.length < 3 || !selectedPropertyIds.length) {
@@ -629,7 +630,8 @@ export async function createPropertyTourAction(
     }
 
     revalidatePath("/admin/leads");
-    return { success: true, message: "Recorrido creado correctamente." };
+    revalidatePath(`/w/${activeWorkspace.workspaceSlug}/tours/${slug}`);
+    return { success: true, message: "Recorrido creado correctamente. Ya puedes abrirlo desde este lead." };
   } catch (error) {
     return {
       success: false,

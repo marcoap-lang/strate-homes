@@ -17,8 +17,8 @@
 12. Evaluar si `public_code` debe ser único por workspace o global.
 
 ## Prioridad baja por ahora
-13. Diseñar property tours desde cero como módulo futuro, si confirma valor comercial: crear tour desde lead/interés, seleccionar propiedades, compartir URL y rastrear seguimiento.
-14. Revisar `supabase/migrations/20260428153000_property_tours.sql` como borrador técnico no desarrollado; no aplicarlo a remoto hasta rediseñar/confirmar alcance.
+13. Iterar property tours MVP: edición de recorridos, expiración opcional, analytics de apertura/clics y mejor copy para WhatsApp.
+14. Validar en producción la creación real de un recorrido desde `/admin/leads` con un lead existente.
 15. Profundizar diseño de bot de WhatsApp por capas.
 16. Diseñar analítica comercial inicial.
 17. Evaluar SEO schema y slugs finales.
@@ -30,7 +30,7 @@ Si se retoma este proyecto en otra sesión, ejecutar en este orden:
 2. leer `project-docs/CURRENT-STATUS.md`
 3. revisar `git status --short`
 4. priorizar admin móvil antes de nuevos módulos
-5. tratar `supabase/migrations/20260428153000_property_tours.sql` como borrador/no desarrollado; no aplicarlo a remoto sin rediseño
+5. probar property tours con lead real y ajustar UX de creación si hace falta
 6. correr `npm run lint`
 7. correr `npm run build`
 8. ejecutar solo un bloque pequeño y verificable

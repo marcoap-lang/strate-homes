@@ -42,6 +42,18 @@ export function buildPublicAgentUrl(agentSlug: string, workspaceSlug?: string | 
   return `${getPublicBaseUrl()}${buildWorkspaceAgentPath(workspaceSlug, agentSlug)}`;
 }
 
+export function buildWorkspaceTourPath(workspaceSlug: string | null | undefined, tourSlug: string) {
+  if (workspaceSlug) {
+    return `/w/${workspaceSlug}/tours/${tourSlug}`;
+  }
+
+  return `/tours/${tourSlug}`;
+}
+
+export function buildPublicTourUrl(tourSlug: string, workspaceSlug?: string | null) {
+  return `${getPublicBaseUrl()}${buildWorkspaceTourPath(workspaceSlug, tourSlug)}`;
+}
+
 export function buildWhatsAppPropertyMessage({
   title,
   locationLabel,

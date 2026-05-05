@@ -131,7 +131,7 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `property_images`
 - `leads`
 - `lead_property_interests`
-- `property_tours` no desarrollado; solo existe borrador técnico local, no aplicar a remoto todavía
+- `property_tours` MVP operativo: recorridos curados por lead con URL pública compartible
 - `property_tour_items` pendiente de validación/versionado remoto
 
 ### Relaciones base
@@ -151,7 +151,7 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - Ya existe `workspace_members` como base mínima de pertenencia multiworkspace.
 - Ya existe CRM mínimo con `leads`, `lead_property_interests`, `internal_note` y `source_type`.
 - Ya existe personalización pública básica en `workspaces` para teléfono, WhatsApp, email, claim, bio, logo y hero.
-- Existe un borrador técnico local para `property_tours`, pero no representa un módulo desarrollado ni debe aplicarse a remoto sin rediseñar/confirmar alcance.
+- `property_tours` fue activado como MVP después de confirmación de alcance: permite crear recorridos desde leads, seleccionar propiedades y compartir una URL pública.
 - La UI ya está conectada a lecturas/escrituras reales en propiedades, equipo, branding público y leads básicos; mocks quedan solo como apoyo/fallback puntual de demo.
 - La autorización actual es suficiente para operar el bloque, pero no debe considerarse seguridad fina definitiva para todo el SaaS.
 
@@ -421,7 +421,7 @@ Estos puntos no son fallas del esquema actual; son pendientes deliberados antes 
 - no se definió aún unicidad para `public_code`.
 - branding público vive como columnas en `workspaces`; todavía no hay tabla avanzada de settings/bloques configurables.
 - no existe todavía invitación/aceptación formal de miembros.
-- `property_tours` existe solo como borrador local no desarrollado; no debe asumirse como parte del esquema operativo ni aplicarse a remoto sin rediseño.
+- `property_tours` ya forma parte del MVP operativo como recorrido curado compartible desde leads.
 - las policies de CRM actuales son base operativa, no modelo final de permisos finos.
 
 ### Lectura arquitectónica
@@ -511,7 +511,7 @@ Entidad lead preparada para crecer hacia:
 `property_tours` queda como idea futura, no como módulo desarrollado actualmente.
 
 Estado actual:
-- existe una migración local `supabase/migrations/20260428153000_property_tours.sql`, pero debe leerse como borrador técnico exploratorio.
+- la migración `supabase/migrations/20260428153000_property_tours.sql` queda versionada como base del módulo MVP.
 - no se debe aplicar a remoto todavía.
 - no debe aparecer como dependencia inmediata del CRM actual.
 - antes de retomarlo hay que rediseñar alcance, UX, modelo de datos y valor comercial.
@@ -639,6 +639,6 @@ Requisitos estructurales desde hoy:
 - el esquema SQL ya es útil, pero todavía no es definitivo para CRM, invitaciones ni analítica; property tours no forma parte del alcance actual.
 - falta UX explícita para workspace activo multiworkspace.
 - faltan permisos finos por módulo y más constraints de consistencia multiworkspace.
-- existe un borrador de `property_tours` que debe mantenerse fuera de remoto hasta rediseño/confirmación de alcance.
+- `property_tours` ya fue confirmado y activado como MVP; futuras iteraciones deben enfocarse en edición, analítica y expiración de links.
 - falta validar manualmente producción con usuario real y flujo completo hospedado.
 - quedan mocks/fallbacks de demo que deben mantenerse separados de operación real.

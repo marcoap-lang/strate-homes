@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: property tours MVP activado: creación desde leads, ruta pública de recorrido y políticas públicas seguras aplicadas; lint/build pasan
 ✅ Reentrada 2026-05-04: links públicos ajustados a rutas canónicas por workspace; páginas públicas reforzadas en móvil; migración pública anónima segura aplicada y validada en producción/incógnito; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard corregido para guardar descripción desde pasos internos y layout desktop sin columnas apretadas; lint/build pasan
 ✅ Reentrada 2026-05-04: upload de foto de asesor corregido para usar prefijo de workspace en Storage; lint/build pasan
@@ -15,7 +16,7 @@
 ✅ Reentrada 2026-05-04: wizard móvil reforzado con botonera sticky y galería móvil más cómoda; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard de propiedades ajustado para móvil; selector compacto reemplaza lista larga de pasos; lint/build pasan
 ✅ Reentrada 2026-05-04: primer pase de admin móvil aplicado en shell, navegación, cards, formularios y botones; lint/build pasan
-✅ Reentrada 2026-05-04: documentación reconciliada con leads y branding público; lint/build pasan sin warnings; property tours reclasificado como borrador no desarrollado
+✅ Reentrada 2026-05-04: documentación reconciliada con leads y branding público; lint/build pasan sin warnings; property tours se reactivó después como MVP
 ✅ Reentrada 2026-04-29: lint quedó sin errores y build validado después de tipar leads/branding/propiedades públicas y limpiar warnings críticos
 ✅ Registro/login real + onboarding inicial
 ✅ Bootstrap seguro del primer workspace vía RPC sin relajar RLS
@@ -95,7 +96,7 @@
 - ✅ property_images
 - ✅ branding público básico en `workspaces`
 - ✅ leads mínimos
-- ⬜ property tours no desarrollado; solo existe borrador técnico local, no aplicar a remoto todavía
+- ✅ property tours MVP: recorridos curados por lead con propiedades seleccionadas y URL pública compartible
 
 ### Auth y membresías
 
@@ -158,7 +159,7 @@
 - ✅ Estado básico de lead
 - ✅ Nota interna
 - ✅ Source type inicial
-- ⬜ Property tours no desarrollado; queda como idea futura/borrador técnico
+- ✅ Property tours MVP operativo como recorrido curado compartible desde leads
 - ⬜ Pipeline formal
 
 ### WhatsApp bot
