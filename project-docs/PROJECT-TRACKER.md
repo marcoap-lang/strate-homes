@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: wizard móvil reforzado con botonera sticky y galería móvil más cómoda; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard de propiedades ajustado para móvil; selector compacto reemplaza lista larga de pasos; lint/build pasan
 ✅ Reentrada 2026-05-04: primer pase de admin móvil aplicado en shell, navegación, cards, formularios y botones; lint/build pasan
 ✅ Reentrada 2026-05-04: documentación reconciliada con leads y branding público; lint/build pasan sin warnings; property tours reclasificado como borrador no desarrollado

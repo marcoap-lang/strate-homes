@@ -1079,8 +1079,8 @@ function PropertyForm({
         </p>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+      <div className="sticky bottom-3 z-20 -mx-1 rounded-[1.6rem] border border-stone-200 bg-white/95 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
           <button type="button" onClick={(event) => { const nextStep = Math.max(0, currentStep - 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
             Anterior
           </button>
@@ -1088,7 +1088,7 @@ function PropertyForm({
             Siguiente
           </button>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+        <div className="mt-2 grid gap-2 sm:mt-0 sm:flex sm:flex-wrap sm:gap-3">
           <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {isFormSaving ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
@@ -1370,10 +1370,12 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             Trabaja la galería en una vista enfocada: sube, revisa, ordena y define la portada principal sin mezclarlo con el listado general.
           </p>
         </div>
-        <div className="min-w-[180px] rounded-3xl border border-amber-200 bg-amber-50 px-5 py-4">
+        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 sm:min-w-[180px] sm:px-5 sm:py-4">
           <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Completitud visual</p>
-          <p className="mt-2 text-3xl font-semibold text-amber-950">{coverage.completion}%</p>
-          <p className="mt-1 text-sm text-amber-800">{coverage.coveredCount} de {coverage.checks.length} vistas sugeridas</p>
+          <div className="mt-2 flex items-end justify-between gap-4 sm:block">
+            <p className="text-2xl font-semibold text-amber-950 sm:text-3xl">{coverage.completion}%</p>
+            <p className="text-sm text-amber-800 sm:mt-1">{coverage.coveredCount} de {coverage.checks.length} vistas sugeridas</p>
+          </div>
         </div>
       </div>
 
@@ -1404,18 +1406,18 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-6">
-        <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="mt-6 rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-4 sm:p-6">
+        <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
           <div>
             <p className="text-sm font-semibold text-stone-900">Agregar fotos</p>
-            <p className="mt-2 text-sm text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
           </div>
-          <label className={`inline-flex items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] ${isUploading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
+          <label className={`inline-flex w-full items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] sm:w-auto ${isUploading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
             {isUploading ? "Subiendo..." : "Seleccionar fotos"}
             <input ref={fileInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleFileSelection} />
           </label>
         </div>
-        <p className="mt-4 text-xs leading-5 text-stone-500">Máximo {MAX_PROPERTY_IMAGES} fotos por propiedad · hasta {MAX_IMAGE_FILE_SIZE_MB} MB por archivo · ancho máximo aproximado {MAX_IMAGE_DIMENSION}px · optimización previa a la subida.</p>
+        <p className="mt-4 text-xs leading-5 text-stone-500">Máximo {MAX_PROPERTY_IMAGES} fotos · hasta {MAX_IMAGE_FILE_SIZE_MB} MB por archivo · optimización previa a la subida.</p>
       </div>
 
       {clientMessage ? <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{clientMessage}</p> : null}
@@ -1442,17 +1444,17 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
                   />
                 </label>
                 <p className="text-xs text-stone-500">Orden visual: {index + 1}{image.fileSizeLabel ? ` · ${image.fileSizeLabel}` : ""}</p>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+                  <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-full border border-stone-200 px-3 py-2.5 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40 sm:py-2">
                     Subir
                   </button>
-                  <button type="button" onClick={() => moveImage(index, 1)} disabled={index === gallery.length - 1} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40">
+                  <button type="button" onClick={() => moveImage(index, 1)} disabled={index === gallery.length - 1} className="rounded-full border border-stone-200 px-3 py-2.5 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40 sm:py-2">
                     Bajar
                   </button>
-                  <button type="button" onClick={() => handleSelectCover(index)} className="rounded-full border border-stone-200 px-3 py-2 text-xs text-stone-700 transition hover:bg-stone-50">
-                    {image.is_cover ? "Portada activa" : "Usar como portada"}
+                  <button type="button" onClick={() => handleSelectCover(index)} className="rounded-full border border-stone-200 px-3 py-2.5 text-xs text-stone-700 transition hover:bg-stone-50 sm:py-2">
+                    {image.is_cover ? "Portada activa" : "Usar portada"}
                   </button>
-                  <button type="button" onClick={() => removeFromGallery(index)} disabled={isRemovingImage} className="rounded-full border border-rose-200 px-3 py-2 text-xs text-rose-700 transition hover:bg-rose-50 disabled:opacity-60">
+                  <button type="button" onClick={() => removeFromGallery(index)} disabled={isRemovingImage} className="rounded-full border border-rose-200 px-3 py-2.5 text-xs text-rose-700 transition hover:bg-rose-50 disabled:opacity-60 sm:py-2">
                     Eliminar
                   </button>
                 </div>
@@ -1468,7 +1470,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
       {gallery.length ? (
         <div className="mt-6 flex flex-wrap gap-3">
-          <button type="button" onClick={saveGallery} disabled={isSavingGallery || isUploading || isRemovingImage} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button type="button" onClick={saveGallery} disabled={isSavingGallery || isUploading || isRemovingImage} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60 sm:w-auto">
             {isSavingGallery ? "Guardando galería..." : "Guardar orden y portada"}
           </button>
         </div>
