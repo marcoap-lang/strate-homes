@@ -78,7 +78,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 ## Qué está en curso
 - Reentrada 2026-05-04: se releyeron tracker/status, se detectó que `TODO-NEXT` y `ARCHITECTURE` estaban atrasados frente al código, y se reconciliaron con leads, branding público y el borrador técnico no desarrollado de property tours. Después se corrigieron warnings de lint por `_prevState` no usado en server actions y `npm run lint` + `npm run build` pasan correctamente.
 - Corrección de alcance 2026-05-04: Marco aclaró que property tours todavía no estaba desarrollado; debe tratarse como idea/borrador técnico futuro, no como módulo actual ni prioridad inmediata.
-- Primer pase de admin móvil aplicado 2026-05-04: navegación superior sticky en mobile, sidebar solo desktop, contenedor más compacto, cards/formularios/botones más cómodos para celular y corrección de estado activo en navegación. También se ajustó el wizard de propiedades para móvil: la lista larga de pasos se reemplazó por selector compacto con progreso, se agregó botonera sticky inferior y se hicieron más cómodas las acciones de galería/fotos. `npm run lint` + `npm run build` pasan.
+- Primer pase de admin móvil aplicado 2026-05-04: navegación superior sticky en mobile, sidebar solo desktop, contenedor más compacto, cards/formularios/botones más cómodos para celular y corrección de estado activo en navegación. También se ajustó el wizard de propiedades para móvil: la lista larga de pasos se reemplazó por selector compacto con progreso, se agregó botonera sticky inferior y se hicieron más cómodas las acciones de galería/fotos. Después se simplificó el acceso sin sesión: `/admin` redirige a `/login`, el login queda enfocado solo en autenticación y la landing temporal del SaaS en `/` se rediseñó con una presentación más profesional. `npm run lint` + `npm run build` pasan.
 - Existe un archivo no versionado detectado: `supabase/migrations/20260428153000_property_tours.sql`; no debe aplicarse a remoto por ahora, porque corresponde a un borrador de módulo no desarrollado.
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - validar flujo real de login/admin sobre producción con usuario miembro final
@@ -99,7 +99,7 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - bucket/policies de `property-images` ya quedaron diagnosticados: el path usa prefijo por `workspaceId/propertyId/...` y las policies permiten insert/select/delete a miembros autenticados del workspace. El flujo de upload ahora conserva mensajes de error más claros en cliente si Storage rechaza la subida.
 
 ## Qué sigue inmediatamente después
-1. validar el admin móvil en celular real y corregir fricciones restantes de navegación, wizard, formularios, galería y acciones
+1. validar en celular real el nuevo login, landing temporal y admin móvil; corregir fricciones restantes de navegación, wizard, formularios, galería y acciones
 2. validar manualmente links públicos canónicos en producción/incógnito
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
 4. validar con prueba manual en entorno hospedado una subida real de foto end-to-end y, si vuelve a fallar, capturar el mensaje exacto del cliente para ajustar bucket/policies o MIME/path específico sin abrir trabajo lateral

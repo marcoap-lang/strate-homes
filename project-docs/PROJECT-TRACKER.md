@@ -7,6 +7,7 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: login/admin sin sesión simplificado y landing SaaS temporal más profesional; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard móvil reforzado con botonera sticky y galería móvil más cómoda; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard de propiedades ajustado para móvil; selector compacto reemplaza lista larga de pasos; lint/build pasan
 ✅ Reentrada 2026-05-04: primer pase de admin móvil aplicado en shell, navegación, cards, formularios y botones; lint/build pasan
@@ -41,7 +42,7 @@
 
 ## Bloque actual
 
-🟨 En curso: validar admin móvil en celular real, especialmente wizard/galería/formularios
+🟨 En curso: validar admin/login/landing en móvil real y ajustar percepción visual
 
 ## Siguiente bloque
 
