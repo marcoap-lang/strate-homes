@@ -102,6 +102,37 @@ function getPhotoCoverage(property: PropertyRecord) {
   return getPhotoCoverageFromDraft(property.property_images ?? []);
 }
 
+function getPublicationScore(property: PropertyRecord) {
+  const photos = property.property_images?.length ?? 0;
+  const hasCover = property.property_images?.some((image) => image.is_cover) ?? false;
+  const hasDescription = (property.description?.trim().length ?? 0) >= 120;
+  const hasLocation = Boolean(property.location_label?.trim() && (property.city || property.neighborhood));
+  const hasPrice = Boolean(property.price_amount);
+  const hasSpecs = Boolean(property.bedrooms || property.bathrooms || property.construction_area_m2 || property.lot_area_m2);
+  const hasAgent = Boolean(property.agent_id);
+  const isPublished = property.status === "active";
+
+  const checks = [
+    { label: "Publicada", done: isPublished, points: 15 },
+    { label: "Portada", done: hasCover, points: 15 },
+    { label: "5+ fotos", done: photos >= 5, points: 20 },
+    { label: "Descripción sólida", done: hasDescription, points: 15 },
+    { label: "Ubicación clara", done: hasLocation, points: 10 },
+    { label: "Precio", done: hasPrice, points: 10 },
+    { label: "Specs", done: hasSpecs, points: 10 },
+    { label: "Asesor", done: hasAgent, points: 5 },
+  ];
+
+  const score = checks.reduce((total, check) => total + (check.done ? check.points : 0), 0);
+  const missing = checks.filter((check) => !check.done).map((check) => check.label);
+
+  return {
+    score,
+    missing,
+    label: score >= 85 ? "Lista para compartir" : score >= 65 ? "Buen avance" : "Necesita pulido",
+  };
+}
+
 function formatImagePublicUrl(path: string) {
   const supabase = createSupabaseBrowserClient();
   const { data } = supabase.storage.from("property-images").getPublicUrl(path);
@@ -1578,6 +1609,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
         {properties.length ? (
           properties.map((property) => {
             const coverage = getPhotoCoverage(property);
+            const publicationScore = getPublicationScore(property);
             const interestedCount = property.lead_interests?.length ?? 0;
             const coverImage = property.property_images.find((image) => image.is_cover) ?? property.property_images[0] ?? null;
             const specsInline = [
@@ -1612,7 +1644,22 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
                     <p>Cobertura visual: {coverage.completion}%</p>
+                    <p>Score publicación: {publicationScore.score}%</p>
                     <p>{interestedCount} interesados</p>
+                  </div>
+                  <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-xs font-medium uppercase tracking-[0.18em] text-slate-500">{publicationScore.label}</p>
+                      <p className="text-lg font-semibold text-slate-950">{publicationScore.score}%</p>
+                    </div>
+                    <div className="mt-3 h-2 overflow-hidden rounded-full bg-white">
+                      <div className="h-full rounded-full bg-[#d7ab5b]" style={{ width: `${publicationScore.score}%` }} />
+                    </div>
+                    {publicationScore.missing.length ? (
+                      <p className="mt-3 text-xs leading-5 text-slate-500">Siguiente: {publicationScore.missing.slice(0, 3).join(", ")}</p>
+                    ) : (
+                      <p className="mt-3 text-xs leading-5 text-emerald-700">Ficha lista para compartirse con confianza.</p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
                     <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[#c99a46] sm:py-2">
@@ -1702,6 +1749,7 @@ export function AdminPropertyInterestedView({ property }: { property: PropertyRe
 export function AdminPropertyEditView({ property, agents }: { property: PropertyRecord; agents: AgentOption[] }) {
   const { activeWorkspace } = useActiveWorkspace();
   const coverage = getPhotoCoverage(property);
+  const publicationScore = getPublicationScore(property);
 
   return (
     <div className="space-y-6">
@@ -1738,6 +1786,26 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
           <p className="mt-3 text-2xl font-semibold text-stone-950">{coverage.completion}%</p>
         </SectionCard>
       </div>
+
+      <SectionCard>
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Score de publicación</p>
+            <h2 className="mt-2 text-2xl font-semibold text-stone-950">{publicationScore.score}% · {publicationScore.label}</h2>
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              Lectura rápida de qué tan lista está esta ficha para compartirse públicamente.
+            </p>
+          </div>
+          <div className="min-w-48 rounded-2xl border border-stone-100 bg-stone-50 p-4">
+            <div className="h-2 overflow-hidden rounded-full bg-white">
+              <div className="h-full rounded-full bg-[#d7ab5b]" style={{ width: `${publicationScore.score}%` }} />
+            </div>
+            <p className="mt-3 text-xs leading-5 text-stone-500">
+              {publicationScore.missing.length ? `Siguiente: ${publicationScore.missing.slice(0, 4).join(", ")}` : "Ficha lista para compartir."}
+            </p>
+          </div>
+        </div>
+      </SectionCard>
 
       <PropertyForm mode="edit" property={property} agents={agents} activeRole={activeWorkspace?.role} ownAgentId={property.agent_id ?? null} />
 
