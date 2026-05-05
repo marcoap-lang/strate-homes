@@ -102,7 +102,7 @@ export function AdminAccessClient() {
 
   if (isLoading || workspaceLoading) {
     return (
-      <div className="rounded-[2rem] border border-stone-200 bg-white/80 p-8 text-sm text-stone-500 shadow-sm shadow-stone-200/50">
+      <div className="rounded-[1.5rem] border border-stone-200 bg-white/80 p-4 sm:rounded-[2rem] sm:p-8 text-sm text-stone-500 shadow-sm shadow-stone-200/50">
         Preparando tu acceso a Strate Homes...
       </div>
     );
@@ -184,7 +184,7 @@ export function AdminAccessClient() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60"
+                  className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60"
                 >
                   {isSubmitting ? "Entrando..." : mode === "login" ? "Entrar al admin" : "Crear cuenta"}
                 </button>
@@ -208,7 +208,7 @@ export function AdminAccessClient() {
           </div>
         </div>
 
-        <div className="rounded-[2rem] border border-stone-200 bg-white/75 p-8 shadow-sm shadow-stone-200/50">
+        <div className="rounded-[1.5rem] border border-stone-200 bg-white/75 p-4 sm:rounded-[2rem] sm:p-8 shadow-sm shadow-stone-200/50">
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Cómo funciona</p>
           <h4 className="mt-3 text-2xl font-semibold text-stone-950">Tu acceso en tres pasos</h4>
           <ol className="mt-6 space-y-4 text-sm leading-7 text-stone-600">
@@ -227,7 +227,7 @@ export function AdminAccessClient() {
   if (!activeWorkspace?.workspaceId) {
     return (
       <div className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
-        <div className="rounded-[2rem] border border-stone-200 bg-gradient-to-br from-white via-amber-50 to-stone-50 p-8 shadow-[0_30px_80px_rgba(120,113,108,0.12)]">
+        <div className="rounded-[1.5rem] border border-stone-200 bg-gradient-to-br from-white via-amber-50 to-stone-50 p-4 sm:rounded-[2rem] sm:p-8 shadow-[0_30px_80px_rgba(120,113,108,0.12)]">
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Primer acceso</p>
           <h3 className="mt-3 text-3xl font-semibold text-stone-950">Activa tu espacio de trabajo</h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
@@ -262,7 +262,7 @@ export function AdminAccessClient() {
             ) : null}
 
             <div className="flex flex-wrap gap-3">
-              <button disabled={bootstrapPending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+              <button disabled={bootstrapPending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
                 {bootstrapPending ? "Preparando tu espacio..." : "Crear espacio y continuar"}
               </button>
               <button type="button" onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">
@@ -272,7 +272,7 @@ export function AdminAccessClient() {
           </form>
         </div>
 
-        <div className="rounded-[2rem] border border-stone-200 bg-white/80 p-8 shadow-sm shadow-stone-200/50">
+        <div className="rounded-[1.5rem] border border-stone-200 bg-white/80 p-4 sm:rounded-[2rem] sm:p-8 shadow-sm shadow-stone-200/50">
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Lo que obtienes</p>
           <h4 className="mt-3 text-2xl font-semibold text-stone-950">Tu base operativa desde el primer día</h4>
           <ul className="mt-6 space-y-3 text-sm leading-7 text-stone-600">
@@ -290,7 +290,7 @@ export function AdminAccessClient() {
   }
 
   return (
-    <div className="rounded-[2rem] border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-8 text-sm leading-7 text-emerald-800 shadow-sm shadow-emerald-100">
+    <div className="rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-4 sm:rounded-[2rem] sm:p-8 text-sm leading-7 text-emerald-800 shadow-sm shadow-emerald-100">
       <p className="text-xs uppercase tracking-[0.24em] text-emerald-700/70">Acceso listo</p>
       <h3 className="mt-3 text-2xl font-semibold text-stone-950">Tu espacio ya está operativo</h3>
       <p className="mt-4 text-stone-700">

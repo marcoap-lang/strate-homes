@@ -57,6 +57,68 @@ export type PublicPropertyFilters = {
   bedrooms?: string | null;
 };
 
+type PublicAgentRecord = {
+  id: string;
+  slug?: string | null;
+  display_name: string;
+  title?: string | null;
+  bio?: string | null;
+  phone?: string | null;
+  whatsapp?: string | null;
+  avatar_url?: string | null;
+  is_public?: boolean | null;
+  is_active?: boolean | null;
+};
+
+type PublicWorkspaceRecord = {
+  slug?: string | null;
+  name?: string | null;
+  brand_name?: string | null;
+};
+
+type PublicPropertyImageRecord = {
+  id: string;
+  storage_path: string;
+  alt_text?: string | null;
+  sort_order: number;
+  is_cover: boolean;
+};
+
+type PublicPropertyRecord = {
+  id: string;
+  slug: string;
+  title: string;
+  workspace_id?: string | null;
+  location_label: string;
+  city?: string | null;
+  state?: string | null;
+  operation_type: string;
+  status: string;
+  currency_code: string;
+  price_amount?: number | null;
+  description?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  property_type?: string | null;
+  construction_area_m2?: number | null;
+  neighborhood?: string | null;
+  public_code?: string | null;
+  property_images?: PublicPropertyImageRecord[] | null;
+  agents?: PublicAgentRecord | PublicAgentRecord[] | null;
+  workspaces?: PublicWorkspaceRecord | PublicWorkspaceRecord[] | null;
+  workspace_contact_agents?: { agents?: PublicAgentRecord | PublicAgentRecord[] | null } | Array<{ agents?: PublicAgentRecord | PublicAgentRecord[] | null }> | null;
+};
+
+type FilterableQuery = {
+  lt(column: string, value: number): FilterableQuery;
+  gte(column: string, value: number): FilterableQuery;
+};
+
+function firstJoined<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
+
 const demoImageCatalog: Record<string, string> = {
   fachada: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=80",
   portada: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80",
@@ -87,26 +149,24 @@ function buildStorageUrl(path: string) {
   return `${baseUrl}/storage/v1/object/public/property-images/${path}`;
 }
 
-function extractWorkspaceContactAgent(record: any) {
-  const workspaceJoin = Array.isArray(record.workspace_contact_agents)
-    ? record.workspace_contact_agents[0]
-    : record.workspace_contact_agents;
+function extractWorkspaceContactAgent(record: PublicPropertyRecord) {
+  const workspaceJoin = firstJoined(record.workspace_contact_agents);
   const nestedAgents = workspaceJoin?.agents;
   const agents = Array.isArray(nestedAgents) ? nestedAgents : nestedAgents ? [nestedAgents] : [];
 
   return (
-    agents.find((agent: any) => agent?.is_public && agent?.is_active && (agent?.whatsapp || agent?.phone)) ?? null
+    agents.find((agent) => agent?.is_public && agent?.is_active && (agent?.whatsapp || agent?.phone)) ?? null
   );
 }
 
-function mapPublicProperty(record: any): PublicProperty {
+function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
   const images = (record.property_images ?? [])
     .slice()
-    .sort((a: any, b: any) => {
+    .sort((a, b) => {
       if (a.is_cover === b.is_cover) return a.sort_order - b.sort_order;
       return a.is_cover ? -1 : 1;
     })
-    .map((image: any) => ({
+    .map((image) => ({
       id: image.id,
       url: buildStorageUrl(image.storage_path),
       altText: image.alt_text ?? null,
@@ -115,8 +175,8 @@ function mapPublicProperty(record: any): PublicProperty {
     }));
 
   const coverImage = images.find((image: { isCover: boolean }) => image.isCover) ?? images[0] ?? null;
-  const agent = Array.isArray(record.agents) ? record.agents[0] : record.agents;
-  const workspace = Array.isArray(record.workspaces) ? record.workspaces[0] : record.workspaces;
+  const agent = firstJoined(record.agents);
+  const workspace = firstJoined(record.workspaces);
   const workspaceContactAgent = extractWorkspaceContactAgent(record);
 
   return {
@@ -166,7 +226,7 @@ function mapPublicProperty(record: any): PublicProperty {
   };
 }
 
-function applyPriceFilter(query: any, price: string | null | undefined) {
+function applyPriceFilter<T extends FilterableQuery>(query: T, price: string | null | undefined): T | FilterableQuery {
   if (!price) return query;
   if (price === "under-1m") return query.lt("price_amount", 1000000);
   if (price === "1m-3m") return query.gte("price_amount", 1000000).lt("price_amount", 3000000);
@@ -174,7 +234,7 @@ function applyPriceFilter(query: any, price: string | null | undefined) {
   return query;
 }
 
-function applyBedroomsFilter(query: any, bedrooms: string | null | undefined) {
+function applyBedroomsFilter<T extends FilterableQuery>(query: T, bedrooms: string | null | undefined): T | FilterableQuery {
   if (!bedrooms) return query;
   const parsed = Number.parseInt(bedrooms, 10);
   if (Number.isNaN(parsed)) return query;
@@ -249,13 +309,13 @@ export async function getPublicProperties(filters: PublicPropertyFilters = {}) {
   if (filters.operation) query = query.eq("operation_type", filters.operation);
   if (filters.type) query = query.eq("property_type", filters.type);
   if (filters.location) query = query.or(`city.ilike.%${filters.location}%,state.ilike.%${filters.location}%,location_label.ilike.%${filters.location}%`);
-  query = applyPriceFilter(query, filters.price);
-  query = applyBedroomsFilter(query, filters.bedrooms);
+  query = applyPriceFilter(query, filters.price) as typeof query;
+  query = applyBedroomsFilter(query, filters.bedrooms) as typeof query;
 
   const { data, error } = await query.order("is_featured", { ascending: false }).order("published_at", { ascending: false });
 
   if (error) throw error;
-  return (data ?? []).map(mapPublicProperty);
+  return ((data ?? []) as PublicPropertyRecord[]).map(mapPublicProperty);
 }
 
 export async function getPublicPropertyBySlug(slug: string, workspaceSlug?: string | null) {
@@ -273,5 +333,5 @@ export async function getPublicPropertyBySlug(slug: string, workspaceSlug?: stri
 
   if (error) throw error;
   if (!data) return null;
-  return mapPublicProperty(data);
+  return mapPublicProperty(data as PublicPropertyRecord);
 }

@@ -24,6 +24,15 @@ const publicNavItems = [
   { label: "Asesores públicos", href: "/admin/public/agents" },
 ];
 
+function getNavClasses(isActive: boolean, compact = false) {
+  const size = compact ? "shrink-0 px-4 py-2.5 text-sm" : "px-4 py-3 text-sm";
+  const state = isActive
+    ? "border-[#d7ab5b]/40 bg-[#fff8ec] text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
+    : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/70";
+
+  return `flex items-center justify-center rounded-full border font-medium transition ${size} ${state}`;
+}
+
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { user } = useSupabaseAuth();
@@ -35,10 +44,43 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
     window.location.href = "/admin";
   }
 
+  const workspaceLabel = activeWorkspace?.workspaceName ?? activeWorkspace?.workspaceSlug ?? activeWorkspace?.workspaceId ?? "Pendiente";
+
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f7fbff_0%,#eef6ff_100%)] text-slate-950">
-      <div className="mx-auto grid max-w-7xl gap-6 px-5 py-6 lg:grid-cols-[290px_1fr] lg:px-8 lg:py-8">
-        <aside className="rounded-[2.2rem] border border-slate-200 bg-white/92 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur">
+      <div className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/95 px-3 py-3 shadow-sm backdrop-blur lg:hidden">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500">Strate Homes</p>
+            <h1 className="truncate text-lg font-semibold text-slate-950">Admin</h1>
+            <p className="truncate text-xs text-slate-500">{workspaceLabel}</p>
+          </div>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="shrink-0 rounded-full bg-[#d7ab5b] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[#c99a46]"
+          >
+            Salir
+          </button>
+        </div>
+
+        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+          {primaryNavItems.map((item) => {
+            const isActive = item.href === "/admin" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+            return (
+              <Link key={item.label} href={item.href} className={getNavClasses(isActive, true)}>
+                {item.label}
+              </Link>
+            );
+          })}
+          <Link href="/admin/public" className={getNavClasses(pathname.startsWith("/admin/public"), true)}>
+            Público
+          </Link>
+        </nav>
+      </div>
+
+      <div className="mx-auto grid max-w-7xl gap-4 px-3 py-4 sm:px-5 sm:py-6 lg:grid-cols-[290px_1fr] lg:gap-6 lg:px-8 lg:py-8">
+        <aside className="hidden rounded-[2.2rem] border border-slate-200 bg-white/92 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur lg:block">
           <div>
             <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Strate Homes</p>
             <h1 className="mt-3 text-2xl font-semibold text-slate-950">Admin</h1>
@@ -49,23 +91,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
           <div className="mt-6 rounded-[1.8rem] border border-slate-200 bg-sky-50/70 p-4">
             <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Workspace activo</p>
-            <p className="mt-2 text-lg font-semibold text-slate-950">
-              {activeWorkspace?.workspaceName ?? activeWorkspace?.workspaceSlug ?? activeWorkspace?.workspaceId ?? "Pendiente"}
-            </p>
-            <p className="mt-2 text-sm text-slate-600">
+            <p className="mt-2 text-lg font-semibold text-slate-950">{workspaceLabel}</p>
+            <p className="mt-2 break-words text-sm text-slate-600">
               {user?.email ? `Sesión: ${user.email}` : "Inicia sesión para operar tu admin."}
             </p>
-
           </div>
 
           <nav className="mt-8 space-y-2">
             {primaryNavItems.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-              const classes = `flex items-center justify-between rounded-[1.4rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/30 bg-[#fff8ec] text-slate-950 shadow-[0_12px_30px_rgba(15,23,42,0.08)]" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
-
+              const isActive = item.href === "/admin" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
               return (
-                <Link key={item.label} href={item.href} className={classes}>
-                  <p className="text-sm font-medium">{item.label}</p>
+                <Link key={item.label} href={item.href} className={getNavClasses(isActive)}>
+                  {item.label}
                 </Link>
               );
             })}
@@ -76,16 +113,15 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <div className="mt-3 space-y-2">
               {publicNavItems.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                const classes = `flex items-center justify-between rounded-[1.2rem] border px-4 py-3 transition ${isActive ? "border-[#d7ab5b]/30 bg-[#fff8ec] text-slate-950" : "border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50/60"}`;
                 const href = item.label === "Ver sitio público" ? (activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()) : item.href;
                 const external = item.label === "Ver sitio público";
                 return external ? (
-                  <a key={item.label} href={href} target="_blank" rel="noopener noreferrer" className={classes}>
-                    <p className="text-sm font-medium">{item.label}</p>
+                  <a key={item.label} href={href} target="_blank" rel="noopener noreferrer" className={getNavClasses(isActive)}>
+                    {item.label}
                   </a>
                 ) : (
-                  <Link key={item.label} href={href} className={classes}>
-                    <p className="text-sm font-medium">{item.label}</p>
+                  <Link key={item.label} href={href} className={getNavClasses(isActive)}>
+                    {item.label}
                   </Link>
                 );
               })}
@@ -103,21 +139,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
         </aside>
 
-        <section className="rounded-[2.2rem] border border-slate-200 bg-white/92 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)] backdrop-blur lg:p-8">
-          <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-200 pb-6">
-            <div>
-              <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Panel principal</p>
-              <h2 className="mt-3 text-3xl font-semibold text-slate-950">Operación inmobiliaria más clara</h2>
-              <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-                Administra propiedades, revisa la cobertura visual de cada publicación y mantén tu operación con una experiencia más limpia, profesional y navegable.
+        <section className="rounded-[1.5rem] border border-slate-200 bg-white/94 p-4 shadow-[0_18px_45px_rgba(15,23,42,0.07)] backdrop-blur sm:rounded-[2rem] sm:p-6 lg:rounded-[2.2rem] lg:p-8 lg:shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+          <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-200 pb-4 sm:gap-4 sm:pb-6">
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-[0.24em] text-slate-500 sm:text-xs sm:tracking-[0.3em]">Panel principal</p>
+              <h2 className="mt-2 text-2xl font-semibold leading-tight text-slate-950 sm:mt-3 sm:text-3xl">Operación inmobiliaria</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600 sm:mt-3 sm:leading-7">
+                Administra propiedades, leads, equipo y presencia pública desde un panel más claro.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
               <AuthStatusBadge />
               <WorkspaceStatusBadge />
             </div>
           </div>
-          <div className="mt-8">{children}</div>
+          <div className="mt-5 sm:mt-8">{children}</div>
         </section>
       </div>
     </div>

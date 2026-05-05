@@ -35,7 +35,7 @@ function NewAgentForm() {
         <button
           type="button"
           onClick={() => setOpen((value) => !value)}
-          className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]"
+          className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46]"
         >
           {open ? "Cerrar" : "Nuevo asesor"}
         </button>
@@ -50,7 +50,7 @@ function NewAgentForm() {
                 name="accessType"
                 value={accessType}
                 onChange={(event) => setAccessType(event.target.value === "with-access" ? "with-access" : "public-only")}
-                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
+                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950"
               >
                 <option value="public-only">Solo perfil público</option>
                 <option value="with-access">Invitar con acceso</option>
@@ -59,42 +59,42 @@ function NewAgentForm() {
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre público</span>
-              <input name="displayName" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="displayName" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Slug</span>
-              <input name="slug" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="slug" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Especialidad</span>
-              <input name="title" placeholder="Ej. Residencial premium en zona norte" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="title" placeholder="Ej. Residencial premium en zona norte" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700 md:col-span-2">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio corta</span>
-              <textarea name="bio" rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <textarea name="bio" rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Correo</span>
-              <input name="email" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="email" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Teléfono</span>
-              <input name="phone" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="phone" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">WhatsApp</span>
-              <input name="whatsapp" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="whatsapp" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Foto</span>
-              <input name="avatarUrl" placeholder="https://..." className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="avatarUrl" placeholder="https://..." className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
           </div>
 
@@ -109,7 +109,7 @@ function NewAgentForm() {
             </p>
           ) : null}
 
-          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : accessType === "with-access" ? "Crear asesor con acceso básico" : "Crear asesor"}
           </button>
         </form>
@@ -149,32 +149,32 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre público</span>
-              <input name="displayName" defaultValue={profile?.display_name ?? member.full_name ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="displayName" defaultValue={profile?.display_name ?? member.full_name ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Slug</span>
-              <input name="slug" defaultValue={profile?.slug ?? member.full_name ?? member.email ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="slug" defaultValue={profile?.slug ?? member.full_name ?? member.email ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Especialidad</span>
-              <input name="title" defaultValue={profile?.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="title" defaultValue={profile?.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Correo comercial</span>
-              <input name="email" defaultValue={profile?.email ?? member.email ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="email" defaultValue={profile?.email ?? member.email ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Teléfono</span>
-              <input name="phone" defaultValue={profile?.phone ?? member.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="phone" defaultValue={profile?.phone ?? member.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">WhatsApp</span>
-              <input name="whatsapp" defaultValue={profile?.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="whatsapp" defaultValue={profile?.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
 
           </div>
@@ -189,7 +189,7 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
 
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio</span>
-            <textarea name="bio" rows={4} defaultValue={profile?.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            <textarea name="bio" rows={4} defaultValue={profile?.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
           </label>
 
           <label className="inline-flex items-center gap-3 text-sm text-stone-700">
@@ -203,7 +203,7 @@ function AgentProfileEditor({ member }: { member: TeamMemberRecord }) {
             </p>
           ) : null}
 
-          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : profile ? "Guardar asesor" : "Activar asesor"}
           </button>
         </form>
@@ -218,7 +218,7 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
 
   return (
-    <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+    <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-lg font-semibold text-stone-950">{agent.display_name}</p>
@@ -238,23 +238,23 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
           <div className="grid gap-4 md:grid-cols-2">
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre público</span>
-              <input name="displayName" defaultValue={agent.display_name} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="displayName" defaultValue={agent.display_name} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Slug</span>
-              <input name="slug" defaultValue={agent.slug} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="slug" defaultValue={agent.slug} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Especialidad</span>
-              <input name="title" defaultValue={agent.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="title" defaultValue={agent.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Teléfono</span>
-              <input name="phone" defaultValue={agent.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="phone" defaultValue={agent.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">WhatsApp</span>
-              <input name="whatsapp" defaultValue={agent.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="whatsapp" defaultValue={agent.whatsapp ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
           </div>
           <AgentAvatarUploadField
@@ -266,14 +266,14 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
           />
           <label className="space-y-2 text-sm text-stone-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Bio corta</span>
-            <textarea name="bio" rows={4} defaultValue={agent.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            <textarea name="bio" rows={4} defaultValue={agent.bio ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
           </label>
           <label className="inline-flex items-center gap-3 text-sm text-stone-700">
             <input type="checkbox" name="isPublic" defaultChecked={agent.is_public} className="size-4 rounded border-stone-300 bg-white" />
             Mostrar asesor públicamente
           </label>
           {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
-          <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+          <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {pending ? "Guardando..." : "Guardar asesor"}
           </button>
         </form>
@@ -309,20 +309,20 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
     <div className="space-y-6">
       <NewAgentForm />
 
-      <div className="grid gap-4 md:grid-cols-4">
-        <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
+        <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
           <p className="text-sm text-stone-500">Miembros activos</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.length}</p>
         </div>
-        <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+        <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
           <p className="text-sm text-stone-500">Con asesor activo</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.filter((member) => member.agent_profile).length}</p>
         </div>
-        <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+        <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
           <p className="text-sm text-stone-500">Solo operación interna</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.filter((member) => !member.agent_profile).length}</p>
         </div>
-        <div className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+        <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
           <p className="text-sm text-stone-500">Asesores sin acceso</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{standaloneAgents.length}</p>
         </div>
@@ -330,7 +330,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
 
       <div className="space-y-4">
         {teamMembers.map((member) => (
-          <div key={member.membership_id} className="rounded-[1.5rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/30">
+          <div key={member.membership_id} className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="flex items-start gap-4">
                 <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-stone-100 text-lg font-semibold text-stone-600">

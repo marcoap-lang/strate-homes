@@ -361,14 +361,14 @@ function Field({
         defaultValue={defaultValue ?? ""}
         required={required}
         placeholder={placeholder}
-        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400"
+        className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm"
       />
     </label>
   );
 }
 
 function SectionCard({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`rounded-[1.75rem] border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40 ${className}`}>{children}</div>;
+  return <div className={`rounded-[1.35rem] border border-stone-200 bg-white p-4 shadow-sm sm:rounded-[1.75rem] sm:p-5 shadow-stone-200/40 ${className}`}>{children}</div>;
 }
 
 function PropertiesHeader({
@@ -381,13 +381,13 @@ function PropertiesHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-start justify-between gap-4">
+    <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
       <div>
         <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Propiedades</p>
-        <h3 className="mt-2 text-2xl font-semibold text-stone-950">{title}</h3>
+        <h3 className="mt-2 text-xl font-semibold leading-tight text-stone-950 sm:text-2xl">{title}</h3>
         <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-600">{description}</p>
       </div>
-      {action}
+      {action ? <div className="w-full sm:w-auto [&_a]:flex [&_a]:w-full [&_a]:justify-center sm:[&_a]:w-auto">{action}</div> : null}
     </div>
   );
 }
@@ -781,7 +781,7 @@ function PropertyForm({
             </div>
             <label className="mt-4 block space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Otras características</span>
-              <input name="extraFeatures" defaultValue={reviewExtraFeatures} placeholder="Ej. doble altura, pet friendly, vista panorámica" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+              <input name="extraFeatures" defaultValue={reviewExtraFeatures} placeholder="Ej. doble altura, pet friendly, vista panorámica" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
             </label>
           </SectionCard>
         </div>
@@ -891,11 +891,11 @@ function PropertyForm({
               <p className="mt-2 text-sm leading-6 text-stone-600">Puedes usar la propuesta sugerida tal como está o editarla para adaptarla a tu estilo comercial.</p>
               <label className="mt-4 block space-y-2 text-sm text-stone-700">
                 <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
-                <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+                <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
               </label>
               <label className="mt-4 block space-y-2 text-sm text-stone-700">
                 <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión corta para WhatsApp / redes</span>
-                <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+                <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
               </label>
               <div className="mt-4 flex flex-wrap gap-3">
                 <button type="button" onClick={() => { setDescriptionValue(suggestedDescription); setShortDescriptionValue(suggestedShortDescription); setDescriptionEditedManually(false); }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
@@ -1054,7 +1054,7 @@ function PropertyForm({
       ) : null}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <button type="button" onClick={(event) => { const nextStep = Math.max(0, currentStep - 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
             Anterior
           </button>
@@ -1062,7 +1062,7 @@ function PropertyForm({
             Siguiente
           </button>
         </div>
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
           <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {isFormSaving ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
@@ -1072,11 +1072,11 @@ function PropertyForm({
             </button>
           ) : null}
           {property?.id && property.status === "active" ? (
-            <a href={buildPublicPropertyUrl(property.slug)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            <a href={buildPublicPropertyUrl(property.slug)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Ver pública
             </a>
           ) : null}
-          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado
           </Link>
         </div>
@@ -1091,7 +1091,7 @@ function PropertyLeadInterestsManager({ property }: { property: PropertyRecord }
 
   return (
     <SectionCard className="scroll-mt-28">
-      <div id="interesados" className="flex flex-wrap items-start justify-between gap-4">
+      <div id="interesados" className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <p className="text-sm font-semibold text-stone-900">Interesados en esta propiedad</p>
           <p className="mt-2 text-sm text-stone-600">Seguimiento básico para saber quién se interesó y agregar contactos manuales asociados a esta propiedad.</p>
@@ -1131,7 +1131,7 @@ function PropertyLeadInterestsManager({ property }: { property: PropertyRecord }
           <input name="phone" placeholder="Teléfono" className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
           <input name="email" placeholder="Email (opcional)" className="rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400 md:col-span-2" />
         </div>
-        <textarea name="message" rows={3} placeholder="Mensaje o nota inicial" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+        <textarea name="message" rows={3} placeholder="Mensaje o nota inicial" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
         {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
         <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">{pending ? "Guardando..." : "Agregar interesado"}</button>
       </form>
@@ -1336,7 +1336,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
   return (
     <SectionCard>
-      <div className="flex flex-wrap items-start justify-between gap-4">
+      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos de la propiedad</p>
           <h3 className="mt-2 text-xl font-semibold text-stone-950">Galería visual</h3>
@@ -1412,7 +1412,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
                     value={image.alt_text}
                     onChange={(event) => handleAltTextChange(index, event.target.value)}
                     placeholder="Ej. Fachada principal"
-                    className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 outline-none transition focus:border-stone-400"
+                    className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm"
                   />
                 </label>
                 <p className="text-xs text-stone-500">Orden visual: {index + 1}{image.fileSizeLabel ? ` · ${image.fileSizeLabel}` : ""}</p>
@@ -1464,7 +1464,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <SectionCard>
           <p className="text-sm text-stone-500">Workspace activo</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{workspaceName ?? "Sin workspace"}</p>
@@ -1483,7 +1483,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
         </SectionCard>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {properties.length ? (
           properties.map((property) => {
             const coverage = getPhotoCoverage(property);
@@ -1496,8 +1496,8 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
             ].filter(Boolean).join(" · ");
 
             return (
-              <article key={property.id} className="overflow-hidden rounded-[2rem] border border-slate-200 bg-white shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-                <div className="relative h-64 bg-sky-50">
+              <article key={property.id} className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+                <div className="relative h-48 bg-sky-50 sm:h-64">
                   {coverImage ? <Image src={formatImagePublicUrl(coverImage.storage_path)} alt={coverImage.alt_text ?? property.title} fill className="object-cover" unoptimized /> : null}
                   <div className="absolute left-4 top-4 flex items-center gap-2">
                     <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${property.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
@@ -1505,10 +1505,10 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                     </span>
                   </div>
                 </div>
-                <div className="space-y-4 p-5">
+                <div className="space-y-4 p-4 sm:p-5">
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{property.operation_type}</p>
-                    <Link href={`/admin/properties/${property.id}`} className="mt-2 block text-2xl font-semibold text-slate-950 transition hover:text-slate-700">
+                    <Link href={`/admin/properties/${property.id}`} className="mt-2 block text-xl font-semibold leading-tight text-slate-950 transition hover:text-slate-700 sm:text-2xl">
                       {property.title}
                     </Link>
                     <p className="mt-2 text-sm leading-7 text-slate-600">
@@ -1523,14 +1523,14 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                     <p>Cobertura visual: {coverage.completion}%</p>
                     <p>{interestedCount} interesados</p>
                   </div>
-                  <div className="flex flex-wrap gap-3">
-                    <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-2 text-sm font-medium text-white transition hover:bg-[#c99a46]">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+                    <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[#c99a46] sm:py-2">
                       Editar
                     </Link>
-                    <Link href={`/admin/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <Link href={`/admin/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
                       Ver interesados
                     </Link>
-                    <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                    <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
                       Ver pública
                     </a>
                   </div>
@@ -1556,7 +1556,7 @@ export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">)
         title="Agregar propiedad"
         description="Crea una nueva propiedad en una vista enfocada y sin mezclarla con el inventario existente."
         action={
-          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado
           </Link>
         }
@@ -1573,18 +1573,18 @@ export function AdminPropertyInterestedView({ property }: { property: PropertyRe
         title={`Interesados · ${property.title}`}
         description="Gestiona aquí el seguimiento comercial de esta propiedad sin mezclarlo con la edición de ficha."
         action={
-          <div className="flex flex-wrap gap-3">
-            <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+            <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver a edición
             </Link>
-            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver al listado
             </Link>
           </div>
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <SectionCard>
           <p className="text-sm text-stone-500">Interesados</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{property.lead_interests?.length ?? 0}</p>
@@ -1618,8 +1618,8 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
         title={property.title}
         description="Edita la propiedad en una vista separada, con su información comercial y su galería visual en el mismo contexto de trabajo."
         action={
-          <div className="flex flex-wrap gap-3">
-            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver al listado
             </Link>
             <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
@@ -1629,7 +1629,7 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <SectionCard>
           <p className="text-sm text-stone-500">Estatus</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{property.status}</p>

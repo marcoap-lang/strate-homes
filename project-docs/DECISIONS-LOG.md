@@ -432,3 +432,19 @@ El modelo remoto exige integridad entre `public.profiles.id` y `auth.users.id`. 
 - se añade un seed remoto separado (`supabase/seed-remote.sql`) orientado al entorno hospedado
 - el showroom demo remoto queda materializable sin crear usuarios fake en Auth
 - el número de agentes/memberships visibles depende de cuántos perfiles reales activos existan en el sistema
+
+---
+
+## 2026-05-04
+
+### Decisión
+Reclasificar `property_tours` como idea/borrador técnico no desarrollado, no como módulo actual del producto.
+
+### Motivo
+Marco aclaró que property tours todavía no estaba desarrollado. Aunque existe una migración local y algunas referencias técnicas, no debe confundirse preparación exploratoria con funcionalidad real ni prioridad inmediata.
+
+### Consecuencias
+- `supabase/migrations/20260428153000_property_tours.sql` queda como borrador local no versionado/no aplicado oficialmente.
+- No aplicar esta migración a remoto hasta rediseñar y confirmar el alcance comercial del módulo.
+- Los pendientes inmediatos deben priorizar admin móvil, validaciones públicas, login/admin/CRUD y subida de fotos.
+- Property tours pasa a prioridad baja/futura: diseñarlo desde cero solo si confirma valor comercial.

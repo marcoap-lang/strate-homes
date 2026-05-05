@@ -2,11 +2,14 @@
 
 ## Estado general
 
-**Avance estimado:** 96%  
-**Enfoque actual:** pasar de base técnica + landing a sistema operativo real
+**Avance estimado:** 97%  
+**Enfoque actual:** cerrar coherencia documental + validación final de producción antes de ampliar CRM
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-04: primer pase de admin móvil aplicado en shell, navegación, cards, formularios y botones; lint/build pasan
+✅ Reentrada 2026-05-04: documentación reconciliada con leads y branding público; lint/build pasan sin warnings; property tours reclasificado como borrador no desarrollado
+✅ Reentrada 2026-04-29: lint quedó sin errores y build validado después de tipar leads/branding/propiedades públicas y limpiar warnings críticos
 ✅ Registro/login real + onboarding inicial
 ✅ Bootstrap seguro del primer workspace vía RPC sin relajar RLS
 ✅ Refinamiento UX de acceso, onboarding y experiencia inicial del admin
@@ -36,11 +39,11 @@
 
 ## Bloque actual
 
-🟨 En curso: validación final de links públicos canónicos + selector explícito de workspace activo
+🟨 En curso: validar admin móvil en celular real y ajustar fricciones restantes
 
 ## Siguiente bloque
 
-⬜ Validación manual en incógnito de links públicos canónicos + pulido posterior del uploader visual
+⬜ Validación manual en celular real + links públicos canónicos en incógnito
 
 ---
 
@@ -83,8 +86,9 @@
 - ✅ properties
 - ✅ created_by en properties
 - ✅ property_images
-- ⬜ branding/settings
-- ⬜ leads
+- ✅ branding público básico en `workspaces`
+- ✅ leads mínimos
+- ⬜ property tours no desarrollado; solo existe borrador técnico local, no aplicar a remoto todavía
 
 ### Auth y membresías
 
@@ -129,21 +133,26 @@
 - ✅ created_by formalizado en esquema
 - ✅ agent_id ratificado como agente asignado en el modelo actual
 - ⬜ Filtros admin
+- 🟨 Mejora móvil del admin: primer pase aplicado; falta validación en celular real y pulido de fricciones restantes
 
 ### Páginas públicas configurables
 - ✅ Listado/detalle público con propiedades reales activas/publicadas
 
 - ✅ Concepto definido
-- ⬜ Página pública de empresa
-- ⬜ Página pública de agente
-- ⬜ Branding configurable
+- ✅ Página pública de empresa/workspace por `/w/{workspace_slug}`
+- ✅ Página pública de agente por `/w/{workspace_slug}/agents/{agent_slug}`
+- ✅ Branding público básico editable
+- ⬜ Branding avanzado por bloques/settings
 
 ### CRM / Leads
 
-- ⬜ Captura de lead
-- ⬜ Tabla leads
-- ⬜ Estados y notas
-- ⬜ Pipeline mínimo
+- ✅ Tabla leads mínima
+- ✅ Asociación lead ↔ propiedad
+- ✅ Estado básico de lead
+- ✅ Nota interna
+- ✅ Source type inicial
+- ⬜ Property tours no desarrollado; queda como idea futura/borrador técnico
+- ⬜ Pipeline formal
 
 ### WhatsApp bot
 

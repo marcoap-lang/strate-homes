@@ -76,6 +76,10 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - Disclaimer legal ya integrado de forma discreta en la experiencia pública sin romper el diseño.
 
 ## Qué está en curso
+- Reentrada 2026-05-04: se releyeron tracker/status, se detectó que `TODO-NEXT` y `ARCHITECTURE` estaban atrasados frente al código, y se reconciliaron con leads, branding público y el borrador técnico no desarrollado de property tours. Después se corrigieron warnings de lint por `_prevState` no usado en server actions y `npm run lint` + `npm run build` pasan correctamente.
+- Corrección de alcance 2026-05-04: Marco aclaró que property tours todavía no estaba desarrollado; debe tratarse como idea/borrador técnico futuro, no como módulo actual ni prioridad inmediata.
+- Primer pase de admin móvil aplicado 2026-05-04: navegación superior sticky en mobile, sidebar solo desktop, contenedor más compacto, cards/formularios/botones más cómodos para celular y corrección de estado activo en navegación. `npm run lint` + `npm run build` pasan.
+- Existe un archivo no versionado detectado: `supabase/migrations/20260428153000_property_tours.sql`; no debe aplicarse a remoto por ahora, porque corresponde a un borrador de módulo no desarrollado.
 - mejorar la UX del selector explícito de workspace activo para usuarios multiworkspace
 - validar flujo real de login/admin sobre producción con usuario miembro final
 - comprobar con usuario real el bootstrap inicial contra remoto después del ajuste por RPC segura
@@ -95,25 +99,28 @@ Fase 1 avanzada, con acceso de producto real ya resuelto mediante registro/login
 - bucket/policies de `property-images` ya quedaron diagnosticados: el path usa prefijo por `workspaceId/propertyId/...` y las policies permiten insert/select/delete a miembros autenticados del workspace. El flujo de upload ahora conserva mensajes de error más claros en cliente si Storage rechaza la subida.
 
 ## Qué sigue inmediatamente después
-1. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
-2. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
+1. validar el admin móvil en celular real y corregir fricciones restantes de navegación, formularios, galería y acciones
+2. validar manualmente links públicos canónicos en producción/incógnito
 3. validar en producción con usuario real el flujo registro/login → habilitación inicial → CRUD
-4. extender la misma disciplina estructural a equipo y permisos administrativos finos
-5. decidir si hace falta una migración posterior para retirar por completo el rol legacy `agent` del enum operativo
-6. mejorar después la experiencia visual del perfil comercial con preview más rica y manejo de assets menos manual
-7. validar manualmente con propiedades publicadas que compartir/copiar/preview siempre usen `homes.strate.lat` en producción y no dominios preview
-8. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
-9. conectar después el CTA público con captura real de interés/contacto
-9. separar más adelante routing público por workspace/agente cuando el producto lo requiera
-10. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
-11. validar con prueba manual en entorno hospedado una subida real de foto end-to-end y, si vuelve a fallar, capturar el mensaje exacto del cliente para ajustar bucket/policies o MIME/path específico sin abrir trabajo lateral
-6. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
-7. profundizar la experiencia del módulo de propiedades ahora que ya tiene rutas separadas
-8. refinar componentes UI compartidos del admin
+4. validar con prueba manual en entorno hospedado una subida real de foto end-to-end y, si vuelve a fallar, capturar el mensaje exacto del cliente para ajustar bucket/policies o MIME/path específico sin abrir trabajo lateral
+5. aterrizar selección explícita de workspace activo cuando un usuario pertenezca a varios
+6. pulir leads como CRM ligero sin asumir property tours desarrollado
+7. pulir el uploader visual real de fotos y evaluar siguiente mejora de drag-and-drop / reorder más avanzado
+8. dejar `supabase/migrations/20260428153000_property_tours.sql` como borrador técnico futuro, sin aplicarlo a remoto hasta rediseñar/confirmar alcance
+9. extender disciplina estructural a equipo y permisos administrativos finos
+10. decidir si hace falta una migración posterior para retirar por completo el rol legacy `agent` del enum operativo
+11. mejorar después la experiencia visual del perfil comercial con preview más rica y manejo de assets menos manual
+12. profundizar la experiencia pública de propiedades ahora que ya consume inventario real
+13. conectar después el CTA público con captura real de interés/contacto
+14. separar más adelante routing público por workspace/agente cuando el producto lo requiera
+15. revisar si conviene poblar el showroom remoto con más perfiles reales activos para enriquecer el módulo Equipo sin tocar Auth
+16. decidir políticas futuras para `workspaces` y posibles lecturas públicas/controladas
+17. refinar componentes UI compartidos del admin
 
 ## Blockers actuales
 - No hay blockers técnicos críticos en este bloque.
 - Falta una UX explícita para cambiar de workspace cuando el usuario tenga varios activos.
+- El admin ya recibió un primer pase móvil, pero falta validación en celular real; si sigue doliendo, debe corregirse antes de nuevos módulos.
 - El uploader visual ya funciona con policies de Storage compatibles, pero todavía puede requerir una capa posterior de drag-and-drop más fluida y reglas extra para limpieza/consistencia de Storage.
 - Falta validar con usuario real en producción que el flujo completo de registro/login + habilitación inicial quede redondo de punta a punta, ahora ya sobre el nuevo RPC seguro.
 

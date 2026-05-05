@@ -5,7 +5,6 @@ import type { AgentOption, PropertyRecord } from "@/lib/admin-types";
 export function AdminAccessGate({
   activeWorkspace,
   properties,
-  agents,
 }: {
   activeWorkspace: {
     workspaceId: string;

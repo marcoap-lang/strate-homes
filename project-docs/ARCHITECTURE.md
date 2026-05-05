@@ -106,15 +106,18 @@ Capas:
 - visibilidad pública: páginas públicas accesibles sin login
 
 Estado actual:
-- la app ya tiene cliente base de Supabase para server/browser
-- el layout raíz hidrata sesión inicial cuando existe
-- todavía no se implementan guards completos ni RLS
+- la app ya tiene cliente base de Supabase para server/browser.
+- el layout raíz hidrata sesión inicial cuando existe.
+- registro/login con correo + contraseña ya operan como acceso principal.
+- el admin resuelve sesión, perfil, membresía y workspace activo desde Supabase.
+- existe bootstrap inicial seguro por RPC para crear workspace + owner membership cuando un usuario autenticado aún no tiene contexto operativo.
+- RLS base ya está activa para entidades principales y módulos nuevos.
 
 Siguiente capa:
-- middleware para rutas privadas
-- guards por rol
-- políticas RLS en Supabase
-- selección de workspace activo por usuario
+- UX explícita para cambiar workspace activo cuando un usuario pertenezca a varios.
+- guards/permisos más finos por módulo administrativo.
+- políticas RLS más granulares conforme crezcan CRM, branding y equipo.
+- validación manual completa del flujo hospedado con usuario real.
 
 ## Modelo inicial de datos en Supabase
 Este bloque implementa únicamente la base mínima necesaria para arrancar el inventario y la operación inicial, sin intentar resolver todavía CRM completo, membresías multiworkspace avanzadas ni automatización.
@@ -126,6 +129,10 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `agents`
 - `properties`
 - `property_images`
+- `leads`
+- `lead_property_interests`
+- `property_tours` no desarrollado; solo existe borrador técnico local, no aplicar a remoto todavía
+- `property_tour_items` pendiente de validación/versionado remoto
 
 ### Relaciones base
 - `profiles.id` referencia `auth.users.id` para mantener a Supabase Auth como fuente de identidad.
@@ -142,9 +149,11 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 
 ### Decisiones de alcance para este bloque
 - Ya existe `workspace_members` como base mínima de pertenencia multiworkspace.
-- No se crean todavía tablas de `leads`, `visits`, `notes`, `pipeline` o actividad comercial.
-- No se implementan aún políticas RLS completas; solo se deja el modelo listo para agregarlas en el siguiente bloque.
-- No se acopla todavía la UI a lecturas/escrituras reales del negocio; la app puede seguir usando mocks mientras se estabiliza el contrato de datos.
+- Ya existe CRM mínimo con `leads`, `lead_property_interests`, `internal_note` y `source_type`.
+- Ya existe personalización pública básica en `workspaces` para teléfono, WhatsApp, email, claim, bio, logo y hero.
+- Existe un borrador técnico local para `property_tours`, pero no representa un módulo desarrollado ni debe aplicarse a remoto sin rediseñar/confirmar alcance.
+- La UI ya está conectada a lecturas/escrituras reales en propiedades, equipo, branding público y leads básicos; mocks quedan solo como apoyo/fallback puntual de demo.
+- La autorización actual es suficiente para operar el bloque, pero no debe considerarse seguridad fina definitiva para todo el SaaS.
 
 ### Diseño de entidades mínimas
 #### `workspaces`
@@ -405,14 +414,15 @@ Eso confirma, para el alcance actual, que el esquema remoto y la definición ver
 - bucket `property-images` preparado en Storage
 
 ### Huecos detectados, pero intencionalmente fuera de alcance
-Estos puntos no son fallas del esquema actual; son pendientes deliberados antes del siguiente bloque:
-- no hay políticas RLS aún
-- no existe todavía selección explícita de workspace activo en UX
-- no existe constraint que garantice que `properties.agent_id` pertenezca al mismo `workspace_id` de la propiedad
-- no existe constraint que garantice que `property_images.workspace_id` coincida con el `workspace_id` de su propiedad
-- no se definió aún unicidad para `public_code`
-- no existe aún tabla de branding/settings por workspace
-- no existe todavía invitación/aceptación formal de miembros
+Estos puntos no son fallas del esquema actual; son pendientes deliberados antes de escalar producto:
+- no existe todavía selección explícita de workspace activo en UX.
+- no existe constraint que garantice que `properties.agent_id` pertenezca al mismo `workspace_id` de la propiedad.
+- no existe constraint que garantice que `property_images.workspace_id` coincida con el `workspace_id` de su propiedad.
+- no se definió aún unicidad para `public_code`.
+- branding público vive como columnas en `workspaces`; todavía no hay tabla avanzada de settings/bloques configurables.
+- no existe todavía invitación/aceptación formal de miembros.
+- `property_tours` existe solo como borrador local no desarrollado; no debe asumirse como parte del esquema operativo ni aplicarse a remoto sin rediseño.
+- las policies de CRM actuales son base operativa, no modelo final de permisos finos.
 
 ### Lectura arquitectónica
 La base está bien para arrancar Auth + RLS, pero la siguiente capa ya no debería posponerse mucho. El mayor hueco real no está en inventario ni propiedades, sino en membresía/autorización y consistencia multiworkspace.
@@ -480,25 +490,38 @@ Extensión futura:
 - pre-sale inventory
 
 ## Manejo de leads
-Entidad lead preparada para registrar:
-- workspaceId
-- agentId opcional
-- propertyId opcional
-- source
-- sourceDetail
-- capture channel
-- name
-- phone
-- email
-- intention: compra/renta
-- budget range
-- zone interest
-- property type interest
-- urgency
-- thermal status: caliente/tibio/frío
-- pipeline stage
-- response SLA timestamps
-- notes summary
+Estado actual:
+- `leads` ya existe como CRM mínimo por workspace.
+- `lead_property_interests` asocia un lead con una o más propiedades.
+- el admin ya lista leads, propiedad asociada, estado y nota interna.
+- existen campos base `status`, `internal_note` y `source_type`.
+- la captura pública puede insertar leads/intereses con policies abiertas para el flujo público; las lecturas/updates quedan limitadas a miembros/roles del workspace.
+
+Entidad lead preparada para crecer hacia:
+- `agent_id` opcional o responsable comercial.
+- `source_detail` y canal de captura más explícito.
+- intención compra/renta.
+- presupuesto, zona y tipo de propiedad de interés.
+- urgencia y temperatura comercial.
+- pipeline stage más rico que el status mínimo actual.
+- timestamps de respuesta/SLA.
+- actividad/historial comercial.
+
+## Manejo de property tours
+`property_tours` queda como idea futura, no como módulo desarrollado actualmente.
+
+Estado actual:
+- existe una migración local `supabase/migrations/20260428153000_property_tours.sql`, pero debe leerse como borrador técnico exploratorio.
+- no se debe aplicar a remoto todavía.
+- no debe aparecer como dependencia inmediata del CRM actual.
+- antes de retomarlo hay que rediseñar alcance, UX, modelo de datos y valor comercial.
+
+Uso objetivo posible si se confirma más adelante:
+- un asesor recibe o crea un lead.
+- selecciona propiedades relevantes.
+- genera una lista curada compartible.
+- el cliente recibe una experiencia pública más dirigida que un listado genérico.
+- después se registra seguimiento y conversión en CRM.
 
 ## Manejo de agentes
 Un agente necesita dos capas:
@@ -613,7 +636,9 @@ Requisitos estructurales desde hoy:
 - Dejar lista una base para Supabase, pero sin acoplar la UI inicial a un backend prematuro.
 
 ## Deuda técnica aceptada por ahora
-- aún no existe esquema SQL definitivo
-- aún no existe middleware auth real
-- aún no existen políticas RLS
-- la landing v1 utilizará datos mock bien estructurados
+- el esquema SQL ya es útil, pero todavía no es definitivo para CRM, invitaciones ni analítica; property tours no forma parte del alcance actual.
+- falta UX explícita para workspace activo multiworkspace.
+- faltan permisos finos por módulo y más constraints de consistencia multiworkspace.
+- existe un borrador de `property_tours` que debe mantenerse fuera de remoto hasta rediseño/confirmación de alcance.
+- falta validar manualmente producción con usuario real y flujo completo hospedado.
+- quedan mocks/fallbacks de demo que deben mantenerse separados de operación real.

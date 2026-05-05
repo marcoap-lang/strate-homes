@@ -8,7 +8,20 @@ import { updateWorkspaceBrandingAction, type WorkspaceBrandingState } from "@/ap
 const initialState: WorkspaceBrandingState = { success: false, message: "" };
 const MAX_IMAGE_FILE_SIZE_MB = 8;
 
-export function AdminPublicBrandingManager({ workspace }: { workspace: any }) {
+type WorkspaceBrandingRecord = {
+  workspaceId: string;
+  workspaceName?: string | null;
+  brandName?: string | null;
+  publicPhone?: string | null;
+  publicWhatsapp?: string | null;
+  publicEmail?: string | null;
+  publicClaim?: string | null;
+  publicBio?: string | null;
+  publicLogoUrl?: string | null;
+  publicHeroUrl?: string | null;
+};
+
+export function AdminPublicBrandingManager({ workspace }: { workspace: WorkspaceBrandingRecord }) {
   const [state, action, pending] = useActionState(updateWorkspaceBrandingAction, initialState);
   const [logoUrl, setLogoUrl] = useState(workspace.publicLogoUrl ?? "");
   const [heroUrl, setHeroUrl] = useState(workspace.publicHeroUrl ?? "");
@@ -66,40 +79,40 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: any }) {
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+      <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
         <h3 className="mt-2 text-2xl font-semibold text-slate-950">Branding de la inmobiliaria</h3>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Configura la presencia básica de la marca para que el sitio público se sienta comercial y humano.</p>
       </div>
 
-      <form action={action} className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-sm shadow-slate-200/30 space-y-6">
+      <form action={action} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-sm shadow-slate-200/30 space-y-6">
         <input type="hidden" name="publicLogoUrl" value={logoUrl} />
         <input type="hidden" name="publicHeroUrl" value={heroUrl} />
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Nombre comercial</span>
-            <input name="brandName" defaultValue={workspace.brandName ?? workspace.workspaceName ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <input name="brandName" defaultValue={workspace.brandName ?? workspace.workspaceName ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Frase principal</span>
-            <input name="publicClaim" defaultValue={workspace.publicClaim ?? ""} placeholder="Ej. Propiedades bien elegidas, atención clara." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <input name="publicClaim" defaultValue={workspace.publicClaim ?? ""} placeholder="Ej. Propiedades bien elegidas, atención clara." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Teléfono</span>
-            <input name="publicPhone" defaultValue={workspace.publicPhone ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <input name="publicPhone" defaultValue={workspace.publicPhone ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">WhatsApp</span>
-            <input name="publicWhatsapp" defaultValue={workspace.publicWhatsapp ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <input name="publicWhatsapp" defaultValue={workspace.publicWhatsapp ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Email</span>
-            <input name="publicEmail" defaultValue={workspace.publicEmail ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <input name="publicEmail" defaultValue={workspace.publicEmail ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Texto institucional breve</span>
-            <textarea name="publicBio" rows={4} defaultValue={workspace.publicBio ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950" />
+            <textarea name="publicBio" rows={4} defaultValue={workspace.publicBio ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
         </div>
 
@@ -132,7 +145,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: any }) {
         {clientError ? <p className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{clientError}</p> : null}
         {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
 
-        <button disabled={pending || isUploading} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
+        <button disabled={pending || isUploading} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
           {pending || isUploading ? "Guardando..." : "Guardar branding público"}
         </button>
       </form>

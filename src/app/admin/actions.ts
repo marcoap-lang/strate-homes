@@ -349,6 +349,7 @@ export async function bootstrapInitialOwnerAction(
   _prevState: BootstrapOwnerState = INITIAL_BOOTSTRAP_STATE,
   formData: FormData,
 ): Promise<BootstrapOwnerState> {
+  void _prevState;
   try {
     const supabase = await createSupabaseServerClient();
     const {
@@ -399,6 +400,7 @@ export async function captureLeadFromPropertyAction(
   _prevState: LeadCaptureState = INITIAL_LEAD_CAPTURE_STATE,
   formData: FormData,
 ): Promise<LeadCaptureState> {
+  void _prevState;
   try {
     const supabase = await createSupabaseServerClient();
     const propertyId = formData.get("propertyId")?.toString();
@@ -455,6 +457,7 @@ export async function updateLeadStateAction(
   _prevState: LeadUpdateState = INITIAL_LEAD_UPDATE_STATE,
   formData: FormData,
 ): Promise<LeadUpdateState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace } = await getWorkspaceContext();
     const leadId = formData.get("leadId")?.toString();
@@ -491,6 +494,7 @@ export async function createPropertyLeadAction(
   _prevState: PropertyLeadCreateState = INITIAL_PROPERTY_LEAD_CREATE_STATE,
   formData: FormData,
 ): Promise<PropertyLeadCreateState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace } = await getWorkspaceContext();
     const propertyId = formData.get("propertyId")?.toString();
@@ -545,6 +549,7 @@ export async function updateWorkspaceBrandingAction(
   _prevState: WorkspaceBrandingState = INITIAL_WORKSPACE_BRANDING_STATE,
   formData: FormData,
 ): Promise<WorkspaceBrandingState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace } = await getWorkspaceContext();
 
@@ -582,6 +587,7 @@ export async function createPropertyTourAction(
   _prevState: PropertyTourCreateState = INITIAL_PROPERTY_TOUR_CREATE_STATE,
   formData: FormData,
 ): Promise<PropertyTourCreateState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace, agentRecord } = await getWorkspaceContext();
     const leadId = formData.get("leadId")?.toString();
@@ -636,6 +642,7 @@ export async function createAgentAction(
   _prevState: CreateAgentState = INITIAL_CREATE_AGENT_STATE,
   formData: FormData,
 ): Promise<CreateAgentState> {
+  void _prevState;
   try {
     const { supabase, activeWorkspace } = await getWorkspaceContext();
 
@@ -703,6 +710,7 @@ export async function upsertAgentProfileAction(
   _prevState: AgentProfileState = INITIAL_AGENT_PROFILE_STATE,
   formData: FormData,
 ): Promise<AgentProfileState> {
+  void _prevState;
   try {
     const profileId = formData.get("profileId")?.toString();
     const standaloneAgentId = formData.get("agentId")?.toString();

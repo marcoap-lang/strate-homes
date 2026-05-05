@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AgentOption, PropertyRecord, StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
 
-type LeadRecord = {
+export type LeadRecord = {
   id: string;
   full_name: string;
   phone: string;
@@ -14,6 +14,32 @@ type LeadRecord = {
   tours?: Array<{ id: string; title: string; slug: string }>;
 };
 import { getServerActiveWorkspace } from "@/lib/workspace/server";
+
+type JoinedLeadRecord = {
+  id?: string;
+  full_name?: string;
+  phone?: string;
+  email?: string | null;
+  message?: string | null;
+  internal_note?: string | null;
+  status?: string;
+  created_at?: string;
+  property_tours?: Array<{ id: string; title: string; slug: string }>;
+};
+
+type LeadPropertyInterestRecord = {
+  created_at?: string | null;
+  leads?: JoinedLeadRecord | JoinedLeadRecord[] | null;
+};
+
+type LeadInterestListItem = LeadPropertyInterestRecord & {
+  properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
+};
+
+function firstJoined<T>(value: T | T[] | null | undefined): T | null {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
 
 export type AdminAccessState =
   | {
@@ -263,22 +289,51 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       profile_id: agent.profile_id ?? null,
     }));
 
-  const normalizedProperties: PropertyRecord[] = (properties ?? []).map((property: any) => ({
+  const normalizedProperties: PropertyRecord[] = (properties ?? []).map((property) => ({
     ...property,
-    lead_interests: (property.lead_property_interests ?? []).map((interest: any) => {
-      const lead = Array.isArray(interest.leads) ? interest.leads[0] : interest.leads;
-      return {
-        lead_id: lead?.id,
-        full_name: lead?.full_name,
-        phone: lead?.phone,
-        email: lead?.email ?? null,
-        status: lead?.status,
-        created_at: interest.created_at ?? lead?.created_at,
-        message: lead?.message ?? null,
-        internal_note: lead?.internal_note ?? null,
-      };
-    }),
+    lead_interests: ((property.lead_property_interests ?? []) as LeadPropertyInterestRecord[])
+      .map((interest) => {
+        const lead = firstJoined(interest.leads);
+        if (!lead?.id || !lead.full_name || !lead.phone || !lead.status || !(interest.created_at ?? lead.created_at)) return null;
+
+        return {
+          lead_id: lead.id,
+          full_name: lead.full_name,
+          phone: lead.phone,
+          email: lead.email ?? null,
+          status: lead.status,
+          created_at: interest.created_at ?? lead.created_at ?? "",
+          message: lead.message ?? null,
+          internal_note: lead.internal_note ?? null,
+        };
+      })
+      .filter((interest) => interest !== null),
   }));
+
+  const normalizedLeads: LeadRecord[] = ((leads ?? []) as LeadInterestListItem[])
+    .map((item) => {
+      const lead = firstJoined(item.leads);
+      const property = firstJoined(item.properties);
+      if (!lead?.id || !lead.full_name || !lead.phone || !lead.status || !lead.created_at) return null;
+
+      return {
+        id: lead.id,
+        full_name: lead.full_name,
+        phone: lead.phone,
+        email: lead.email ?? null,
+        message: lead.message ?? null,
+        internal_note: lead.internal_note ?? null,
+        status: lead.status,
+        created_at: lead.created_at,
+        property_title: property?.title ?? null,
+        tours: (lead.property_tours ?? []).map((tour) => ({
+          id: tour.id,
+          title: tour.title,
+          slug: tour.slug,
+        })),
+      };
+    })
+    .filter((lead) => lead !== null);
 
   return {
     kind: "ready",
@@ -299,21 +354,6 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     agents: agents ?? [],
     teamMembers: normalizedTeamMembers,
     standaloneAgents,
-    leads: (leads ?? []).map((item: any) => ({
-      id: Array.isArray(item.leads) ? item.leads[0]?.id : item.leads?.id,
-      full_name: Array.isArray(item.leads) ? item.leads[0]?.full_name : item.leads?.full_name,
-      phone: Array.isArray(item.leads) ? item.leads[0]?.phone : item.leads?.phone,
-      email: Array.isArray(item.leads) ? item.leads[0]?.email ?? null : item.leads?.email ?? null,
-      message: Array.isArray(item.leads) ? item.leads[0]?.message ?? null : item.leads?.message ?? null,
-      internal_note: Array.isArray(item.leads) ? item.leads[0]?.internal_note ?? null : item.leads?.internal_note ?? null,
-      status: Array.isArray(item.leads) ? item.leads[0]?.status : item.leads?.status,
-      created_at: Array.isArray(item.leads) ? item.leads[0]?.created_at : item.leads?.created_at,
-      property_title: Array.isArray(item.properties) ? item.properties[0]?.title ?? null : item.properties?.title ?? null,
-      tours: (Array.isArray(item.leads) ? item.leads[0]?.property_tours : item.leads?.property_tours ?? []).map((tour: any) => ({
-        id: tour.id,
-        title: tour.title,
-        slug: tour.slug,
-      })),
-    })),
+    leads: normalizedLeads,
   };
 }
