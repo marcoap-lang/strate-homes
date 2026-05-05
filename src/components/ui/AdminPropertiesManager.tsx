@@ -1281,7 +1281,6 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   const [isRemovingImage, setIsRemovingImage] = useState(false);
   const [clientMessage, setClientMessage] = useState<string | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
-  const coverage = useMemo(() => getPhotoCoverageFromDraft(gallery), [gallery]);
 
   function normalizeGallery(nextGallery: GalleryImageDraft[]) {
     const coverIndex = nextGallery.findIndex((image) => image.is_cover);
@@ -1456,47 +1455,17 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
   return (
     <SectionCard>
-      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-start">
+      <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos de la propiedad</p>
           <h3 className="mt-2 text-xl font-semibold text-stone-950">Galería visual</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Trabaja la galería en una vista enfocada: sube, revisa, ordena y define la portada principal sin mezclarlo con el listado general.
+            Sube fotos, elige portada y ajusta el orden. Sin checklist obligatorio.
           </p>
         </div>
-        <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 sm:min-w-[180px] sm:px-5 sm:py-4">
-          <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Completitud visual</p>
-          <div className="mt-2 flex items-end justify-between gap-4 sm:block">
-            <p className="text-2xl font-semibold text-amber-950 sm:text-3xl">{coverage.completion}%</p>
-            <p className="text-sm text-amber-800 sm:mt-1">{coverage.coveredCount} de {coverage.checks.length} vistas sugeridas</p>
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
-        <div className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
-          <p className="text-sm font-semibold text-stone-900">Checklist visual sugerido</p>
-          <div className="mt-4 space-y-3">
-            {coverage.checks.map((item) => (
-              <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm">
-                <span className="text-stone-800">{item.label}</span>
-                <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-stone-100 text-stone-600"}`}>
-                  {item.covered ? "Cubierta" : "Pendiente"}
-                </span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-3xl border border-stone-200 bg-stone-50 p-5">
-          <p className="text-sm font-semibold text-stone-900">Cómo usar esta galería</p>
-          <ul className="mt-4 space-y-3 text-sm leading-6 text-stone-600">
-            <li>• Sube una o varias fotos.</li>
-            <li>• Usa la vista previa para revisar la galería.</li>
-            <li>• Ordena visualmente con subir y bajar.</li>
-            <li>• Marca la foto principal como portada.</li>
-            <li>• Guarda la galería para confirmar orden y portada.</li>
-          </ul>
+        <div className="flex flex-wrap gap-2 text-xs text-stone-500">
+          <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2">{gallery.length} fotos</span>
+          {gallery.some((image) => image.is_cover) ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700">Portada lista</span> : <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2">Sin portada</span>}
         </div>
       </div>
 
