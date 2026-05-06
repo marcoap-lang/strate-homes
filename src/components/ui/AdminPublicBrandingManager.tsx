@@ -81,8 +81,8 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
     <div className="space-y-6">
       <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Branding de la inmobiliaria</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Configura la presencia básica de la marca para que el sitio público se sienta comercial y humano.</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Perfil inmobiliaria</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Edita la página pública de la inmobiliaria: identidad comercial, hero y datos de contacto. Debe sentirse como sitio premium, no como dashboard.</p>
       </div>
 
       <form action={action} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-sm shadow-slate-200/30 space-y-6">
@@ -95,7 +95,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
             <input name="brandName" defaultValue={workspace.brandName ?? workspace.workspaceName ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Frase principal</span>
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Claim</span>
             <input name="publicClaim" defaultValue={workspace.publicClaim ?? ""} placeholder="Ej. Propiedades bien elegidas, atención clara." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
@@ -111,7 +111,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
             <input name="publicEmail" defaultValue={workspace.publicEmail ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
-            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Texto institucional breve</span>
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Bio institucional</span>
             <textarea name="publicBio" rows={4} defaultValue={workspace.publicBio ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
         </div>
@@ -146,7 +146,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
         {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
 
         <button disabled={pending || isUploading} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-          {pending || isUploading ? "Guardando..." : "Guardar branding público"}
+          {pending || isUploading ? "Guardando..." : "Guardar perfil inmobiliaria"}
         </button>
       </form>
     </div>

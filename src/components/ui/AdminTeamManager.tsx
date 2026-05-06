@@ -2,12 +2,13 @@
 
 import Image from "next/image";
 import { useActionState, useState } from "react";
-import { createAgentAction, upsertAgentProfileAction, type AgentProfileState, type CreateAgentState } from "@/app/admin/actions";
+import { createAgentAction, deleteAgentAction, upsertAgentProfileAction, type AgentProfileState, type CreateAgentState, type DeleteAgentState } from "@/app/admin/actions";
 import type { StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
 import { AgentAvatarUploadField } from "@/components/ui/AgentAvatarUploadField";
 
 const initialProfileState: AgentProfileState = { success: false, message: "" };
 const initialCreateState: CreateAgentState = { success: false, message: "" };
+const initialDeleteState: DeleteAgentState = { success: false, message: "" };
 
 function roleLabel(role: string) {
   if (role === "owner") return "Owner";
@@ -122,6 +123,7 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
   const [open, setOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(member.agent_profile?.avatar_url ?? member.avatar_url ?? "");
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteAgentAction, initialDeleteState);
   const profile = member.agent_profile;
 
   return (
@@ -208,6 +210,17 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
           </button>
         </form>
       ) : null}
+
+      {profile ? (
+        <form action={deleteAction} className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+          <input type="hidden" name="agentId" value={profile.id} />
+          <p className="text-xs leading-5 text-rose-700">Eliminar desactiva el asesor público, lo quita como colaborador y deja sin asesor principal las propiedades donde sea responsable.</p>
+          {deleteState.message ? <p className={`mt-3 rounded-xl border px-3 py-2 text-xs ${deleteState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-white text-rose-700"}`}>{deleteState.message}</p> : null}
+          <button disabled={deletePending} className="mt-3 rounded-full border border-rose-200 bg-white px-4 py-2 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-60">
+            {deletePending ? "Eliminando..." : "Eliminar asesor"}
+          </button>
+        </form>
+      ) : null}
     </div>
   );
 }
@@ -216,6 +229,7 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
   const [open, setOpen] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState(agent.avatar_url ?? "");
   const [state, action, pending] = useActionState(upsertAgentProfileAction, initialProfileState);
+  const [deleteState, deleteAction, deletePending] = useActionState(deleteAgentAction, initialDeleteState);
 
   return (
     <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
@@ -249,6 +263,10 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
               <input name="title" defaultValue={agent.title ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
             <label className="space-y-2 text-sm text-stone-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Correo comercial</span>
+              <input name="email" defaultValue={agent.email ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
+            </label>
+            <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Teléfono</span>
               <input name="phone" defaultValue={agent.phone ?? ""} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
             </label>
@@ -278,6 +296,15 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
           </button>
         </form>
       ) : null}
+
+      <form action={deleteAction} className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
+        <input type="hidden" name="agentId" value={agent.id} />
+        <p className="text-xs leading-5 text-rose-700">Eliminar desactiva el asesor público, lo quita como colaborador y deja sin asesor principal las propiedades donde sea responsable.</p>
+        {deleteState.message ? <p className={`mt-3 rounded-xl border px-3 py-2 text-xs ${deleteState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-white text-rose-700"}`}>{deleteState.message}</p> : null}
+        <button disabled={deletePending} className="mt-3 rounded-full border border-rose-200 bg-white px-4 py-2 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-60">
+          {deletePending ? "Eliminando..." : "Eliminar asesor"}
+        </button>
+      </form>
     </div>
   );
 }

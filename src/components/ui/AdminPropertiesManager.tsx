@@ -167,6 +167,14 @@ function getPropertyTypeLabel(value?: string | null) {
   return "propiedad";
 }
 
+function getPropertyCollaboratorAgentIds(property?: PropertyRecord) {
+  return (property?.property_agent_assignments ?? []).map((assignment) => assignment.agent_id).filter(Boolean);
+}
+
+function getInitialPropertyAdvisorIds(property: PropertyRecord | undefined, ownAgentId: string | null | undefined) {
+  return Array.from(new Set([property?.agent_id ?? ownAgentId ?? "", ...getPropertyCollaboratorAgentIds(property)].filter(Boolean)));
+}
+
 function pickVariant(options: string[], seed: string) {
   const total = seed.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0);
   return options[total % options.length];
@@ -456,9 +464,10 @@ function PropertyForm({
   const [shortDescriptionValue, setShortDescriptionValue] = useState("");
   const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
   const [publicationStatus, setPublicationStatus] = useState(property?.status ?? "draft");
+  const [selectedAdvisorIds, setSelectedAdvisorIds] = useState<string[]>(() => getInitialPropertyAdvisorIds(property, ownAgentId));
   const currentStepFieldNames = useMemo(() => {
     const fieldsByStep = [
-      ["operationType", "title", "slug", "publicCode", "agentId"],
+      ["operationType", "title", "slug", "publicCode", "agentId", "advisorIds"],
       ["locationLabel", "city", "state", "countryCode", "neighborhood", "addressLine"],
       ["propertyType", "bedrooms", "bathrooms", "parkingSpots", "lotAreaM2", "constructionAreaM2", "priceAmount", "currencyCode", "extraFeatures", ...amenityOptions.map((amenity) => `amenity:${amenity}`)],
       [],
@@ -626,6 +635,8 @@ function PropertyForm({
   const reviewExtraFeatures = String(draftSnapshot.extraFeatures ?? property?.extra_features ?? "");
   const reviewAgentId = String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "");
   const reviewAgent = visibleAgents.find((agent) => agent.id === reviewAgentId) ?? null;
+  const visibleSelectedAdvisorIds = selectedAdvisorIds.filter((agentId) => visibleAgents.some((agent) => agent.id === agentId));
+  const selectedAdvisorCount = visibleSelectedAdvisorIds.length;
   const reviewStatus = String(draftSnapshot.status ?? property?.status ?? "draft");
   const suggestedDescription = buildSuggestedDescription({
     type: reviewType,
@@ -744,6 +755,7 @@ function PropertyForm({
 
       {mode === "edit" ? <input type="hidden" name="propertyId" defaultValue={property?.id} /> : null}
       {mode === "create" && draftPropertyId ? <input type="hidden" name="draftPropertyId" value={draftPropertyId} /> : null}
+      {visibleSelectedAdvisorIds.map((agentId) => <input key={agentId} type="hidden" name="advisorIds" value={agentId} />)}
 
       <div className="rounded-3xl border border-stone-200 bg-stone-50 p-3 md:hidden">
         <label className="block space-y-2 text-sm text-stone-700">
@@ -814,16 +826,62 @@ function PropertyForm({
             <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
             <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
             <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
-            <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Asesor asignado</span>
-              <select name="agentId" defaultValue={String(draftSnapshot.agentId ?? property?.agent_id ?? ownAgentId ?? "")} disabled={!canManageAssignments} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950 disabled:bg-stone-100 disabled:text-stone-500">
-                <option value="">Sin asesor asignado</option>
-                {visibleAgents.map((agent) => (
-                  <option key={agent.id} value={agent.id}>{agent.display_name}</option>
-                ))}
-              </select>
-              {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar este asesor. La propiedad se guardará con tu asignación comercial cuando corresponda.</p> : null}
-            </label>
+            <div className="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 md:col-span-2">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesores de la propiedad</p>
+                  <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona uno o varios asesores y marca quién será el asesor principal. Ese WhatsApp será el contacto principal de la ficha pública.</p>
+                </div>
+                <span className="w-fit rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-500">{selectedAdvisorCount} seleccionados</span>
+              </div>
+
+              <input type="hidden" name="agentId" value={reviewAgentId} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                {visibleAgents.map((agent) => {
+                  const checked = visibleSelectedAdvisorIds.includes(agent.id);
+                  const isPrimary = reviewAgentId === agent.id;
+                  return (
+                    <label key={agent.id} className={`rounded-2xl border p-4 transition ${checked ? "border-[#d7ab5b]/40 bg-[#fff8ec]" : "border-stone-200 bg-white"}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-sm font-semibold text-stone-950">{agent.display_name}</p>
+                          <p className="mt-1 text-xs text-stone-500">{agent.whatsapp || agent.phone || "WhatsApp pendiente"}</p>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={!canManageAssignments}
+                          onChange={(event) => {
+                            const next = event.currentTarget.checked
+                              ? Array.from(new Set([...selectedAdvisorIds, agent.id]))
+                              : selectedAdvisorIds.filter((id) => id !== agent.id);
+                            setSelectedAdvisorIds(next);
+                            if (!event.currentTarget.checked && isPrimary) {
+                              const nextPrimary = next[0] ?? "";
+                              setDraftSnapshot({ ...draftSnapshot, agentId: nextPrimary, __currentStep: String(currentStep) });
+                            } else if (event.currentTarget.checked && !reviewAgentId) {
+                              setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __currentStep: String(currentStep) });
+                            }
+                          }}
+                          className="mt-1 size-4 rounded border-stone-300 bg-white"
+                        />
+                      </div>
+                      {checked ? (
+                        <button
+                          type="button"
+                          disabled={!canManageAssignments}
+                          onClick={() => setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __currentStep: String(currentStep) })}
+                          className={`mt-4 rounded-full px-4 py-2 text-xs font-medium transition ${isPrimary ? "bg-[#d7ab5b] text-white" : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50"}`}
+                        >
+                          {isPrimary ? "Asesor principal" : "Hacer principal"}
+                        </button>
+                      ) : null}
+                    </label>
+                  );
+                })}
+              </div>
+              {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar asignaciones. La propiedad se guardará con tu asesor comercial cuando corresponda.</p> : null}
+            </div>
           </div>
         </div>
       ) : null}

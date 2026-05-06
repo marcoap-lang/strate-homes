@@ -64,6 +64,11 @@ export type PropertyRecord = {
     updated_at: string;
   }>;
   agents?: { id: string; display_name: string } | { id: string; display_name: string }[] | null;
+  property_agent_assignments?: Array<{
+    id: string;
+    agent_id: string;
+    agents?: { id: string; display_name: string; slug?: string | null; whatsapp?: string | null; phone?: string | null } | { id: string; display_name: string; slug?: string | null; whatsapp?: string | null; phone?: string | null }[] | null;
+  }> | null;
   lead_interests?: PropertyLeadInterestRecord[];
 };
 

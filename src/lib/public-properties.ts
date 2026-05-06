@@ -41,6 +41,15 @@ export type PublicProperty = {
     whatsapp: string | null;
     avatarUrl: string | null;
   } | null;
+  collaborators: Array<{
+    id: string;
+    slug: string | null;
+    displayName: string;
+    title: string | null;
+    phone: string | null;
+    whatsapp: string | null;
+    avatarUrl: string | null;
+  }>;
   workspaceContactAgent: {
     id: string;
     displayName: string;
@@ -107,6 +116,7 @@ type PublicPropertyRecord = {
   public_code?: string | null;
   property_images?: PublicPropertyImageRecord[] | null;
   agents?: PublicAgentRecord | PublicAgentRecord[] | null;
+  property_agent_assignments?: Array<{ agents?: PublicAgentRecord | PublicAgentRecord[] | null }> | null;
   workspaces?: PublicWorkspaceRecord | PublicWorkspaceRecord[] | null;
   workspace_contact_agents?: { agents?: PublicAgentRecord | PublicAgentRecord[] | null } | Array<{ agents?: PublicAgentRecord | PublicAgentRecord[] | null }> | null;
 };
@@ -178,6 +188,9 @@ function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
 
   const coverImage = images.find((image: { isCover: boolean }) => image.isCover) ?? images[0] ?? null;
   const agent = firstJoined(record.agents);
+  const collaborators = (record.property_agent_assignments ?? [])
+    .map((assignment) => firstJoined(assignment.agents))
+    .filter((item): item is PublicAgentRecord => Boolean(item?.id && item.is_public && item.is_active));
   const workspace = firstJoined(record.workspaces);
   const workspaceContactAgent = extractWorkspaceContactAgent(record);
 
@@ -218,6 +231,15 @@ function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
           avatarUrl: agent.avatar_url ?? null,
         }
       : null,
+    collaborators: collaborators.map((collaborator) => ({
+      id: collaborator.id,
+      slug: collaborator.slug ?? null,
+      displayName: collaborator.display_name,
+      title: collaborator.title ?? null,
+      phone: collaborator.phone ?? null,
+      whatsapp: collaborator.whatsapp ?? null,
+      avatarUrl: collaborator.avatar_url ?? null,
+    })),
     workspaceContactAgent: workspaceContactAgent
       ? {
           id: workspaceContactAgent.id,
@@ -280,6 +302,19 @@ const publicPropertySelect = `
     phone,
     whatsapp,
     avatar_url
+  ),
+  property_agent_assignments (
+    agents:agent_id (
+      id,
+      slug,
+      display_name,
+      title,
+      phone,
+      whatsapp,
+      avatar_url,
+      is_public,
+      is_active
+    )
   ),
   workspace_contact_agents:workspace_id (
     agents (

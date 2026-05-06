@@ -448,3 +448,57 @@ Marco aclaró que property tours todavía no estaba desarrollado. Aunque existe 
 - No aplicar esta migración a remoto hasta rediseñar y confirmar el alcance comercial del módulo.
 - Los pendientes inmediatos deben priorizar admin móvil, validaciones públicas, login/admin/CRUD y subida de fotos.
 - Property tours pasa a MVP operativo: crear desde lead, seleccionar propiedades y compartir URL pública.
+
+---
+
+## 2026-05-05
+
+### Decisión
+Alinear el modelo público inmobiliario alrededor de una estructura simple: inmobiliaria/workspace → asesores → propiedades.
+
+### Motivo
+La experiencia pública debe comunicar una inmobiliaria premium y comercialmente clara, no un SaaS ni un dashboard. También debe evitar ambigüedad operativa: una propiedad necesita un responsable comercial principal y un canal de contacto principal inequívoco.
+
+### Consecuencias
+- El workspace se presenta públicamente como inmobiliaria con branding, sitio, asesores y propiedades.
+- Cada asesor pertenece a una inmobiliaria, tiene foto, WhatsApp, bio, especialidad y página pública propia.
+- Cada propiedad pertenece a una inmobiliaria, tiene 1 asesor principal responsable comercial y puede mostrar colaboradores opcionales.
+- El WhatsApp principal de propiedad debe ir al asesor principal.
+- Los colaboradores son apoyo, no ownership múltiple.
+- El Área Pública del admin debe organizarse en Perfil inmobiliaria, Asesores públicos, Propiedades públicas y Vista del sitio.
+- La página pública de inmobiliaria debe usar logo, nombre comercial, claim, bio, hero, WhatsApp general, teléfono, email, redes sociales si no sobrecomplica y propiedades destacadas si la base existente lo permite.
+- Evitar permisos complejos, ownership múltiple, relaciones ambiguas y UI pública tipo dashboard.
+
+---
+
+## 2026-05-05 — asesores múltiples por propiedad
+
+### Decisión
+Permitir varios asesores por propiedad sin convertir el modelo en ownership múltiple: `properties.agent_id` sigue siendo el asesor principal/responsable comercial y `property_agent_assignments` guarda asesores colaboradores.
+
+### Motivo
+Marco pidió que desde editar propiedad se puedan seleccionar varios asesores y escoger quién es el principal. Comercialmente esto permite trabajo en equipo y apoyo visible, manteniendo un WhatsApp principal claro y una responsabilidad comercial inequívoca.
+
+### Consecuencias
+- En editar propiedad se seleccionan varios asesores y se marca uno como principal.
+- El asesor principal conserva el WhatsApp principal de la ficha pública.
+- Los asesores adicionales aparecen como colaboradores/apoyo.
+- La página pública del asesor incluye propiedades donde el asesor participa como principal o colaborador.
+- No se introduce ownership múltiple de propiedades.
+
+
+---
+
+## 2026-05-05 — gestión de asesores y branding en inicio
+
+### Decisión
+Agregar desde Equipo la eliminación segura de asesores y permitir editar correo comercial también en asesores sin acceso. Agregar en Inicio una sección para editar datos principales de la inmobiliaria pública y hacer que el logo tenga presencia premium en la home pública.
+
+### Motivo
+La operación comercial necesita poder corregir/eliminar asesores sin tocar manualmente base de datos, y la página pública principal de la inmobiliaria debe administrarse desde un punto visible del admin, no escondido solo en Área Pública.
+
+### Consecuencias
+- Eliminar asesor lo desactiva (`is_active=false`, `is_public=false`), lo quita como colaborador y limpia su asignación como principal en propiedades.
+- Editar asesor sin acceso ahora incluye correo comercial.
+- `/admin` incluye edición de datos principales de inmobiliaria pública.
+- La home pública muestra el logo con mayor jerarquía visual.

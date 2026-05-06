@@ -7,6 +7,9 @@
 
 ## Último bloque completado
 
+✅ Reentrada 2026-05-05: migración Supabase de colaboradores aplicada; eliminar asesor, editar correo de asesor, branding en Inicio y logo público destacado; lint/build pasan
+✅ Asesores múltiples 2026-05-05: edición de propiedad permite varios asesores y selección de principal; colaboradores públicos visibles; lint/build pasan
+✅ Alineación 2026-05-05: modelo público inmobiliaria → asesores → propiedades documentado; Área Pública renombrada en admin; ficha pública refuerza asesor principal/WhatsApp; lint/build pasan
 ✅ Reentrada 2026-05-04: property tours MVP activado: creación desde leads y sin lead, ruta pública de recorrido y políticas públicas seguras aplicadas; lint/build pasan
 ✅ Reentrada 2026-05-04: links públicos ajustados a rutas canónicas por workspace; páginas públicas reforzadas en móvil; migración pública anónima segura aplicada y validada en producción/incógnito; lint/build pasan
 ✅ Reentrada 2026-05-04: wizard corregido para guardar descripción desde pasos internos y layout desktop sin columnas apretadas; lint/build pasan
@@ -48,6 +51,7 @@
 ## Bloque actual
 
 🟨 En curso: validar admin/login/landing en móvil real y flujo CRUD/publicación end-to-end
+🟨 En curso: completar siguientes capas de Área Pública: redes sociales y destacadas si la base lo permite sin sobrecomplicar
 
 ## Siguiente bloque
 
@@ -145,6 +149,9 @@
 
 ### Páginas públicas configurables
 - ✅ Listado/detalle público con propiedades reales activas/publicadas
+- ✅ Organización admin alineada a: Perfil inmobiliaria, Asesores públicos, Propiedades públicas y Vista del sitio
+- ✅ Ficha pública/admin refuerzan asesor principal y WhatsApp principal del asesor
+- ✅ Colaboradores opcionales ya tienen modelo específico (`property_agent_assignments`) sin ownership múltiple; el principal sigue en `properties.agent_id`
 
 - ✅ Concepto definido
 - ✅ Página pública de empresa/workspace por `/w/{workspace_slug}`

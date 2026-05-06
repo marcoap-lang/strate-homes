@@ -51,6 +51,11 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       <section className="px-6 pb-24 pt-8 lg:px-8 lg:pb-32 lg:pt-10">
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="pb-8 lg:pb-14">
+            {workspace.public_logo_url ? (
+              <div className="mb-8 flex h-24 w-24 items-center justify-center rounded-[2rem] border border-slate-200 bg-white p-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:h-28 sm:w-28">
+                <Image src={workspace.public_logo_url} alt={workspace.brand_name ?? workspace.name} width={160} height={160} className="max-h-full max-w-full object-contain" unoptimized />
+              </div>
+            ) : null}
             <p className="text-xs uppercase tracking-[0.38em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
             <h1 className="mt-7 max-w-5xl text-4xl font-semibold leading-[0.95] tracking-tight text-slate-950 sm:text-6xl sm:leading-[0.92] lg:text-[6.25rem]">
               {workspace.public_claim ?? "Encuentra tu próximo hogar en Veracruz"}

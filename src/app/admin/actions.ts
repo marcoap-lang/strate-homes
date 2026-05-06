@@ -27,6 +27,11 @@ export type CreateAgentState = {
   message: string;
 };
 
+export type DeleteAgentState = {
+  success: boolean;
+  message: string;
+};
+
 export type LeadCaptureState = {
   success: boolean;
   message: string;
@@ -74,6 +79,11 @@ const INITIAL_BOOTSTRAP_STATE: BootstrapOwnerState = {
 };
 
 const INITIAL_CREATE_AGENT_STATE: CreateAgentState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_DELETE_AGENT_STATE: DeleteAgentState = {
   success: false,
   message: "",
 };
@@ -200,6 +210,86 @@ function getSelectedAmenities(formData: FormData) {
     .filter(([name, value]) => name.startsWith("amenity:") && ["on", "true", "1"].includes(value.toString()))
     .map(([name]) => name.replace(/^amenity:/, ""))
     .filter(Boolean);
+}
+
+function getSelectedAdvisorIds(formData: FormData) {
+  return Array.from(new Set(formData.getAll("advisorIds").map((value) => value.toString()).filter(Boolean)));
+}
+
+async function getValidatedPropertyAdvisorSelection({
+  supabase,
+  workspaceId,
+  requestedPrimaryAgentId,
+  requestedAdvisorIds,
+  activeRole,
+  ownAgentId,
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  workspaceId: string;
+  requestedPrimaryAgentId: string | null;
+  requestedAdvisorIds: string[];
+  activeRole: string | null | undefined;
+  ownAgentId: string | null;
+}) {
+  const primaryAgentId = getAllowedAgentId({
+    requestedAgentId: requestedPrimaryAgentId,
+    activeRole,
+    ownAgentId,
+  });
+  const candidateIds = canManageFullInventory(activeRole)
+    ? Array.from(new Set([primaryAgentId, ...requestedAdvisorIds].filter(Boolean))) as string[]
+    : primaryAgentId
+      ? [primaryAgentId]
+      : [];
+
+  if (!candidateIds.length) return { primaryAgentId: null, collaboratorAgentIds: [] as string[] };
+
+  const { data: validAgents, error } = await supabase
+    .from("agents")
+    .select("id")
+    .eq("workspace_id", workspaceId)
+    .eq("is_active", true)
+    .in("id", candidateIds);
+
+  if (error) throw error;
+
+  const validIds = new Set((validAgents ?? []).map((agent) => agent.id));
+  const resolvedPrimary = primaryAgentId && validIds.has(primaryAgentId) ? primaryAgentId : candidateIds.find((id) => validIds.has(id)) ?? null;
+  const collaborators = Array.from(new Set(candidateIds.filter((id) => id !== resolvedPrimary && validIds.has(id))));
+
+  return { primaryAgentId: resolvedPrimary, collaboratorAgentIds: collaborators };
+}
+
+async function syncPropertyAdvisorAssignments({
+  supabase,
+  workspaceId,
+  propertyId,
+  collaboratorAgentIds,
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  workspaceId: string;
+  propertyId: string;
+  collaboratorAgentIds: string[];
+}) {
+  const { error: deleteError } = await supabase
+    .from("property_agent_assignments")
+    .delete()
+    .eq("workspace_id", workspaceId)
+    .eq("property_id", propertyId);
+
+  if (deleteError) throw deleteError;
+
+  if (!collaboratorAgentIds.length) return;
+
+  const { error: insertError } = await supabase.from("property_agent_assignments").insert(
+    collaboratorAgentIds.map((agentId) => ({
+      workspace_id: workspaceId,
+      property_id: propertyId,
+      agent_id: agentId,
+    })),
+  );
+
+  if (insertError) throw insertError;
 }
 
 function assignIfPresent<T extends Record<string, unknown>>(
@@ -867,6 +957,72 @@ export async function upsertAgentProfileAction(
   }
 }
 
+export async function deleteAgentAction(
+  _prevState: DeleteAgentState = INITIAL_DELETE_AGENT_STATE,
+  formData: FormData,
+): Promise<DeleteAgentState> {
+  void _prevState;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const agentId = formData.get("agentId")?.toString();
+
+    if (!agentId) {
+      return { success: false, message: "Falta identificar al asesor que quieres eliminar." };
+    }
+
+    if (!canManageAgentProfiles(activeWorkspace.role)) {
+      return { success: false, message: "Solo owner/admin pueden eliminar asesores." };
+    }
+
+    const { data: agent, error: agentError } = await supabase
+      .from("agents")
+      .select("id, display_name")
+      .eq("id", agentId)
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .maybeSingle();
+
+    if (agentError) throw agentError;
+    if (!agent) return { success: false, message: "No encontramos ese asesor en la inmobiliaria activa." };
+
+    const { error: collaboratorsError } = await supabase
+      .from("property_agent_assignments")
+      .delete()
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .eq("agent_id", agentId);
+
+    if (collaboratorsError) throw collaboratorsError;
+
+    const { error: propertiesError } = await supabase
+      .from("properties")
+      .update({ agent_id: null })
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .eq("agent_id", agentId);
+
+    if (propertiesError) throw propertiesError;
+
+    const { error: updateError } = await supabase
+      .from("agents")
+      .update({ is_active: false, is_public: false })
+      .eq("id", agentId)
+      .eq("workspace_id", activeWorkspace.workspaceId);
+
+    if (updateError) throw updateError;
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/team");
+    revalidatePath("/admin/properties");
+    revalidatePath("/admin/public/agents");
+    revalidatePath("/admin/public/properties");
+
+    return { success: true, message: `Asesor eliminado: ${agent.display_name}. Las propiedades quedaron sin asesor principal si dependían de él.` };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo eliminar el asesor.",
+    };
+  }
+}
+
 export async function createPropertyAction(
   _prevState: PropertyFormState = INITIAL_STATE,
   formData: FormData,
@@ -928,14 +1084,19 @@ export async function createPropertyAction(
       return { success: false, message: "No se pudo guardar, tu información sigue aquí. El slug debe tener al menos 3 caracteres." };
     }
 
+    const advisorSelection = await getValidatedPropertyAdvisorSelection({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId!,
+      requestedPrimaryAgentId: normalizeNullable(formData.get("agentId")),
+      requestedAdvisorIds: getSelectedAdvisorIds(formData),
+      activeRole: activeWorkspace.role,
+      ownAgentId: agentRecord?.id ?? null,
+    });
+
     const payload = {
       workspace_id: activeWorkspace.workspaceId,
       created_by: user.id,
-      agent_id: getAllowedAgentId({
-        requestedAgentId: normalizeNullable(formData.get("agentId")),
-        activeRole: activeWorkspace.role,
-        ownAgentId: agentRecord?.id ?? null,
-      }),
+      agent_id: advisorSelection.primaryAgentId,
       title,
       slug,
       public_code: normalizeNullable(formData.get("publicCode")),
@@ -968,6 +1129,13 @@ export async function createPropertyAction(
     if (error || !property?.id) {
       return { success: false, message: getReadablePropertyError(error?.message ?? "insert_failed") };
     }
+
+    await syncPropertyAdvisorAssignments({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId!,
+      propertyId: property.id,
+      collaboratorAgentIds: advisorSelection.collaboratorAgentIds,
+    });
 
     try {
       revalidatePath("/admin");
@@ -1036,13 +1204,18 @@ export async function updatePropertyAction(
       return { success: false, message: "No se pudo guardar, tu información sigue aquí. El slug debe tener al menos 3 caracteres." };
     }
 
+    const advisorSelection = await getValidatedPropertyAdvisorSelection({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId!,
+      requestedPrimaryAgentId: normalizeNullable(formData.get("agentId")),
+      requestedAdvisorIds: getSelectedAdvisorIds(formData),
+      activeRole: activeWorkspace.role,
+      ownAgentId: agentRecord?.id ?? null,
+    });
+
     const payload: Record<string, unknown> = {
       workspace_id: activeWorkspace.workspaceId,
-      agent_id: getAllowedAgentId({
-        requestedAgentId: normalizeNullable(formData.get("agentId")),
-        activeRole: activeWorkspace.role,
-        ownAgentId: agentRecord?.id ?? null,
-      }),
+      agent_id: advisorSelection.primaryAgentId,
       title,
       slug,
       public_code: normalizeNullable(formData.get("publicCode")),
@@ -1082,6 +1255,13 @@ export async function updatePropertyAction(
     if (error) {
       return { success: false, message: getReadablePropertyError(error.message), propertyId };
     }
+
+    await syncPropertyAdvisorAssignments({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId!,
+      propertyId,
+      collaboratorAgentIds: advisorSelection.collaboratorAgentIds,
+    });
 
     try {
       revalidatePath("/admin");

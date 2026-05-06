@@ -184,7 +184,7 @@ export function PublicPropertyDetailPage({
           </div>
 
           <aside className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor inmobiliario</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor principal</p>
             {assignedAgent ? (
               <div className="mt-6 text-center">
                 <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700 sm:h-28 sm:w-28">
@@ -201,7 +201,20 @@ export function PublicPropertyDetailPage({
                   {assignedAgent.bio ?? "Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda."}
                 </p>
                 {assignedAgent.whatsapp || assignedAgent.phone ? (
-                  <p className="mt-4 text-sm text-slate-500">{assignedAgent.whatsapp ?? assignedAgent.phone}</p>
+                  <p className="mt-4 text-sm text-slate-500">WhatsApp principal: {assignedAgent.whatsapp ?? assignedAgent.phone}</p>
+                ) : null}
+                <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
+                  Es el responsable comercial de esta propiedad. El WhatsApp principal de la ficha llega con este asesor.
+                </p>
+                {property.collaborators.length ? (
+                  <div className="mt-5 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-left">
+                    <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Colaboradores</p>
+                    <div className="mt-3 space-y-2">
+                      {property.collaborators.map((collaborator) => (
+                        <p key={collaborator.id} className="text-sm text-slate-600">{collaborator.displayName}{collaborator.title ? ` · ${collaborator.title}` : ""}</p>
+                      ))}
+                    </div>
+                  </div>
                 ) : null}
                 <div className="mt-8 flex justify-center">
                   {whatsappUrl ? (

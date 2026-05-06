@@ -18,10 +18,10 @@ const primaryNavItems = [
 ];
 
 const publicNavItems = [
-  { label: "Ver sitio público", href: "/admin/public/properties" },
-  { label: "Branding público", href: "/admin/public" },
-  { label: "Propiedades públicas", href: "/admin/public/properties" },
+  { label: "Vista del sitio", href: "/admin/public/site" },
+  { label: "Perfil inmobiliaria", href: "/admin/public" },
   { label: "Asesores públicos", href: "/admin/public/agents" },
+  { label: "Propiedades públicas", href: "/admin/public/properties" },
 ];
 
 function getNavClasses(isActive: boolean, compact = false) {
@@ -90,7 +90,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="mt-6 rounded-[1.8rem] border border-slate-200 bg-sky-50/70 p-4">
-            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Workspace activo</p>
+            <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Inmobiliaria activa</p>
             <p className="mt-2 text-lg font-semibold text-slate-950">{workspaceLabel}</p>
             <p className="mt-2 break-words text-sm text-slate-600">
               {user?.email ? `Sesión: ${user.email}` : "Inicia sesión para operar tu admin."}
@@ -112,9 +112,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Área Pública</p>
             <div className="mt-3 space-y-2">
               {publicNavItems.map((item) => {
-                const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                const href = item.label === "Ver sitio público" ? (activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()) : item.href;
-                const external = item.label === "Ver sitio público";
+                const isActive = item.href === "/admin/public" ? pathname === item.href : pathname === item.href || pathname.startsWith(`${item.href}/`);
+                const href = item.label === "Vista del sitio" ? (activeWorkspace?.workspaceSlug ? `${getPublicBaseUrl()}/w/${activeWorkspace.workspaceSlug}` : getPublicBaseUrl()) : item.href;
+                const external = item.label === "Vista del sitio";
                 return external ? (
                   <a key={item.label} href={href} target="_blank" rel="noopener noreferrer" className={getNavClasses(isActive)}>
                     {item.label}

@@ -74,7 +74,7 @@ export async function getPublicAgentBySlug(workspaceSlug: string, agentSlug: str
   if (!workspace) return null;
 
   const allWorkspaceProperties = await getPublicProperties({ workspaceSlug });
-  const properties = allWorkspaceProperties.filter((property) => property.agent?.id === agent.id);
+  const properties = allWorkspaceProperties.filter((property) => property.agent?.id === agent.id || property.collaborators.some((collaborator) => collaborator.id === agent.id));
 
   const propertyUrl = buildPublicPropertyUrl(properties[0]?.slug ?? "", workspace.slug ?? workspaceSlug);
   const whatsappNumber = (agent.whatsapp ?? agent.phone ?? "").replace(/\D/g, "");

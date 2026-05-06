@@ -43,3 +43,13 @@ No continuar con nuevas áreas sin actualizar:
 - `TODO-NEXT.md`
 - `ARCHITECTURE.md` si cambia el modelo de datos o permisos
 - `DECISIONS-LOG.md` si se toma una decisión de producto/arquitectura nueva
+
+## Alineación pública inmobiliaria — 2026-05-05
+
+Prioridad inmediata antes de complejizar CRM/permisos:
+1. Reorganizar Área Pública del admin en Perfil inmobiliaria, Asesores públicos, Propiedades públicas y Vista del sitio.
+2. Asegurar que Perfil inmobiliaria edite logo, nombre comercial, claim, bio institucional, hero, WhatsApp general, teléfono, email y redes sociales solo si no sobrecomplica.
+3. Revisar home pública de inmobiliaria para que use esos datos, se sienta premium y nunca diga “workspace” ni suene a SaaS.
+4. Revisar página pública de asesor: WhatsApp propio, bio/foto/especialidad y propiedades del asesor.
+5. Revisar ficha pública de propiedad: asesor principal claro, WhatsApp del asesor principal y colaboradores opcionales como apoyo. ✅ Primer pase implementado con `property_agent_assignments`.
+6. No introducir ownership múltiple, permisos complejos ni relaciones ambiguas.

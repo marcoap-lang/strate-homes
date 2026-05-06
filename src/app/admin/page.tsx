@@ -2,6 +2,7 @@ import { AdminShell } from "@/components/ui/AdminShell";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
+import { AdminPublicBrandingManager } from "@/components/ui/AdminPublicBrandingManager";
 import { getAdminAccessState } from "@/lib/admin-access";
 
 export default async function AdminPage() {
@@ -19,7 +20,7 @@ export default async function AdminPage() {
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Resumen</p>
             <h3 className="mt-2 text-2xl font-semibold text-slate-950">Admin principal</h3>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
-              Tu operación ya está separada por vistas. Entra a propiedades para ver el inventario real del workspace, crear una nueva propiedad o editar una existente en su propia pantalla.
+              Tu operación ya está separada por vistas. Entra a propiedades para ver el inventario real de la inmobiliaria, crear una nueva propiedad o editar una existente en su propia pantalla.
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link href="/admin/properties" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
@@ -33,6 +34,16 @@ export default async function AdminPage() {
               </Link>
             </div>
           </div>
+
+          <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Página pública principal</p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-950">Datos principales de la inmobiliaria</h3>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">
+              Ajusta desde inicio el logo, nombre comercial, claim, bio institucional, hero y canales de contacto que se ven en la página pública principal. El logo debe verse limpio y premium en el sitio.
+            </p>
+          </div>
+
+          <AdminPublicBrandingManager workspace={access.activeWorkspace} />
         </div>
       ) : (
         <AdminAccessClient />

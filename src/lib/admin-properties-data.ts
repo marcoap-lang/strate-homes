@@ -55,6 +55,17 @@ export async function getAdminPropertiesData() {
             id,
             display_name
           ),
+          property_agent_assignments (
+            id,
+            agent_id,
+            agents:agent_id (
+              id,
+              display_name,
+              slug,
+              phone,
+              whatsapp
+            )
+          ),
           property_images (
             id,
             workspace_id,
@@ -73,7 +84,7 @@ export async function getAdminPropertiesData() {
       .order("updated_at", { ascending: false }),
     supabase
       .from("agents")
-      .select("id, display_name, slug")
+      .select("id, profile_id, display_name, slug, title, bio, phone, email, whatsapp, avatar_url, is_public")
       .eq("workspace_id", activeWorkspace.workspaceId)
       .eq("is_active", true)
       .order("display_name", { ascending: true }),

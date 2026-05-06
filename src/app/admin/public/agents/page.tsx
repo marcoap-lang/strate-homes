@@ -15,7 +15,7 @@ export default async function AdminPublicAgentsPage() {
           <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
             <h3 className="mt-2 text-2xl font-semibold text-slate-950">Asesores públicos</h3>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Aquí ves qué asesores están visibles en el sitio público y cómo abrir su página directamente.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Aquí ves qué asesores aparecen en el sitio público. Cada asesor debe sentirse humano y comercial: foto, WhatsApp, bio, especialidad y propiedades propias.</p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -23,6 +23,7 @@ export default async function AdminPublicAgentsPage() {
               <div key={agent.id} className="rounded-[1.5rem] border border-slate-200 bg-white p-5 shadow-sm shadow-slate-200/30">
                 <p className="text-lg font-semibold text-slate-950">{agent.display_name}</p>
                 <p className="mt-2 text-sm text-slate-600">{agent.title ?? "Asesor inmobiliario"}</p>
+                <p className="mt-2 text-sm text-slate-500">WhatsApp: {agent.whatsapp || agent.phone || "Pendiente"}</p>
                 <div className="mt-4 flex items-center gap-3 text-sm">
                   <span className={`rounded-full px-3 py-1 text-xs ${agent.is_public ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
                     {agent.is_public ? "Visible públicamente" : "No visible"}

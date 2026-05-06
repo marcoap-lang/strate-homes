@@ -77,12 +77,12 @@ Entidad conceptual:
 
 Idea base:
 - un usuario autenticado puede pertenecer a uno o más workspaces en el futuro
-- un workspace representa una inmobiliaria, equipo o agente individual
+- un workspace representa comercialmente a una inmobiliaria/sitio público; en casos simples puede operar como agente individual o equipo pequeño, pero la narrativa pública debe ser de inmobiliaria/brokerage, no de SaaS ni de dashboard
 - la membresía del workspace controla permisos internos y rol operativo
 - el perfil comercial de agente es una capa separada y opcional
 - una misma persona puede ser `owner` o `admin` y además tener perfil comercial de agente
 - las propiedades, leads y branding viven dentro de un workspace
-- algunas propiedades pueden asignarse a un agente responsable
+- cada propiedad pública debe tener un asesor principal responsable comercial; colaboradores opcionales pueden aparecer como apoyo sin convertir el modelo en ownership múltiple
 
 ## Esquema multiworkspace
 El sistema debe poder operar con estas modalidades:
@@ -94,6 +94,45 @@ Convención base:
 - todas las entidades de negocio clave incluyen `workspaceId`
 - los slugs públicos pueden existir a nivel workspace y a nivel agent profile
 - la configuración visual pública se resuelve por workspace o por perfil agente según contexto
+- el WhatsApp principal de una propiedad se resuelve desde el asesor principal, no desde colaboradores
+- colaboradores son una capa de apoyo visual/comercial, no dueños paralelos de la propiedad
+
+## Modelo público inmobiliario
+Modelo correcto del sistema público:
+- **Inmobiliaria / workspace:** tiene branding público, sitio público, asesores y propiedades.
+- **Asesor:** pertenece a una inmobiliaria; tiene foto, WhatsApp, bio, especialidad y página pública propia.
+- **Propiedad:** pertenece a una inmobiliaria; tiene 1 asesor principal y puede tener asesores colaboradores opcionales.
+
+Reglas estructurales:
+- el asesor principal es el responsable comercial de la propiedad.
+- el contacto principal de WhatsApp de una propiedad debe ir al asesor principal.
+- los colaboradores aparecen como apoyo, no como propietarios equivalentes ni responsables ambiguos.
+- no introducir ownership múltiple, permisos complejos ni relaciones ambiguas para resolver la capa pública.
+
+Organización objetivo del Área Pública en admin:
+- Perfil inmobiliaria
+- Asesores públicos
+- Propiedades públicas
+- Vista del sitio
+
+Perfil inmobiliaria debe editar la página pública de la inmobiliaria:
+- logo
+- nombre comercial
+- claim
+- bio institucional
+- hero
+- WhatsApp general
+- teléfono
+- email
+- redes sociales si se pueden agregar sin sobrecomplicar
+- propiedades destacadas si la base existente lo permite
+
+Experiencia pública esperada:
+- la página pública de inmobiliaria usa esos datos, se siente como sitio premium de una inmobiliaria, no dice “workspace” y no suena a SaaS.
+- la página pública de inmobiliaria muestra propiedades y asesores de esa inmobiliaria.
+- la página pública de asesor usa el WhatsApp del asesor, muestra sus propiedades y se siente humana/comercial.
+- la página pública de propiedad muestra claramente asesor principal y colaboradores opcionales.
+- ninguna página pública debe verse como dashboard administrativo.
 
 ## Autenticación
 Autenticación base integrada con Supabase Auth.
@@ -128,6 +167,7 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `workspace_members`
 - `agents`
 - `properties`
+- `property_agent_assignments`
 - `property_images`
 - `leads`
 - `lead_property_interests`
@@ -143,7 +183,9 @@ Este bloque implementa únicamente la base mínima necesaria para arrancar el in
 - `agents.profile_id` conecta opcionalmente al agente con un usuario autenticado.
 - `properties.workspace_id` asegura aislamiento del inventario por workspace.
 - `properties.created_by` registra de forma formal al perfil que creó la propiedad.
-- `properties.agent_id` representa el agente asignado dentro del modelo actual.
+- `properties.agent_id` representa el asesor principal/responsable comercial dentro del modelo actual.
+- `property_agent_assignments.property_id` conecta asesores colaboradores opcionales con una propiedad.
+- `property_agent_assignments.agent_id` conecta cada colaborador con su perfil comercial; no representa ownership.
 - `property_images.property_id` conecta la galería con cada propiedad.
 - `property_images.workspace_id` replica el contexto de workspace para facilitar trazabilidad y futuras políticas.
 
@@ -305,9 +347,9 @@ Inventario mínimo con foco en publicación y operación inmobiliaria temprana.
 Campos clave:
 - `id`
 - `workspace_id`
-- `agent_id` opcional como agente asignado
+- `agent_id` como asesor principal/responsable comercial de la propiedad
 - `created_by` requerido formalmente
-- `assigned_agent_id` pospuesto; en el modelo actual la asignación vive en `agent_id`
+- `assigned_agent_id` pospuesto; en el modelo actual la asignación principal vive en `agent_id`
 - `title`
 - `slug`
 - `public_code`
@@ -332,12 +374,31 @@ Restricción relevante:
 
 Política operativa objetivo:
 - cada propiedad registra quién la creó (`created_by`)
-- cada propiedad contempla agente responsable mediante `agent_id` como agente asignado actual
+- cada propiedad contempla asesor principal responsable mediante `agent_id` como asignación comercial actual
+- el contacto comercial principal de la propiedad debe resolverse al WhatsApp del asesor principal
+- colaboradores opcionales se guardan en `property_agent_assignments` y pueden mostrarse como apoyo, sin ownership múltiple
 - `agent` puede crear propiedades
 - `agent` no puede borrar propiedades
 - `owner` y `admin` archivan o despublican en vez de borrar
 - `agent` solo puede editar propiedades creadas por él o asignadas a él
 - por política base, `agent` sí ve el inventario del workspace, pero su capacidad de edición se limita a su ámbito
+
+#### `property_agent_assignments`
+Tabla de asesores colaboradores por propiedad.
+
+Campos clave:
+- `id`
+- `workspace_id`
+- `property_id`
+- `agent_id`
+- `created_at`
+
+Reglas:
+- el asesor principal no vive aquí; vive en `properties.agent_id`.
+- esta tabla representa colaboradores/apoyo visibles y participación comercial secundaria.
+- una propiedad puede tener varios colaboradores.
+- cada `(property_id, agent_id)` es único.
+- no debe usarse para ownership múltiple ni para volver ambigua la responsabilidad comercial.
 
 #### `property_images`
 Tabla de metadatos para imágenes alojadas en Supabase Storage.

@@ -176,6 +176,17 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             id,
             display_name
           ),
+          property_agent_assignments (
+            id,
+            agent_id,
+            agents:agent_id (
+              id,
+              display_name,
+              slug,
+              phone,
+              whatsapp
+            )
+          ),
           property_images (
             id,
             workspace_id,
