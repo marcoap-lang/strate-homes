@@ -38,6 +38,8 @@ export function PublicPropertyDetailPage({
   const preferredAdvisor = preferredAdvisorSlug
     ? [assignedAgent, ...property.collaborators].find((advisor) => advisor?.slug === preferredAdvisorSlug) ?? null
     : null;
+  const displayedAdvisor = preferredAdvisor ?? assignedAgent;
+  const isContextualAdvisor = Boolean(preferredAdvisor && preferredAdvisor.id !== assignedAgent?.id);
   const fallbackContact = property.workspaceContactAgent;
   const contactEntity = preferredAdvisor?.whatsapp || preferredAdvisor?.phone
     ? preferredAdvisor
@@ -193,29 +195,29 @@ export function PublicPropertyDetailPage({
           </div>
 
           <aside className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Asesor principal</p>
-            {assignedAgent ? (
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{isContextualAdvisor ? "Tu asesor" : "Asesor principal"}</p>
+            {displayedAdvisor ? (
               <div className="mt-6 text-center">
                 <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700 sm:h-28 sm:w-28">
-                  {assignedAgent.avatarUrl ? <Image src={assignedAgent.avatarUrl} alt={assignedAgent.displayName} fill className="object-cover" unoptimized sizes="112px" /> : assignedAgent.displayName.slice(0, 1).toUpperCase()}
+                  {displayedAdvisor.avatarUrl ? <Image src={displayedAdvisor.avatarUrl} alt={displayedAdvisor.displayName} fill className="object-cover" unoptimized sizes="112px" /> : displayedAdvisor.displayName.slice(0, 1).toUpperCase()}
                 </div>
-                <p className="mt-6 text-3xl font-semibold text-slate-950">{assignedAgent.displayName}</p>
-                {effectiveWorkspaceSlug && assignedAgent.slug ? (
-                  <Link href={buildWorkspaceAgentPath(effectiveWorkspaceSlug, assignedAgent.slug)} className="mt-3 inline-flex text-sm text-slate-600 transition hover:text-slate-950">
+                <p className="mt-6 text-3xl font-semibold text-slate-950">{displayedAdvisor.displayName}</p>
+                {effectiveWorkspaceSlug && displayedAdvisor.slug ? (
+                  <Link href={buildWorkspaceAgentPath(effectiveWorkspaceSlug, displayedAdvisor.slug)} className="mt-3 inline-flex text-sm text-slate-600 transition hover:text-slate-950">
                     Ver perfil del asesor
                   </Link>
                 ) : null}
-                {assignedAgent.title ? <p className="mt-3 text-sm uppercase tracking-[0.25em] text-slate-500">{assignedAgent.title}</p> : null}
+                {displayedAdvisor.title ? <p className="mt-3 text-sm uppercase tracking-[0.25em] text-slate-500">{displayedAdvisor.title}</p> : null}
                 <p className="mt-3 text-sm leading-7 text-slate-600">
-                  {assignedAgent.bio ?? "Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda."}
+                  {displayedAdvisor.bio ?? "Te acompaña para resolver dudas, revisar disponibilidad y ayudarte a encontrar la mejor opción de acuerdo con tu búsqueda."}
                 </p>
-                {assignedAgent.whatsapp || assignedAgent.phone ? (
-                  <p className="mt-4 text-sm text-slate-500">WhatsApp principal: {assignedAgent.whatsapp ?? assignedAgent.phone}</p>
+                {displayedAdvisor.whatsapp || displayedAdvisor.phone ? (
+                  <p className="mt-4 text-sm text-slate-500">WhatsApp: {displayedAdvisor.whatsapp ?? displayedAdvisor.phone}</p>
                 ) : null}
                 <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
-                  Es el responsable comercial de esta propiedad. {preferredAdvisor && preferredAdvisor.id !== assignedAgent.id ? `Como llegaste desde ${preferredAdvisor.displayName}, el botón de WhatsApp contacta a ese asesor.` : "El WhatsApp principal de la ficha llega con este asesor."}
+                  {isContextualAdvisor ? `Llegaste desde el perfil de ${displayedAdvisor.displayName}; el botón de WhatsApp contacta directamente a ese asesor.` : "Es el responsable comercial de esta propiedad. El WhatsApp principal de la ficha llega con este asesor."}
                 </p>
-                {property.collaborators.length ? (
+                {!isContextualAdvisor && property.collaborators.length ? (
                   <div className="mt-5 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-left">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Colaboradores</p>
                     <div className="mt-3 space-y-2">

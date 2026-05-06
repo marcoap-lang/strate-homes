@@ -46,6 +46,7 @@ export type PublicProperty = {
     slug: string | null;
     displayName: string;
     title: string | null;
+    bio: string | null;
     phone: string | null;
     whatsapp: string | null;
     avatarUrl: string | null;
@@ -236,6 +237,7 @@ function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
       slug: collaborator.slug ?? null,
       displayName: collaborator.display_name,
       title: collaborator.title ?? null,
+      bio: collaborator.bio ?? null,
       phone: collaborator.phone ?? null,
       whatsapp: collaborator.whatsapp ?? null,
       avatarUrl: collaborator.avatar_url ?? null,
