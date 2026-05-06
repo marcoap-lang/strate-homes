@@ -52,8 +52,8 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         <div className="mx-auto grid max-w-7xl gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-end">
           <div className="pb-8 lg:pb-14">
             {workspace.public_logo_url ? (
-              <div className="mb-9 inline-flex min-h-36 w-full max-w-sm items-center justify-center rounded-[2.4rem] border border-slate-200 bg-white px-8 py-7 shadow-[0_24px_70px_rgba(15,23,42,0.10)] sm:min-h-44 sm:max-w-md sm:px-10 sm:py-8">
-                <Image src={workspace.public_logo_url} alt={workspace.brand_name ?? workspace.name} width={520} height={220} className="max-h-32 w-auto max-w-full object-contain sm:max-h-40" unoptimized priority />
+              <div className="mb-10 flex w-full justify-start">
+                <Image src={workspace.public_logo_url} alt={workspace.brand_name ?? workspace.name} width={760} height={300} className="h-auto max-h-44 w-auto max-w-[min(100%,34rem)] object-contain drop-shadow-[0_18px_35px_rgba(15,23,42,0.16)] sm:max-h-56 sm:max-w-[38rem]" unoptimized priority />
               </div>
             ) : null}
             <p className="text-xs uppercase tracking-[0.38em] text-slate-500">{workspace.brand_name ?? workspace.name}</p>
