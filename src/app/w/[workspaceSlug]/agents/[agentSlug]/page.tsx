@@ -100,7 +100,7 @@ export default async function WorkspaceAgentPage({
                   <h3 className="text-[1.9rem] font-semibold leading-tight text-slate-950">{property.title}</h3>
                   <p className="mt-2 text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
-                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
+                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}?advisor=${agent.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
                     Ver propiedad
                   </Link>
                 </div>

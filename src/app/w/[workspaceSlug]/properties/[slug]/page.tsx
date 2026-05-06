@@ -92,10 +92,13 @@ function buildPropertyJsonLd(property: Awaited<ReturnType<typeof getPublicProper
 
 export default async function WorkspacePropertyDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ workspaceSlug: string; slug: string }>;
+  searchParams?: Promise<{ advisor?: string }>;
 }) {
   const { workspaceSlug, slug } = await params;
+  const preferredAdvisorSlug = (await searchParams)?.advisor ?? null;
   const property = await getPublicPropertyBySlug(slug, workspaceSlug);
 
   if (!property) notFound();
@@ -107,7 +110,7 @@ export default async function WorkspacePropertyDetailPage({
   return (
     <>
       {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} /> : null}
-      <PublicPropertyDetailPage property={property} similarProperties={similarProperties} workspaceSlug={workspaceSlug} />
+      <PublicPropertyDetailPage property={property} similarProperties={similarProperties} workspaceSlug={workspaceSlug} preferredAdvisorSlug={preferredAdvisorSlug} />
     </>
   );
 }

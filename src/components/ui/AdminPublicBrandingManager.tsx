@@ -119,13 +119,13 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
         <div className="grid gap-6 lg:grid-cols-2">
           <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
             <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Logo</p>
-            <div className="mt-4 flex items-center gap-4">
-              <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-2xl bg-white border border-slate-200">
-                {logoUrl ? <Image src={logoUrl} alt="Logo" fill className="object-contain p-3" unoptimized /> : <span className="text-xs text-slate-400">Sin logo</span>}
+            <div className="mt-4 space-y-4">
+              <div className="relative flex min-h-36 w-full items-center justify-center overflow-hidden rounded-[1.6rem] border border-slate-200 bg-white px-6 py-5 shadow-sm">
+                {logoUrl ? <Image src={logoUrl} alt="Logo" width={420} height={180} className="max-h-28 w-auto max-w-full object-contain" unoptimized /> : <span className="text-xs text-slate-400">Sin logo</span>}
               </div>
               <div className="space-y-3">
                 <input ref={logoInputRef} type="file" accept="image/*" onChange={(event) => handleUpload(event, "logo")} className="block text-sm text-slate-600" />
-                <p className="text-xs text-slate-500">Usaremos este logo en home pública y navegación.</p>
+                <p className="text-xs leading-5 text-slate-500">Usaremos este logo grande en la home pública y en una versión compacta en navegación. Ideal: PNG/WebP transparente, bien recortado, mínimo 800 px de ancho.</p>
               </div>
             </div>
           </div>

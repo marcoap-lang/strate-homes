@@ -17,10 +17,12 @@ export function PublicPropertyDetailPage({
   property,
   similarProperties,
   workspaceSlug,
+  preferredAdvisorSlug,
 }: {
   property: PublicProperty;
   similarProperties: PublicProperty[];
   workspaceSlug?: string | null;
+  preferredAdvisorSlug?: string | null;
 }) {
   const gallery = property.images;
   const cover = gallery[0] ?? null;
@@ -33,8 +35,15 @@ export function PublicPropertyDetailPage({
   const locationText = [property.locationLabel, property.city, property.state].filter(Boolean).join(" · ") || property.locationLabel;
   const priceLabel = `${property.currencyCode} ${property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}`;
   const assignedAgent = property.agent;
+  const preferredAdvisor = preferredAdvisorSlug
+    ? [assignedAgent, ...property.collaborators].find((advisor) => advisor?.slug === preferredAdvisorSlug) ?? null
+    : null;
   const fallbackContact = property.workspaceContactAgent;
-  const contactEntity = assignedAgent?.whatsapp || assignedAgent?.phone ? assignedAgent : fallbackContact;
+  const contactEntity = preferredAdvisor?.whatsapp || preferredAdvisor?.phone
+    ? preferredAdvisor
+    : assignedAgent?.whatsapp || assignedAgent?.phone
+      ? assignedAgent
+      : fallbackContact;
   const specsInline = [
     property.bedrooms ? `${property.bedrooms} recámaras` : null,
     property.bathrooms ? `${property.bathrooms} baños` : null,
@@ -204,14 +213,14 @@ export function PublicPropertyDetailPage({
                   <p className="mt-4 text-sm text-slate-500">WhatsApp principal: {assignedAgent.whatsapp ?? assignedAgent.phone}</p>
                 ) : null}
                 <p className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-xs leading-5 text-slate-500">
-                  Es el responsable comercial de esta propiedad. El WhatsApp principal de la ficha llega con este asesor.
+                  Es el responsable comercial de esta propiedad. {preferredAdvisor && preferredAdvisor.id !== assignedAgent.id ? `Como llegaste desde ${preferredAdvisor.displayName}, el botón de WhatsApp contacta a ese asesor.` : "El WhatsApp principal de la ficha llega con este asesor."}
                 </p>
                 {property.collaborators.length ? (
                   <div className="mt-5 rounded-2xl border border-slate-100 bg-white px-4 py-3 text-left">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Colaboradores</p>
                     <div className="mt-3 space-y-2">
                       {property.collaborators.map((collaborator) => (
-                        <p key={collaborator.id} className="text-sm text-slate-600">{collaborator.displayName}{collaborator.title ? ` · ${collaborator.title}` : ""}</p>
+                        <p key={collaborator.id} className="text-sm text-slate-600">{collaborator.displayName}{collaborator.title ? ` · ${collaborator.title}` : ""}{preferredAdvisor?.id === collaborator.id ? " · contacto seleccionado" : ""}</p>
                       ))}
                     </div>
                   </div>
