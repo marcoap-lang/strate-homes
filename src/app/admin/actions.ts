@@ -197,6 +197,24 @@ function getReadablePropertyError(message: string) {
   return "No se pudo guardar, tu información sigue aquí.";
 }
 
+function getReadableWorkspaceError(message: string) {
+  const normalized = message.toLowerCase();
+
+  if (normalized.includes("duplicate key value") || normalized.includes("workspaces_slug_key") || normalized.includes("unique")) {
+    return "Ese slug público ya está en uso. Prueba con una versión más específica.";
+  }
+
+  if (normalized.includes("slug") || normalized.includes("invalid input syntax")) {
+    return "El slug público solo puede usar letras minúsculas, números y guiones.";
+  }
+
+  if (normalized.includes("row-level security") || normalized.includes("permission denied")) {
+    return "No tienes permiso para editar los datos públicos de esta inmobiliaria.";
+  }
+
+  return "No se pudieron guardar los datos públicos de la inmobiliaria.";
+}
+
 function getPropertySlug(formData: FormData, title: string, fallback: string) {
   return slugify(formData.get("slug")?.toString() || title || fallback);
 }
@@ -654,11 +672,20 @@ export async function updateWorkspaceBrandingAction(
   void _prevState;
   try {
     const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const brandName = normalizeNullable(formData.get("brandName"));
+    const requestedSlug = normalizeNullable(formData.get("workspaceSlug"));
+    const slug = requestedSlug ? slugify(requestedSlug) : activeWorkspace.workspaceSlug ?? null;
+
+    if (requestedSlug && (!slug || slug.length < 3)) {
+      return { success: false, message: "El slug público debe tener al menos 3 caracteres." };
+    }
 
     const { error } = await supabase
       .from("workspaces")
       .update({
-        brand_name: normalizeNullable(formData.get("brandName")),
+        name: brandName ?? activeWorkspace.workspaceName ?? "Inmobiliaria",
+        slug,
+        brand_name: brandName,
         public_phone: normalizeNullable(formData.get("publicPhone")),
         public_whatsapp: normalizeNullable(formData.get("publicWhatsapp")),
         public_email: normalizeNullable(formData.get("publicEmail")),
@@ -670,17 +697,19 @@ export async function updateWorkspaceBrandingAction(
       .eq("id", activeWorkspace.workspaceId);
 
     if (error) {
-      return { success: false, message: error.message };
+      return { success: false, message: getReadableWorkspaceError(error.message) };
     }
 
     revalidatePath("/admin");
+    revalidatePath("/admin/public");
     revalidatePath("/admin/public/properties");
-    revalidatePath("/w/[workspaceSlug]", "page");
-    return { success: true, message: "Branding público actualizado correctamente." };
+    if (activeWorkspace.workspaceSlug) revalidatePath(`/w/${activeWorkspace.workspaceSlug}`);
+    if (slug) revalidatePath(`/w/${slug}`);
+    return { success: true, message: "Datos públicos de la inmobiliaria actualizados correctamente." };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "No se pudo guardar el branding público.",
+      message: error instanceof Error ? getReadableWorkspaceError(error.message) : "No se pudo guardar el branding público.",
     };
   }
 }

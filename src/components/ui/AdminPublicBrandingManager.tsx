@@ -11,6 +11,7 @@ const MAX_IMAGE_FILE_SIZE_MB = 8;
 type WorkspaceBrandingRecord = {
   workspaceId: string;
   workspaceName?: string | null;
+  workspaceSlug?: string | null;
   brandName?: string | null;
   publicPhone?: string | null;
   publicWhatsapp?: string | null;
@@ -95,6 +96,11 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
             <input name="brandName" defaultValue={workspace.brandName ?? workspace.workspaceName ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
           <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Slug público principal</span>
+            <input name="workspaceSlug" defaultValue={workspace.workspaceSlug ?? ""} placeholder="ej. sarita-homes" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+            <span className="block text-xs leading-5 text-slate-500">Define la URL principal: /w/slug-de-la-inmobiliaria. Usa minúsculas, números y guiones.</span>
+          </label>
+          <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Claim</span>
             <input name="publicClaim" defaultValue={workspace.publicClaim ?? ""} placeholder="Ej. Propiedades bien elegidas, atención clara." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
