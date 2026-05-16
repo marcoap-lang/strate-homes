@@ -65,7 +65,7 @@ export default async function WorkspaceAgentPage({
           </div>
           <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
             <div className="pt-8 lg:pt-12">
-              <p className="text-xs uppercase tracking-[0.42em] text-[#d9c2a2]">Private advisor</p>
+              <p className="text-xs uppercase tracking-[0.42em] text-[#d9c2a2]">Asesor inmobiliario</p>
               <h1 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">{agent.displayName}</h1>
               {agent.title ? <p className="mt-5 text-sm uppercase tracking-[0.28em] text-[#d8c2a2]">{agent.title}</p> : null}
               <p className="mt-7 max-w-2xl text-base leading-8 text-[#e7d8c5]">
@@ -77,7 +77,7 @@ export default async function WorkspaceAgentPage({
                     Agenda una visita privada
                   </a>
                 ) : null}
-                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-white/18 bg-white/8 px-7 py-4 text-sm font-medium text-[#fff7ef] backdrop-blur transition hover:bg-white/14">
+                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-white/30 bg-white/14 px-7 py-4 text-sm font-medium text-white backdrop-blur transition hover:bg-white/20">
                   Ver propiedades atendidas
                 </Link>
               </div>
@@ -98,7 +98,7 @@ export default async function WorkspaceAgentPage({
             </div>
             <div className="lg:pb-6">
               <div className="ml-auto max-w-[28rem] rounded-[2.2rem] border border-white/12 bg-white/8 p-5 backdrop-blur-xl shadow-[0_28px_80px_rgba(0,0,0,0.18)]">
-                <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Approach</p>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Forma de trabajo</p>
                 <p className="mt-4 text-sm leading-8 text-[#e7d8c5]">
                   Algunas propiedades las lidero como responsable principal y en otras colaboro con el equipo comercial de la inmobiliaria. Aquí solo aparecen oportunidades donde mi participación es directa.
                 </p>
@@ -114,7 +114,7 @@ export default async function WorkspaceAgentPage({
         {featuredProperty ? (
           <section className="grid gap-8 rounded-[2.6rem] border border-[#eadfce] bg-[#fbf7f1] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.06)] lg:grid-cols-[0.92fr_1.08fr] lg:p-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Signature property</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Propiedad destacada</p>
               <h2 className="mt-4 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-5xl">{featuredProperty.title}</h2>
               <p className="mt-4 text-sm leading-7 text-[#605448]">{featuredProperty.locationLabel}</p>
               <p className="mt-5 text-3xl font-semibold tracking-tight text-[#17120e]">{formatPriceLabel(featuredProperty.currencyCode, featuredProperty.priceAmount)}</p>
@@ -142,7 +142,7 @@ export default async function WorkspaceAgentPage({
         <section className="space-y-8">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Private collection</p>
+              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Selección atendida</p>
               <h2 className="mt-4 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-5xl">Propiedades donde su participación es directa</h2>
             </div>
             <Link href={`/w/${workspaceSlug}/properties`} className="text-sm text-slate-600 transition hover:text-slate-950">Ver más propiedades</Link>

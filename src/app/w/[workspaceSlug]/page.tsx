@@ -87,7 +87,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         <div className="relative mx-auto max-w-7xl">
           <div className="grid gap-12 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
             <div className="pt-8">
-              <p className="text-xs uppercase tracking-[0.42em] text-[#d8c2a2]">Beverly Hills Style Real Estate</p>
+              <p className="text-xs uppercase tracking-[0.42em] text-[#d8c2a2]">Inmobiliaria de alta gama</p>
               <h1 className="mt-7 max-w-5xl font-serif text-5xl font-semibold leading-[0.88] tracking-[-0.055em] text-[#fff7ef] sm:text-7xl lg:text-[7.1rem]">
                 {workspace.public_claim ?? "Residencias extraordinarias, presencia impecable y una forma más refinada de comprar."}
               </h1>
@@ -99,7 +99,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                 <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full bg-[#d0a35b] px-7 py-4 text-sm font-medium text-[#1b1713] shadow-[0_18px_45px_rgba(208,163,91,0.32)] transition hover:bg-[#dfb066]">
                   Explorar propiedades
                 </Link>
-                {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-white/24 bg-white/8 px-7 py-4 text-sm font-medium text-[#fff7ef] backdrop-blur transition hover:bg-white/14">Hablar con concierge inmobiliario</a> : null}
+                {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-white/32 bg-white/14 px-7 py-4 text-sm font-medium text-white backdrop-blur transition hover:bg-white/20">Hablar con la inmobiliaria</a> : null}
               </div>
 
               <div className="mt-12 grid gap-4 sm:grid-cols-3">
@@ -125,7 +125,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                     {heroImage ? <Image src={heroImage} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="public-cinematic-image object-cover" unoptimized /> : null}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,6,0.06)_0%,rgba(10,8,6,0.20)_48%,rgba(10,8,6,0.64)_100%)]" />
                     <div className="absolute left-6 top-6 z-[3] rounded-full border border-white/14 bg-white/8 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-[#f8e9d5] backdrop-blur">
-                      Signature listing
+                      Propiedad destacada
                     </div>
                   </div>
                 </div>
@@ -135,17 +135,17 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                 <div className="relative z-10 mt-5 lg:-mt-28 lg:ml-0">
                   <div className="grid gap-4 lg:grid-cols-[1.18fr_0.82fr]">
                     <div className="rounded-[2rem] border border-[#e9dcc9] bg-[#f6efe5] px-6 py-6 shadow-[0_28px_80px_rgba(0,0,0,0.14)]">
-                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#8a6a43]">Featured residence</p>
+                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#8a6a43]">Residencia destacada</p>
                       <h2 className="mt-3 font-serif text-3xl font-semibold leading-[0.95] tracking-[-0.04em] text-[#18130f] sm:text-4xl">{heroProperty.title}</h2>
                       <p className="mt-3 text-sm leading-7 text-[#5f5347]">{heroProperty.locationLabel}</p>
                       <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-[#6d5b49]">
                         <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">{formatOperationLabel(heroProperty.operationType)}</span>
                         <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">{formatPropertyTypeLabel(heroProperty.propertyType)}</span>
-                        {heroProperty.agent?.displayName ? <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">Represented by {heroProperty.agent.displayName}</span> : null}
+                        {heroProperty.agent?.displayName ? <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">Representada por {heroProperty.agent.displayName}</span> : null}
                       </div>
                     </div>
                     <div className="rounded-[2rem] border border-white/12 bg-[#18120d] px-6 py-6 text-[#f4e8d8] shadow-[0_28px_80px_rgba(0,0,0,0.22)]">
-                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Private view</p>
+                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Vista privada</p>
                       <p className="mt-3 text-3xl font-semibold tracking-tight text-white">{formatPriceLabel(heroProperty.currencyCode, heroProperty.priceAmount)}</p>
                       <p className="mt-3 text-sm leading-7 text-[#dbcab5]">Una propiedad pensada para compradores que valoran presencia, ubicación y una experiencia impecable desde el primer contacto.</p>
                       <div className="mt-5 flex flex-col gap-3">
@@ -174,7 +174,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       <section className="mx-auto max-w-7xl px-6 py-18 lg:px-8 lg:py-24">
         <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
           <article className="rounded-[2.4rem] bg-[#16110d] px-7 py-8 text-[#f5e7d5] shadow-[0_24px_70px_rgba(0,0,0,0.14)]">
-            <p className="text-xs uppercase tracking-[0.32em] text-[#c7aa84]">Private advisory</p>
+            <p className="text-xs uppercase tracking-[0.32em] text-[#c7aa84]">Asesoría inmobiliaria</p>
             <h2 className="mt-4 font-serif text-4xl font-semibold leading-[0.95] tracking-[-0.045em] text-white">No vendemos volumen. Curamos decisiones.</h2>
             <p className="mt-5 max-w-2xl text-sm leading-8 text-[#dbcab5]">
               Cada ficha pública debe sentirse como una invitación bien dirigida: contexto, representación clara y una experiencia de contacto que refleje lujo, criterio y confianza.
@@ -183,7 +183,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           <div className="grid gap-4 sm:grid-cols-3">
             {latestProperties.map((property, index) => (
               <article key={property.id} className="rounded-[2rem] border border-[#e8dccb] bg-[#fbf7f1] px-5 py-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-[#8a6a43]">{index === 0 ? "New arrival" : index === 1 ? "Market favorite" : "Worth a closer look"}</p>
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#8a6a43]">{index === 0 ? "Nueva oportunidad" : index === 1 ? "Selección destacada" : "Vale la pena verla"}</p>
                 <p className="mt-3 font-serif text-xl font-semibold leading-tight tracking-[-0.03em] text-[#17120e]">{property.title}</p>
                 <p className="mt-2 text-sm leading-6 text-[#605448]">{property.locationLabel}</p>
                 <p className="mt-4 text-sm font-medium text-[#17120e]">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
@@ -196,7 +196,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-24">
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-[#8a6a43]">Signature collection</p>
+            <p className="text-sm uppercase tracking-[0.3em] text-[#8a6a43]">Selección principal</p>
             <h2 className="mt-3 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-6xl">Residencias y oportunidades con presencia excepcional</h2>
           </div>
           <Link href={`/w/${workspaceSlug}/properties`} className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-900 transition hover:bg-slate-50 md:inline-flex">
@@ -224,7 +224,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                 <div className="flex flex-col justify-between px-2 py-2 sm:px-4 sm:py-4">
                   <div>
                     <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-[#8a6a43]">
-                      <span>{property.publicCode ?? "Private listing"}</span>
+                      <span>{property.publicCode ?? "Disponible"}</span>
                       <span>{formatPropertyTypeLabel(property.propertyType)}</span>
                     </div>
                     <h3 className="mt-5 font-serif text-4xl font-semibold leading-[0.96] tracking-[-0.05em] text-[#17120e] sm:text-5xl">{property.title}</h3>
