@@ -159,7 +159,7 @@ function getReadableBootstrapError(message: string) {
   }
 
   if (normalized.includes("active_membership_exists")) {
-    return "Tu cuenta ya tiene acceso a una inmobiliaria. Recarga el admin para continuar.";
+    return "Tu cuenta ya tiene acceso a una inmobiliaria. Recarga la app para continuar.";
   }
 
   if (normalized.includes("invalid_workspace_name")) {
@@ -513,7 +513,7 @@ export async function bootstrapInitialOwnerAction(
     revalidateAdminSurfacePath("/admin");
     return {
       success: true,
-      message: `Tu inmobiliaria inicial ya está lista: ${workspace.created_workspace_name}. Ya puedes continuar al admin.`,
+      message: `Tu inmobiliaria inicial ya está lista: ${workspace.created_workspace_name}. Ya puedes continuar a la app.`,
     };
   } catch (error) {
     return {

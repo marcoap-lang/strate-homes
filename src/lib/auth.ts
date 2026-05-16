@@ -2,10 +2,10 @@ export function getAuthRedirectUrl() {
   const explicitUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (explicitUrl) {
-    return `${explicitUrl.replace(/\/$/, "")}/admin`;
+    return `${explicitUrl.replace(/\/$/, "")}/app`;
   }
 
-  return typeof window !== "undefined" ? `${window.location.origin}/admin` : undefined;
+  return typeof window !== "undefined" ? `${window.location.origin}/app` : undefined;
 }
 
 export function getReadableAuthError(message: string) {

@@ -6,7 +6,7 @@ export default function LoginPage() {
       <div className="mx-auto flex min-h-[calc(100vh-4rem)] max-w-md flex-col justify-center">
         <div className="mb-6 text-center">
           <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Strate Homes</p>
-          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Entrar al admin</h1>
+          <h1 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">Entrar a la app</h1>
           <p className="mt-3 text-sm leading-6 text-slate-600">Acceso privado para operar propiedades, leads y equipo.</p>
         </div>
 

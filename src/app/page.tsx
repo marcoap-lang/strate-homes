@@ -15,7 +15,7 @@ const productPillars = [
   },
 ];
 
-const roadmap = ["Admin móvil", "Inventario público", "Leads básicos", "Branding editable", "Equipo comercial", "Automatización futura"];
+const roadmap = ["App móvil", "Inventario público", "Leads básicos", "Branding editable", "Equipo comercial", "Automatización futura"];
 
 export default function Home() {
   return (
@@ -44,14 +44,14 @@ export default function Home() {
               SaaS inmobiliario en construcción
             </p>
             <h1 className="mt-7 max-w-4xl text-5xl font-semibold leading-[0.96] tracking-tight text-slate-950 sm:text-6xl lg:text-7xl">
-              Un admin más claro para vender propiedades con mejor presencia.
+              Una app más clara para vender propiedades con mejor presencia.
             </h1>
             <p className="mt-7 max-w-2xl text-lg leading-8 text-slate-600">
               Strate Homes está naciendo como una plataforma para inmobiliarias y asesores: inventario, páginas públicas, equipo, leads y operación comercial desde un solo lugar.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row">
               <Link href="/login" className="inline-flex justify-center rounded-full bg-[#d7ab5b] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(215,171,91,0.28)] transition hover:bg-[#c99a46]">
-                Entrar al admin
+                Entrar a la app
               </Link>
               <Link href="/properties" className="inline-flex justify-center rounded-full border border-slate-300 bg-white/75 px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:bg-white">
                 Explorar demo pública
@@ -63,7 +63,7 @@ export default function Home() {
             <div className="rounded-[1.8rem] bg-slate-950 p-5 text-white sm:p-6">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.28em] text-white/50">Admin preview</p>
+                  <p className="text-xs uppercase tracking-[0.28em] text-white/50">App preview</p>
                   <h2 className="mt-3 text-2xl font-semibold">Operación inmobiliaria</h2>
                 </div>
                 <span className="rounded-full bg-emerald-400/15 px-3 py-1 text-xs text-emerald-200">Beta</span>
@@ -86,7 +86,7 @@ export default function Home() {
               <div className="mt-6 rounded-2xl border border-white/10 bg-white/[0.06] p-4">
                 <p className="text-sm font-medium text-white">Enfoque actual</p>
                 <p className="mt-2 text-sm leading-6 text-white/60">
-                  Hacer que el admin sea cómodo en celular antes de seguir agregando módulos.
+                  Hacer que la app sea cómoda en celular antes de seguir agregando módulos.
                 </p>
               </div>
             </div>

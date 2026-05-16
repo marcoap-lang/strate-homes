@@ -382,7 +382,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
             <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Acceso interno</p>
             <h3 className="mt-2 text-2xl font-semibold text-stone-950">Usuarios del sistema</h3>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-              Estas personas entran al admin. Pueden o no tener un perfil comercial vinculado para aparecer públicamente y recibir propiedades.
+              Estas personas entran a la app. Pueden o no tener un perfil comercial vinculado para aparecer públicamente y recibir propiedades.
             </p>
           </div>
           <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-600">
@@ -418,7 +418,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
                 <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Acceso al sistema</p>
                 <p className="mt-2 text-sm leading-6 text-stone-700">
-                  Este dato controla lo que la persona puede hacer dentro del admin de la inmobiliaria.
+                  Este dato controla lo que la persona puede hacer dentro de la app de la inmobiliaria.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
