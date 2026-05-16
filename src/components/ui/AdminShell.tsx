@@ -38,7 +38,7 @@ const primaryNavItems: PrimaryNavItem[] = [
   {
     label: "Clientes",
     href: "/app/leads",
-    description: "Leads y seguimiento comercial.",
+    description: "Interesados, citas y seguimiento comercial.",
     match: (pathname) => pathname.startsWith("/app/leads") || pathname.startsWith("/admin/leads"),
   },
   {
@@ -70,7 +70,7 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
       { label: "Recorridos", href: "/app/tours" },
     ],
     Clientes: [
-      { label: "Leads", href: "/app/leads" },
+      { label: "Interesados", href: "/app/leads" },
       { label: "Recorridos", href: "/app/tours" },
     ],
     Sitio: [
@@ -219,7 +219,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           <div className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,251,254,0.95))] p-4 shadow-[0_20px_55px_rgba(20,33,61,0.08)] backdrop-blur sm:p-5 lg:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Panel de la inmobiliaria</p>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Operación de la inmobiliaria</p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{activePrimaryItem.label}</h2>
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{activePrimaryItem.description}</p>
               </div>

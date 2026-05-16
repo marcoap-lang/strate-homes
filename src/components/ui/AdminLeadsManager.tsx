@@ -302,16 +302,16 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
   return (
     <div className="space-y-6">
       <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Leads</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Pipeline comercial</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Dale dueño, estado, próximo contacto, tareas e historial a cada interesado para que ningún lead se enfríe.</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Clientes interesados</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Seguimiento comercial</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Asigna responsable, estado, próximo contacto, tareas e historial para que ningún interesado se enfríe.</p>
         <form action={autoAssignAction} className="mt-5 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <p className="text-sm font-semibold text-slate-950">Asignación automática</p>
-            <p className="mt-1 text-xs text-slate-500">{unassignedLeads} leads sin responsable. Se reparten entre asesores activos.</p>
+            <p className="text-sm font-semibold text-slate-950">Repartir interesados</p>
+            <p className="mt-1 text-xs text-slate-500">{unassignedLeads} interesados sin responsable. Se reparten entre asesores activos.</p>
           </div>
           <button disabled={autoAssignPending || !unassignedLeads} className="rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50">
-            {autoAssignPending ? "Asignando..." : "Autoasignar"}
+            {autoAssignPending ? "Repartiendo..." : "Repartir ahora"}
           </button>
         </form>
         {autoAssignState.message ? <p className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${autoAssignState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{autoAssignState.message}</p> : null}
@@ -381,7 +381,7 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
       </section>
 
       <div className="grid gap-4">
-        {leads.length ? leads.map((lead) => <div id={`lead-${lead.id}`} key={`${lead.id}-${lead.created_at}`}><LeadCard lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} /></div>) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
+        {leads.length ? leads.map((lead) => <div id={`lead-${lead.id}`} key={`${lead.id}-${lead.created_at}`}><LeadCard lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} /></div>) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay interesados registrados. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
       </div>
     </div>
   );

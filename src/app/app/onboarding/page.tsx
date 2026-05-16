@@ -68,12 +68,15 @@ export default async function AppOnboardingPage() {
 
   const completed = steps.filter((step) => step.done).length;
   const progress = Math.round((completed / steps.length) * 100);
+  const pendingSteps = steps.filter((step) => !step.done);
+
+  if (progress === 100) redirect("/app");
 
   return (
     <AdminShell>
       <div className="space-y-8">
         <section className="rounded-[2rem] border border-[color:var(--admin-line)] bg-[linear-gradient(135deg,#07101f_0%,#172233_52%,#2c241b_100%)] p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)]">
-          <p className="text-xs uppercase tracking-[0.28em] text-[#d7ab5b]">Inicio acompañado</p>
+          <p className="text-xs uppercase tracking-[0.28em] text-[#d7ab5b]">Arranque inicial</p>
           <h1 className="mt-4 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">De cuenta nueva a inmobiliaria lista para vender.</h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-white/68">
             Completa estos pasos en orden. La meta no es llenar campos: es que tu marca, asesores, propiedades y seguimiento queden listos para recibir compradores.
@@ -90,7 +93,7 @@ export default async function AppOnboardingPage() {
         </section>
 
         <section className="grid gap-4 lg:grid-cols-2">
-          {steps.map((step, index) => (
+          {pendingSteps.map((step, index) => (
             <article key={step.title} className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
               <div className="flex items-start justify-between gap-4">
                 <div>

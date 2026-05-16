@@ -73,6 +73,7 @@ export default async function AppPage() {
             { label: "Publicar sitio", done: access.properties.some((property) => property.status === "active"), href: "/app/public/properties" },
           ];
           const onboardingProgress = (onboardingItems.filter((item) => item.done).length / onboardingItems.length) * 100;
+          const showInitialSetup = onboardingProgress < 100;
           const currentPlanKey = access.subscription?.plan === "small_agency" || access.subscription?.plan === "agency" ? access.subscription.plan : "solo";
           const currentPlan = commercialPlans[currentPlanKey as CommercialPlanKey];
           const publicationScores = access.properties.map(getPropertyPublicationScore);
@@ -86,54 +87,56 @@ export default async function AppPage() {
 
           return (
             <div className="space-y-8">
-              <section className="grid gap-4 lg:grid-cols-[1.15fr_0.85fr]">
+              <section className={`grid gap-4 ${showInitialSetup ? "lg:grid-cols-[1.15fr_0.85fr]" : ""}`}>
                 <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-[linear-gradient(135deg,#07101f_0%,#172233_52%,#2c241b_100%)] p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)]">
-                  <p className="text-xs uppercase tracking-[0.26em] text-white/45">Inicio operativo</p>
-                  <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Que la inmobiliaria pueda vender sin perder seguimiento.</h2>
+                  <p className="text-xs uppercase tracking-[0.26em] text-white/45">Hoy en la inmobiliaria</p>
+                  <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Prioridades para vender con mejor seguimiento.</h2>
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-white/68">
-                    Este panel prioriza lo que mueve la operación: publicar buenas fichas, responder leads, asignar responsables y mantener el sitio público listo para compradores.
+                    Revisa lo que mueve la operación diaria: publicar buenas fichas, atender interesados, asignar responsables y mantener el sitio público listo para compradores.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link href="/app/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#c99a46]">
                       Agregar propiedad
                     </Link>
                     <Link href="/app/leads" className="rounded-full border border-white/20 bg-white/10 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/15">
-                      Revisar leads
+                      Revisar interesados
                     </Link>
                   </div>
                 </article>
 
-                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Checklist inicial</p>
-                  <div className="mt-4 flex items-end justify-between gap-3">
-                    <h3 className="text-2xl font-semibold text-slate-950">Onboarding</h3>
-                    <p className="text-3xl font-semibold text-slate-950">{formatPercent(onboardingProgress)}</p>
-                  </div>
-                  <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
-                    <div className="h-full rounded-full bg-[#d7ab5b]" style={{ width: formatPercent(onboardingProgress) }} />
-                  </div>
-                  <div className="mt-5 space-y-2">
-                    {onboardingItems.map((item) => (
-                      <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm transition hover:bg-white">
-                        <span className="font-medium text-slate-800">{item.label}</span>
-                        <span className={`rounded-full px-2.5 py-1 text-xs ${item.done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                          {item.done ? "Listo" : "Pendiente"}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-                  <Link href="/app/onboarding" className="mt-4 inline-flex w-full justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-                    Abrir guía completa
-                  </Link>
-                </article>
+                {showInitialSetup ? (
+                  <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
+                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Arranque inicial</p>
+                    <div className="mt-4 flex items-end justify-between gap-3">
+                      <h3 className="text-2xl font-semibold text-slate-950">Preparación de cuenta</h3>
+                      <p className="text-3xl font-semibold text-slate-950">{formatPercent(onboardingProgress)}</p>
+                    </div>
+                    <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100">
+                      <div className="h-full rounded-full bg-[#d7ab5b]" style={{ width: formatPercent(onboardingProgress) }} />
+                    </div>
+                    <div className="mt-5 space-y-2">
+                      {onboardingItems.map((item) => (
+                        <Link key={item.label} href={item.href} className="flex items-center justify-between rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm transition hover:bg-white">
+                          <span className="font-medium text-slate-800">{item.label}</span>
+                          <span className={`rounded-full px-2.5 py-1 text-xs ${item.done ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                            {item.done ? "Listo" : "Pendiente"}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+                    <Link href="/app/onboarding" className="mt-4 inline-flex w-full justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      Ver pasos pendientes
+                    </Link>
+                  </article>
+                ) : null}
               </section>
 
               <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                 {[
                   { label: "Inventario activo", value: access.properties.filter((property) => property.status === "active").length, detail: `${access.properties.length} propiedades registradas` },
-                  { label: "Salud de publicación", value: formatPercent(averagePublicationScore), detail: `${incompleteProperties.length} fichas por pulir` },
-                  { label: "Leads con alerta", value: leadAlerts, detail: "Sin respuesta, seguimiento o movimiento" },
-                  { label: "Conversión 7 días", value: access.conversionSummary.events7d, detail: `${access.conversionSummary.whatsappClicks7d} clicks WhatsApp · ${access.conversionSummary.leadForms7d} formularios` },
+                  { label: "Calidad de fichas", value: formatPercent(averagePublicationScore), detail: `${incompleteProperties.length} fichas por pulir` },
+                  { label: "Interesados pendientes", value: leadAlerts, detail: "Sin respuesta, seguimiento o movimiento" },
+                  { label: "Interés recibido", value: access.conversionSummary.events7d, detail: `${access.conversionSummary.whatsappClicks7d} WhatsApp · ${access.conversionSummary.leadForms7d} formularios` },
                 ].map((item) => (
                   <article key={item.label} className="rounded-[1.65rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
@@ -145,7 +148,7 @@ export default async function AppPage() {
 
               <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
                 <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Plan actual</p>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Capacidad contratada</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-950">{getPlanLabel(access.subscription?.plan)}</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{currentPlan.description}</p>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
@@ -169,7 +172,7 @@ export default async function AppPage() {
                   <div className="mt-5 grid gap-3 md:grid-cols-2">
                     {[
                       { label: incompleteProperties.length ? "Completar fichas incompletas" : "Mantener inventario actualizado", href: "/app/properties" },
-                      { label: leadAlerts ? "Responder leads con alerta" : "Revisar pipeline comercial", href: "/app/leads" },
+                      { label: leadAlerts ? "Responder interesados pendientes" : "Revisar clientes interesados", href: "/app/leads" },
                       { label: agentAlerts + activePropertiesWithoutAgent ? "Corregir responsables y WhatsApp" : "Compartir perfiles de asesores", href: "/app/team" },
                       { label: "Ver sitio público como cliente", href: access.activeWorkspace.workspaceSlug ? `/w/${access.activeWorkspace.workspaceSlug}` : "/properties" },
                     ].map((action) => (
