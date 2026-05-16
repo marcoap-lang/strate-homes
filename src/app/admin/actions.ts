@@ -63,6 +63,11 @@ export type WorkspaceBrandingState = {
   message: string;
 };
 
+export type LeadDetailActionState = {
+  success: boolean;
+  message: string;
+};
+
 const INITIAL_STATE: PropertyFormState = {
   success: false,
   message: "",
@@ -118,6 +123,11 @@ const INITIAL_WORKSPACE_BRANDING_STATE: WorkspaceBrandingState = {
   message: "",
 };
 
+const INITIAL_LEAD_DETAIL_ACTION_STATE: LeadDetailActionState = {
+  success: false,
+  message: "",
+};
+
 const leadStatusValues = new Set(["new", "contacted", "interested", "visited", "negotiation", "closed", "lost"]);
 
 function revalidateAdminSurfacePath(path: string) {
@@ -169,6 +179,11 @@ function normalizeNumber(value: FormDataEntryValue | null) {
   if (!text) return null;
   const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeInteger(value: FormDataEntryValue | null) {
+  const number = normalizeNumber(value);
+  return number === null ? null : Math.trunc(number);
 }
 
 function normalizeDateTime(value: FormDataEntryValue | null) {
@@ -777,6 +792,173 @@ export async function updateLeadStateAction(
       success: false,
       message: error instanceof Error ? error.message : "No se pudo actualizar el lead.",
     };
+  }
+}
+
+export async function updateLeadProfileAction(
+  _prevState: LeadDetailActionState = INITIAL_LEAD_DETAIL_ACTION_STATE,
+  formData: FormData,
+): Promise<LeadDetailActionState> {
+  void _prevState;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const leadId = formData.get("leadId")?.toString();
+    if (!leadId) return { success: false, message: "Falta el cliente a actualizar." };
+
+    const status = formData.get("status")?.toString();
+    if (status && !leadStatusValues.has(status)) return { success: false, message: "Estatus no válido." };
+
+    const payload = {
+      status: status || "new",
+      assigned_agent_id: normalizeNullable(formData.get("assignedAgentId")),
+      next_follow_up_at: normalizeDateTime(formData.get("nextFollowUpAt")),
+      internal_note: normalizeNullable(formData.get("internalNote")),
+      preferred_operation: normalizeNullable(formData.get("preferredOperation")),
+      preferred_property_type: normalizeNullable(formData.get("preferredPropertyType")),
+      preferred_location: normalizeNullable(formData.get("preferredLocation")),
+      budget_min: normalizeNumber(formData.get("budgetMin")),
+      budget_max: normalizeNumber(formData.get("budgetMax")),
+      bedrooms_min: normalizeInteger(formData.get("bedroomsMin")),
+      urgency: normalizeNullable(formData.get("urgency")),
+      lost_reason: normalizeNullable(formData.get("lostReason")),
+      last_contacted_at: status && status !== "new" ? new Date().toISOString() : null,
+    };
+
+    const { error } = await supabase
+      .from("leads")
+      .update(payload)
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .eq("id", leadId);
+
+    if (error) return { success: false, message: error.message };
+
+    const note = normalizeNullable(formData.get("newNote"));
+    if (note) {
+      await supabase.from("lead_notes").insert({
+        workspace_id: activeWorkspace.workspaceId,
+        lead_id: leadId,
+        author_profile_id: activeWorkspace.profileId ?? null,
+        body: note,
+      });
+    }
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "lead_updated",
+      entityType: "lead",
+      entityId: leadId,
+      metadata: { status: payload.status, assigned_agent_id: payload.assigned_agent_id, preferences_updated: true },
+    });
+
+    revalidateAdminSurfacePath(`/admin/leads/${leadId}`);
+    revalidateAdminSurfacePath("/admin/leads");
+    return { success: true, message: "Cliente actualizado." };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo actualizar el cliente." };
+  }
+}
+
+export async function createLeadAppointmentAction(
+  _prevState: LeadDetailActionState = INITIAL_LEAD_DETAIL_ACTION_STATE,
+  formData: FormData,
+): Promise<LeadDetailActionState> {
+  void _prevState;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const leadId = formData.get("leadId")?.toString();
+    const title = normalizeNullable(formData.get("title"));
+    const scheduledAt = normalizeDateTime(formData.get("scheduledAt"));
+
+    if (!leadId || !title || !scheduledAt) return { success: false, message: "Faltan datos para agendar la visita." };
+
+    const { error } = await supabase.from("lead_appointments").insert({
+      workspace_id: activeWorkspace.workspaceId,
+      lead_id: leadId,
+      property_id: normalizeNullable(formData.get("propertyId")),
+      assigned_agent_id: normalizeNullable(formData.get("assignedAgentId")),
+      title,
+      scheduled_at: scheduledAt,
+      status: "scheduled",
+    });
+
+    if (error) return { success: false, message: error.message };
+
+    await supabase
+      .from("leads")
+      .update({
+        status: "visited",
+        next_follow_up_at: scheduledAt,
+        assigned_agent_id: normalizeNullable(formData.get("assignedAgentId")),
+      })
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .eq("id", leadId);
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "lead_appointment_created",
+      entityType: "lead",
+      entityId: leadId,
+      metadata: { scheduled_at: scheduledAt },
+    });
+
+    revalidateAdminSurfacePath(`/admin/leads/${leadId}`);
+    revalidateAdminSurfacePath("/admin/leads");
+    return { success: true, message: "Visita agendada." };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo agendar la visita." };
+  }
+}
+
+export async function autoAssignLeadsAction(
+  _prevState: LeadDetailActionState = INITIAL_LEAD_DETAIL_ACTION_STATE,
+  formData: FormData,
+): Promise<LeadDetailActionState> {
+  void _prevState;
+  void formData;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const [{ data: agents }, { data: leads }] = await Promise.all([
+      supabase.from("agents").select("id").eq("workspace_id", activeWorkspace.workspaceId).eq("is_active", true).order("display_name", { ascending: true }),
+      supabase.from("leads").select("id").eq("workspace_id", activeWorkspace.workspaceId).is("assigned_agent_id", null).order("created_at", { ascending: true }),
+    ]);
+
+    if (!agents?.length) return { success: false, message: "Primero crea asesores activos para asignar leads." };
+    if (!leads?.length) return { success: true, message: "No hay leads pendientes de asignación." };
+
+    await Promise.all(
+      leads.map((lead, index) =>
+        supabase
+          .from("leads")
+          .update({ assigned_agent_id: agents[index % agents.length].id })
+          .eq("workspace_id", activeWorkspace.workspaceId)
+          .eq("id", lead.id),
+      ),
+    );
+
+    await supabase.from("workspace_lead_assignment_rules").upsert({
+      workspace_id: activeWorkspace.workspaceId,
+      mode: "round_robin",
+      last_assigned_agent_id: agents[(leads.length - 1) % agents.length].id,
+    }, { onConflict: "workspace_id" });
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "lead_auto_assigned",
+      entityType: "lead",
+      entityId: null,
+      metadata: { leads_assigned: leads.length, agents_available: agents.length },
+    });
+
+    revalidateAdminSurfacePath("/admin/leads");
+    return { success: true, message: `${leads.length} leads asignados automáticamente.` };
+  } catch (error) {
+    return { success: false, message: error instanceof Error ? error.message : "No se pudo autoasignar leads." };
   }
 }
 

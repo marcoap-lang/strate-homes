@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { createPropertyTourAction, updateLeadStateAction, type LeadUpdateState, type PropertyTourCreateState } from "@/app/admin/actions";
+import { autoAssignLeadsAction, createPropertyTourAction, updateLeadStateAction, type LeadDetailActionState, type LeadUpdateState, type PropertyTourCreateState } from "@/app/admin/actions";
 import type { LeadRecord } from "@/lib/admin-access";
 import type { PropertyRecord } from "@/lib/admin-types";
 import { defaultWhatsAppTemplates, fillMessageTemplate } from "@/lib/commercial";
@@ -9,6 +9,7 @@ import { buildPublicTourUrl } from "@/lib/public-links";
 
 const initialState: LeadUpdateState = { success: false, message: "" };
 const initialTourState: PropertyTourCreateState = { success: false, message: "" };
+const initialAutoAssignState: LeadDetailActionState = { success: false, message: "" };
 
 const leadStatuses = [
   { value: "new", label: "Nuevo" },
@@ -145,6 +146,9 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
             </a>
           ) : null}
           <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getStatusTone(lead.status)}`}>{getStatusLabel(lead.status)}</span>
+          <a href={`/app/leads/${lead.id}`} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50">
+            Ver ficha
+          </a>
         </div>
       </div>
 
@@ -271,8 +275,10 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
 }
 
 export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: { leads: LeadRecord[]; properties: PropertyRecord[]; agents: Array<{ id: string; display_name: string; whatsapp?: string | null }>; workspaceSlug?: string | null }) {
+  const [autoAssignState, autoAssignAction, autoAssignPending] = useActionState(autoAssignLeadsAction, initialAutoAssignState);
   const openLeads = leads.filter((lead) => !["closed", "lost"].includes(lead.status));
   const overdueAlerts = leads.filter((lead) => getLeadAlert(lead)).length;
+  const unassignedLeads = leads.filter((lead) => !lead.assigned_agent_id).length;
   const byStatus = leadStatuses.map((status) => ({
     ...status,
     leads: leads.filter((lead) => lead.status === status.value),
@@ -282,6 +288,16 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
     acc[label] = (acc[label] ?? 0) + 1;
     return acc;
   }, {});
+  const advisorPerformance = agents.map((agent) => {
+    const agentLeads = leads.filter((lead) => lead.assigned_agent_id === agent.id);
+    return {
+      agent,
+      total: agentLeads.length,
+      open: agentLeads.filter((lead) => !["closed", "lost"].includes(lead.status)).length,
+      closed: agentLeads.filter((lead) => lead.status === "closed").length,
+      alerts: agentLeads.filter((lead) => getLeadAlert(lead)).length,
+    };
+  }).sort((a, b) => b.total - a.total);
 
   return (
     <div className="space-y-6">
@@ -289,6 +305,16 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Leads</p>
         <h3 className="mt-2 text-2xl font-semibold text-slate-950">Pipeline comercial</h3>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Dale dueño, estado, próximo contacto, tareas e historial a cada interesado para que ningún lead se enfríe.</p>
+        <form action={autoAssignAction} className="mt-5 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-slate-950">Asignación automática</p>
+            <p className="mt-1 text-xs text-slate-500">{unassignedLeads} leads sin responsable. Se reparten entre asesores activos.</p>
+          </div>
+          <button disabled={autoAssignPending || !unassignedLeads} className="rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:opacity-50">
+            {autoAssignPending ? "Asignando..." : "Autoasignar"}
+          </button>
+        </form>
+        {autoAssignState.message ? <p className={`mt-3 rounded-2xl border px-4 py-3 text-sm ${autoAssignState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{autoAssignState.message}</p> : null}
         <div className="mt-5 grid gap-3 sm:grid-cols-3">
           <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
             <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Abiertos</p>
@@ -322,7 +348,7 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
               </div>
               <div className="mt-3 space-y-2">
                 {column.leads.slice(0, 4).map((lead) => (
-                  <a key={lead.id} href={`#lead-${lead.id}`} className="block rounded-xl border border-slate-100 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-slate-300">
+                  <a key={lead.id} href={`/app/leads/${lead.id}`} className="block rounded-xl border border-slate-100 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-slate-300">
                     <span className="block font-semibold text-slate-950">{lead.full_name}</span>
                     <span className="mt-1 block text-xs text-slate-500">{lead.property_title ?? getSourceLabel(lead.source_type)}</span>
                     {getLeadAlert(lead) ? <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">Alerta</span> : null}
@@ -334,6 +360,25 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
           ))}
         </div>
       </div>
+
+      <section className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:p-6">
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Equipo comercial</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Rendimiento por asesor</h3>
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {advisorPerformance.map(({ agent, total, open, closed, alerts }) => (
+            <article key={agent.id} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+              <p className="font-semibold text-slate-950">{agent.display_name}</p>
+              <div className="mt-3 grid grid-cols-4 gap-2 text-center text-xs">
+                <div className="rounded-xl bg-white px-2 py-2"><p className="font-semibold text-slate-950">{total}</p><p className="text-slate-400">Total</p></div>
+                <div className="rounded-xl bg-white px-2 py-2"><p className="font-semibold text-slate-950">{open}</p><p className="text-slate-400">Abiertos</p></div>
+                <div className="rounded-xl bg-white px-2 py-2"><p className="font-semibold text-emerald-700">{closed}</p><p className="text-slate-400">Cierre</p></div>
+                <div className="rounded-xl bg-white px-2 py-2"><p className="font-semibold text-amber-700">{alerts}</p><p className="text-slate-400">Alertas</p></div>
+              </div>
+            </article>
+          ))}
+          {!advisorPerformance.length ? <p className="rounded-2xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500">Crea asesores para ver rendimiento del equipo.</p> : null}
+        </div>
+      </section>
 
       <div className="grid gap-4">
         {leads.length ? leads.map((lead) => <div id={`lead-${lead.id}`} key={`${lead.id}-${lead.created_at}`}><LeadCard lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} /></div>) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
