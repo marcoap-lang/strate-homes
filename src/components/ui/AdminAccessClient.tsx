@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
@@ -32,6 +32,12 @@ export function AdminAccessClient({
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bootstrapState, bootstrapAction, bootstrapPending] = useActionState(bootstrapInitialOwnerAction, initialBootstrapState);
+
+  useEffect(() => {
+    if (!isLoading && !workspaceLoading && user && activeWorkspace?.workspaceId) {
+      window.location.replace(postAuthRedirectPath);
+    }
+  }, [activeWorkspace?.workspaceId, isLoading, postAuthRedirectPath, user, workspaceLoading]);
 
   async function handleAuth(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -359,21 +365,8 @@ export function AdminAccessClient({
   }
 
   return (
-    <div className="rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-4 sm:rounded-[2rem] sm:p-8 text-sm leading-7 text-emerald-800 shadow-sm shadow-emerald-100">
-      <p className="text-xs uppercase tracking-[0.24em] text-emerald-700/70">Acceso listo</p>
-      <h3 className="mt-3 text-2xl font-semibold text-stone-950">Tu inmobiliaria ya está operativa</h3>
-      <p className="mt-4 text-stone-700">
-        Iniciaste sesión como <span className="font-medium text-stone-950">{user.email ?? user.id}</span> en
-        <span className="font-medium text-stone-950"> {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}</span>.
-      </p>
-      <div className="mt-6 flex flex-wrap gap-3">
-        <a href="/app" className="rounded-full bg-[#d7ab5b] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#c99a46]">
-          Entrar a la app
-        </a>
-        <button onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-white/70">
-          Cerrar sesión
-        </button>
-      </div>
+    <div className="rounded-[1.5rem] border border-stone-200 bg-white/80 p-4 sm:rounded-[2rem] sm:p-8 text-sm text-stone-500 shadow-sm shadow-stone-200/50">
+      Entrando a tu operación...
     </div>
   );
 }
