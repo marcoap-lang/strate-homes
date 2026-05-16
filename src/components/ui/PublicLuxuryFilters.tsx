@@ -66,29 +66,40 @@ export function PublicLuxuryFilters({
 }) {
   return (
     <section className={compact ? "pt-4" : "pt-8"}>
-      <div className="rounded-[2rem] bg-white px-4 py-4 shadow-[0_14px_40px_rgba(15,23,42,0.08)] sm:px-5">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="rounded-[2.15rem] bg-[linear-gradient(180deg,#fffdfa_0%,#f7f1e7_100%)] px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] ring-1 ring-[#eadcc8] sm:px-5 sm:py-5">
+        <div className="flex flex-col gap-4">
           {filterGroups.map((group) => (
-            <div key={group.key} className="flex flex-wrap items-center gap-2">
-              <span className="mr-1 text-[11px] uppercase tracking-[0.26em] text-slate-400">{group.label}</span>
-              {group.options.map((option) => {
-                const active = current[group.key] === option.value;
+            <div key={group.key} className="grid gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-start">
+              <span className="pt-1 text-[11px] uppercase tracking-[0.28em] text-[#8d7960]">{group.label}</span>
+              <div className="flex flex-wrap gap-2">
+                {group.options.map((option) => {
+                  const active = current[group.key] === option.value;
 
-                return (
-                  <Link
-                    key={`${group.key}-${option.value}`}
-                    href={buildHref(basePath, current, group.key, option.value)}
-                    className={`rounded-full px-4 py-2 text-sm transition ${active ? "bg-slate-900 text-white" : "border border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-slate-950"}`}
-                  >
-                    {option.label}
-                  </Link>
-                );
-              })}
+                  return (
+                    <Link
+                      key={`${group.key}-${option.value}`}
+                      href={buildHref(basePath, current, group.key, option.value)}
+                      className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+                        active
+                          ? "border-[#d0a35b] bg-[#d0a35b] text-[#1a1510] shadow-[0_10px_24px_rgba(208,163,91,0.26)]"
+                          : "border-[#eadfce] bg-white text-[#4d4034] hover:border-[#d8bc90] hover:bg-[#f9f2e8] hover:text-[#1d1813]"
+                      }`}
+                    >
+                      {option.label}
+                    </Link>
+                  );
+                })}
+              </div>
             </div>
           ))}
-          <Link href={basePath} className="ml-auto rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-600 transition hover:bg-slate-50 hover:text-slate-950">
-            Limpiar
-          </Link>
+          <div className="flex justify-end pt-1">
+            <Link
+              href={basePath}
+              className="rounded-full border border-[#d7c7b1] bg-white px-4 py-2.5 text-sm font-medium text-[#5c4b3d] transition hover:border-[#cdae7f] hover:bg-[#fbf3e8] hover:text-[#1d1813]"
+            >
+              Limpiar filtros
+            </Link>
+          </div>
         </div>
       </div>
     </section>
