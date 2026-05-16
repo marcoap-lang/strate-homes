@@ -67,112 +67,126 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
   const rentProperties = properties.filter((property) => property.operationType === "rent").length;
   const highlightedProperties = properties.slice(0, 6);
   const latestProperties = properties.slice(0, 3);
+  const heroImage = workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? null;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff8ec_0%,#f7fbff_35%,#eef5fb_100%)] text-slate-950">
+    <main className="min-h-screen bg-[#f4efe8] text-slate-950">
       <PublicBrandHeader brandName={workspace.brand_name ?? workspace.name} logoUrl={workspace.public_logo_url} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
 
-      <section className="public-noise px-6 pb-20 pt-8 lg:px-8 lg:pb-24 lg:pt-10">
-        <div className="mx-auto grid max-w-7xl gap-10 lg:grid-cols-[0.76fr_1.24fr] lg:items-end">
-          <div className="pb-4 lg:pb-10">
-            {workspace.public_logo_url ? (
-              <div className="mb-10 flex w-full justify-start">
-                <Image src={workspace.public_logo_url} alt={workspace.brand_name ?? workspace.name} width={760} height={300} className="h-auto max-h-44 w-auto max-w-[min(100%,34rem)] object-contain drop-shadow-[0_18px_35px_rgba(15,23,42,0.16)] sm:max-h-56 sm:max-w-[38rem]" unoptimized priority />
-              </div>
-            ) : null}
-            <p className="text-xs uppercase tracking-[0.38em] text-slate-500">Inmobiliaria</p>
-            <h1 className="mt-7 max-w-5xl font-serif text-4xl font-semibold leading-[0.95] tracking-[-0.04em] text-slate-950 sm:text-6xl sm:leading-[0.92] lg:text-[6.45rem]">
-              {workspace.public_claim ?? "Encuentra tu próximo hogar en Veracruz"}
-            </h1>
-            <p className="mt-8 max-w-xl text-base leading-8 text-slate-600">
-              {workspace.public_bio ?? "Propiedades seleccionadas en las mejores zonas, con asesoría cercana y atención personalizada."}
-            </p>
-            <div className="mt-9 flex flex-wrap gap-4">
-              <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full bg-[#d7ab5b] px-6 py-3.5 text-sm font-medium text-white shadow-[0_16px_35px_rgba(215,171,91,0.32)] transition hover:bg-[#c99a46]">
-                Ver propiedades
-              </Link>
-              {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-medium text-slate-900 transition hover:bg-slate-50">Hablar con la inmobiliaria</a> : null}
-              {heroProperty?.agent?.slug ? (
-                <Link href={`/w/${workspaceSlug}/agents/${heroProperty.agent.slug}`} className="rounded-full border border-slate-200 bg-white px-6 py-3.5 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                  Conocer a un asesor
-                </Link>
-              ) : null}
-            </div>
-            <div className="mt-8 flex flex-wrap gap-5 text-sm text-slate-500">
-              {workspace.public_phone ? <span>Tel. {workspace.public_phone}</span> : null}
-              {workspace.public_email ? <span>{workspace.public_email}</span> : null}
-            </div>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <div className="public-glass rounded-[1.6rem] px-5 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Inventario activo</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{activeProperties.length}</p>
-              </div>
-              <div className="public-glass rounded-[1.6rem] px-5 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">En venta</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{saleProperties}</p>
-              </div>
-              <div className="public-glass rounded-[1.6rem] px-5 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">En renta</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{rentProperties}</p>
-              </div>
-            </div>
+      <section className="relative overflow-hidden bg-[#120f0c] px-6 pb-24 pt-8 text-[#f6f0e7] lg:px-8 lg:pb-32 lg:pt-10">
+        {heroImage ? (
+          <div className="absolute inset-0">
+            <Image src={heroImage} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="public-cinematic-image object-cover opacity-70" unoptimized priority />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(196,144,68,0.22),transparent_28%),linear-gradient(90deg,rgba(18,15,12,0.92)_0%,rgba(18,15,12,0.66)_34%,rgba(18,15,12,0.48)_58%,rgba(18,15,12,0.82)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,15,12,0.20)_0%,rgba(18,15,12,0.38)_46%,rgba(18,15,12,0.88)_100%)]" />
           </div>
+        ) : null}
+        <div className="absolute -left-20 top-24 h-72 w-72 rounded-full bg-[#d0a35b]/18 blur-3xl" />
+        <div className="absolute right-0 top-12 h-80 w-80 rounded-full bg-white/10 blur-3xl" />
 
-          <div className="relative">
-            <div className="public-cinematic-frame relative min-h-[30rem] overflow-hidden rounded-[2.2rem] bg-gradient-to-br from-sky-100 to-white shadow-[0_34px_100px_rgba(15,23,42,0.16)] sm:rounded-[3rem] lg:min-h-[52rem]">
-              {(workspace.public_hero_url ?? heroProperty?.coverImageUrl) ? <Image src={workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? ""} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="public-cinematic-image object-cover object-center" unoptimized /> : null}
-              <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.02)_0%,rgba(15,23,42,0.14)_55%,rgba(15,23,42,0.48)_100%)]" />
-              <div className="absolute inset-x-8 top-8 z-[3] hidden items-center justify-between lg:flex">
-                <span className="public-glass rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-slate-700">Selección curada</span>
-                {heroProperty?.agent?.displayName ? <span className="public-glass rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.22em] text-slate-700">Atiende {heroProperty.agent.displayName}</span> : null}
+        <div className="relative mx-auto max-w-7xl">
+          <div className="grid gap-12 lg:grid-cols-[0.78fr_1.22fr] lg:items-end">
+            <div className="pt-8">
+              <p className="text-xs uppercase tracking-[0.42em] text-[#d8c2a2]">Beverly Hills Style Real Estate</p>
+              <h1 className="mt-7 max-w-5xl font-serif text-5xl font-semibold leading-[0.88] tracking-[-0.055em] text-[#fff7ef] sm:text-7xl lg:text-[7.1rem]">
+                {workspace.public_claim ?? "Residencias extraordinarias, presencia impecable y una forma más refinada de comprar."}
+              </h1>
+              <p className="mt-8 max-w-xl text-base leading-8 text-[#efe2d1]/84 sm:text-lg">
+                {workspace.public_bio ?? "Seleccionamos propiedades con arquitectura, luz, ubicación y narrativa comercial a la altura de clientes que esperan algo excepcional."}
+              </p>
+
+              <div className="mt-10 flex flex-wrap gap-4">
+                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full bg-[#d0a35b] px-7 py-4 text-sm font-medium text-[#1b1713] shadow-[0_18px_45px_rgba(208,163,91,0.32)] transition hover:bg-[#dfb066]">
+                  Explorar propiedades
+                </Link>
+                {workspace.public_whatsapp || workspace.public_phone ? <a href={`https://wa.me/${(workspace.public_whatsapp ?? workspace.public_phone ?? "").replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-white/24 bg-white/8 px-7 py-4 text-sm font-medium text-[#fff7ef] backdrop-blur transition hover:bg-white/14">Hablar con concierge inmobiliario</a> : null}
+              </div>
+
+              <div className="mt-12 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Inventario activo</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{activeProperties.length}</p>
+                </div>
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">En venta</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{saleProperties}</p>
+                </div>
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl shadow-[0_24px_60px_rgba(0,0,0,0.12)]">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">En renta</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{rentProperties}</p>
+                </div>
               </div>
             </div>
-            {heroProperty ? (
-              <div className="public-glass public-float mt-4 rounded-[1.8rem] px-5 py-5 sm:absolute sm:bottom-8 sm:left-8 sm:right-8 sm:mt-0 sm:rounded-[2.2rem] sm:px-6">
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                  <div className="min-w-0">
-                    <p className="text-[11px] uppercase tracking-[0.26em] text-slate-500">Selección editorial</p>
-                    <h2 className="mt-2 font-serif text-2xl font-semibold tracking-[-0.03em] text-slate-950">{heroProperty.title}</h2>
-                    <p className="mt-2 text-sm text-slate-600">{heroProperty.locationLabel}</p>
-                    <div className="mt-4 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
-                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1">{formatOperationLabel(heroProperty.operationType)}</span>
-                      <span className="rounded-full border border-slate-200 bg-white px-3 py-1">{formatPropertyTypeLabel(heroProperty.propertyType)}</span>
-                      {heroProperty.agent?.displayName ? <span className="rounded-full border border-slate-200 bg-white px-3 py-1">Atiende {heroProperty.agent.displayName}</span> : null}
+
+            <div className="relative pb-8 lg:pb-0">
+              <div className="ml-auto max-w-[44rem]">
+                <div className="rounded-[2.4rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),rgba(255,255,255,0.02))] p-3 shadow-[0_34px_100px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+                  <div className="public-cinematic-frame relative min-h-[30rem] overflow-hidden rounded-[2rem] bg-black sm:min-h-[40rem] lg:min-h-[47rem]">
+                    {heroImage ? <Image src={heroImage} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="public-cinematic-image object-cover" unoptimized /> : null}
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,6,0.06)_0%,rgba(10,8,6,0.20)_48%,rgba(10,8,6,0.64)_100%)]" />
+                    <div className="absolute left-6 top-6 z-[3] rounded-full border border-white/14 bg-white/8 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-[#f8e9d5] backdrop-blur">
+                      Signature listing
                     </div>
-                  </div>
-                  <div className="shrink-0">
-                    <p className="text-right text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(heroProperty.currencyCode, heroProperty.priceAmount)}</p>
-                    <Link href={`/w/${workspaceSlug}/properties/${heroProperty.slug}`} className="mt-3 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                      Ver propiedad
-                    </Link>
                   </div>
                 </div>
               </div>
-            ) : null}
-          </div>
-        </div>
 
-        <div className="mx-auto mt-8 max-w-7xl lg:-mt-2 lg:px-10">
-          <PublicLuxuryFilters basePath={`/w/${workspaceSlug}/properties`} />
+              {heroProperty ? (
+                <div className="relative z-10 mt-5 lg:-mt-28 lg:ml-0">
+                  <div className="grid gap-4 lg:grid-cols-[1.18fr_0.82fr]">
+                    <div className="rounded-[2rem] border border-[#e9dcc9] bg-[#f6efe5] px-6 py-6 shadow-[0_28px_80px_rgba(0,0,0,0.14)]">
+                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#8a6a43]">Featured residence</p>
+                      <h2 className="mt-3 font-serif text-3xl font-semibold leading-[0.95] tracking-[-0.04em] text-[#18130f] sm:text-4xl">{heroProperty.title}</h2>
+                      <p className="mt-3 text-sm leading-7 text-[#5f5347]">{heroProperty.locationLabel}</p>
+                      <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-[#6d5b49]">
+                        <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">{formatOperationLabel(heroProperty.operationType)}</span>
+                        <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">{formatPropertyTypeLabel(heroProperty.propertyType)}</span>
+                        {heroProperty.agent?.displayName ? <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">Represented by {heroProperty.agent.displayName}</span> : null}
+                      </div>
+                    </div>
+                    <div className="rounded-[2rem] border border-white/12 bg-[#18120d] px-6 py-6 text-[#f4e8d8] shadow-[0_28px_80px_rgba(0,0,0,0.22)]">
+                      <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Private view</p>
+                      <p className="mt-3 text-3xl font-semibold tracking-tight text-white">{formatPriceLabel(heroProperty.currencyCode, heroProperty.priceAmount)}</p>
+                      <p className="mt-3 text-sm leading-7 text-[#dbcab5]">Una propiedad pensada para compradores que valoran presencia, ubicación y una experiencia impecable desde el primer contacto.</p>
+                      <div className="mt-5 flex flex-col gap-3">
+                        <Link href={`/w/${workspaceSlug}/properties/${heroProperty.slug}`} className="rounded-full bg-[#d0a35b] px-5 py-3 text-center text-sm font-medium text-[#1b1713] transition hover:bg-[#dfb066]">
+                          Ver residencia
+                        </Link>
+                        {heroProperty.agent?.slug ? (
+                          <Link href={`/w/${workspaceSlug}/agents/${heroProperty.agent.slug}`} className="rounded-full border border-white/16 bg-white/6 px-5 py-3 text-center text-sm font-medium text-[#fff7ef] transition hover:bg-white/12">
+                            Conocer al asesor
+                          </Link>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          </div>
+
+          <div className="mt-12 rounded-[2.2rem] border border-white/10 bg-white/8 p-4 shadow-[0_28px_80px_rgba(0,0,0,0.16)] backdrop-blur-xl">
+            <PublicLuxuryFilters basePath={`/w/${workspaceSlug}/properties`} />
+          </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-6 pb-6 lg:px-8">
-        <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
-          <article className="public-editorial-surface rounded-[2rem] border border-slate-200 px-6 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Cómo trabajamos</p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold tracking-[-0.03em] text-slate-950">Acompañamiento claro desde la primera conversación</h2>
-            <p className="mt-4 max-w-2xl text-sm leading-7 text-slate-600">
-              No solo publicamos propiedades. Te ayudamos a entender contexto, comparar opciones y hablar con la persona adecuada según la propiedad que te interesa.
+      <section className="mx-auto max-w-7xl px-6 py-18 lg:px-8 lg:py-24">
+        <div className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
+          <article className="rounded-[2.4rem] bg-[#16110d] px-7 py-8 text-[#f5e7d5] shadow-[0_24px_70px_rgba(0,0,0,0.14)]">
+            <p className="text-xs uppercase tracking-[0.32em] text-[#c7aa84]">Private advisory</p>
+            <h2 className="mt-4 font-serif text-4xl font-semibold leading-[0.95] tracking-[-0.045em] text-white">No vendemos volumen. Curamos decisiones.</h2>
+            <p className="mt-5 max-w-2xl text-sm leading-8 text-[#dbcab5]">
+              Cada ficha pública debe sentirse como una invitación bien dirigida: contexto, representación clara y una experiencia de contacto que refleje lujo, criterio y confianza.
             </p>
           </article>
           <div className="grid gap-4 sm:grid-cols-3">
             {latestProperties.map((property, index) => (
-              <article key={property.id} className="public-glass rounded-[1.7rem] px-5 py-5">
-                <p className="text-[11px] uppercase tracking-[0.22em] text-slate-500">{index === 0 ? "Nueva prioridad" : index === 1 ? "Buena oportunidad" : "Para seguir explorando"}</p>
-                <p className="mt-3 text-lg font-semibold leading-tight text-slate-950">{property.title}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{property.locationLabel}</p>
-                <p className="mt-4 text-sm font-medium text-slate-950">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
+              <article key={property.id} className="rounded-[2rem] border border-[#e8dccb] bg-[#fbf7f1] px-5 py-5 shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                <p className="text-[11px] uppercase tracking-[0.22em] text-[#8a6a43]">{index === 0 ? "New arrival" : index === 1 ? "Market favorite" : "Worth a closer look"}</p>
+                <p className="mt-3 font-serif text-xl font-semibold leading-tight tracking-[-0.03em] text-[#17120e]">{property.title}</p>
+                <p className="mt-2 text-sm leading-6 text-[#605448]">{property.locationLabel}</p>
+                <p className="mt-4 text-sm font-medium text-[#17120e]">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
               </article>
             ))}
           </div>
@@ -182,44 +196,57 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-24">
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Propiedades destacadas</p>
-            <h2 className="mt-3 font-serif text-4xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-5xl">Oportunidades seleccionadas para ti</h2>
+            <p className="text-sm uppercase tracking-[0.3em] text-[#8a6a43]">Signature collection</p>
+            <h2 className="mt-3 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-6xl">Residencias y oportunidades con presencia excepcional</h2>
           </div>
           <Link href={`/w/${workspaceSlug}/properties`} className="hidden rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-900 transition hover:bg-slate-50 md:inline-flex">
             Ver más propiedades
           </Link>
         </div>
 
-        <div className="mt-14 grid gap-x-8 gap-y-16 md:grid-cols-2 xl:grid-cols-3">
-          {highlightedProperties.map((property) => {
+        <div className="mt-14 grid gap-8">
+          {highlightedProperties.map((property, index) => {
             const specsInline = [
               property.bedrooms ? `${property.bedrooms} recámaras` : null,
               property.bathrooms ? `${property.bathrooms} baños` : null,
               property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : null,
             ].filter(Boolean).join(" · ");
+            const isReverse = index % 2 === 1;
 
             return (
-              <article key={property.id} className="group space-y-5">
-                <div className="public-cinematic-frame relative h-[26rem] overflow-hidden rounded-[2.4rem] bg-gradient-to-br from-sky-100 via-white to-sky-50 shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
-                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="public-cinematic-image object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-slate-500">
-                    <span>{formatOperationLabel(property.operationType)}</span>
-                    <span>{property.publicCode ?? "Disponible"}</span>
+              <article key={property.id} className={`grid gap-6 rounded-[2.6rem] border border-[#eadfce] bg-[#fbf7f1] p-4 shadow-[0_20px_60px_rgba(15,23,42,0.08)] lg:grid-cols-[1.1fr_0.9fr] lg:p-5 ${isReverse ? "lg:[&>*:first-child]:order-2" : ""}`}>
+                <div className="public-cinematic-frame relative min-h-[20rem] overflow-hidden rounded-[2.1rem] bg-[#d9d9d9] sm:min-h-[28rem] lg:min-h-[34rem]">
+                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="public-cinematic-image object-cover" unoptimized /> : null}
+                  <div className="absolute left-5 top-5 z-[3] rounded-full border border-white/18 bg-black/25 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-white backdrop-blur">
+                    {formatOperationLabel(property.operationType)}
                   </div>
-                  <h3 className="font-serif text-2xl font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[2rem]">{property.title}</h3>
-                  <p className="text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                  <p className="text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
-                  {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
-                  {property.agent?.displayName ? (
-                    <p className="text-sm text-slate-500">
-                      Responsable comercial: <span className="font-medium text-slate-800">{property.agent.displayName}</span>
-                    </p>
-                  ) : null}
-                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                    Ver propiedad
-                  </Link>
+                </div>
+                <div className="flex flex-col justify-between px-2 py-2 sm:px-4 sm:py-4">
+                  <div>
+                    <div className="flex items-center justify-between gap-3 text-xs uppercase tracking-[0.26em] text-[#8a6a43]">
+                      <span>{property.publicCode ?? "Private listing"}</span>
+                      <span>{formatPropertyTypeLabel(property.propertyType)}</span>
+                    </div>
+                    <h3 className="mt-5 font-serif text-4xl font-semibold leading-[0.96] tracking-[-0.05em] text-[#17120e] sm:text-5xl">{property.title}</h3>
+                    <p className="mt-4 text-sm leading-7 text-[#605448]">{property.locationLabel}</p>
+                    <p className="mt-6 text-3xl font-semibold tracking-tight text-[#17120e]">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
+                    {specsInline ? <p className="mt-4 text-sm text-[#605448]">{specsInline}</p> : null}
+                    {property.agent?.displayName ? (
+                      <p className="mt-4 text-sm text-[#605448]">
+                        Representada por <span className="font-medium text-[#17120e]">{property.agent.displayName}</span>
+                      </p>
+                    ) : null}
+                  </div>
+                  <div className="mt-8 flex flex-wrap gap-3">
+                    <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="rounded-full bg-[#17120e] px-6 py-3.5 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
+                      Ver residencia
+                    </Link>
+                    {property.agent?.slug ? (
+                      <Link href={`/w/${workspaceSlug}/agents/${property.agent.slug}`} className="rounded-full border border-[#d9c7af] bg-white px-6 py-3.5 text-sm font-medium text-[#17120e] transition hover:bg-[#f7efe3]">
+                        Ver asesor
+                      </Link>
+                    ) : null}
+                  </div>
                 </div>
               </article>
             );

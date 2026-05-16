@@ -46,7 +46,7 @@ export default async function WorkspaceAgentPage({
   const featuredProperty = primaryProperties[0] ?? agent.properties[0] ?? null;
 
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff8ec_0%,#f7fbff_35%,#eef5fb_100%)] px-6 py-10 text-slate-950 lg:px-8">
+    <main className="min-h-screen bg-[#f4efe8] px-6 py-10 text-slate-950 lg:px-8">
       <PublicBrandHeader brandName={agent.workspace.brandName ?? agent.workspace.name} logoUrl={agent.workspace.publicLogoUrl} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
       <div className="public-noise mx-auto max-w-7xl space-y-20">
         <nav className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
@@ -57,81 +57,79 @@ export default async function WorkspaceAgentPage({
           <span className="text-slate-900">{agent.displayName}</span>
         </nav>
 
-        <section className="grid gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
-          <div className="public-cinematic-frame relative min-h-[38rem] overflow-hidden rounded-[3rem] bg-gradient-to-br from-sky-100 via-white to-slate-100 shadow-[0_34px_100px_rgba(15,23,42,0.16)]">
-            {agent.avatarUrl ? <Image src={agent.avatarUrl} alt={agent.displayName} fill className="public-cinematic-image object-cover" unoptimized /> : <div className="flex h-full items-center justify-center text-7xl font-semibold text-slate-300">{agent.displayName.slice(0,1).toUpperCase()}</div>}
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04)_0%,rgba(15,23,42,0.16)_52%,rgba(15,23,42,0.42)_100%)]" />
-            <div className="absolute bottom-7 left-7 z-[3]">
-              <span className="public-glass rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.26em] text-slate-700">Perfil activo</span>
-            </div>
+        <section className="relative overflow-hidden rounded-[3rem] bg-[#120f0c] px-6 py-8 text-[#f5e8d6] shadow-[0_34px_100px_rgba(0,0,0,0.18)] lg:px-8 lg:py-10">
+          <div className="absolute inset-0">
+            {agent.avatarUrl ? <Image src={agent.avatarUrl} alt={agent.displayName} fill className="public-cinematic-image object-cover opacity-58" unoptimized /> : null}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(208,163,91,0.20),transparent_28%),linear-gradient(90deg,rgba(18,15,12,0.88)_0%,rgba(18,15,12,0.46)_44%,rgba(18,15,12,0.84)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(18,15,12,0.18)_0%,rgba(18,15,12,0.30)_48%,rgba(18,15,12,0.82)_100%)]" />
           </div>
-          <div className="rounded-[2.2rem] bg-white/75 p-2 lg:p-4">
-            <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Perfil comercial</p>
-            <h1 className="mt-4 font-serif text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-slate-950 sm:text-6xl lg:text-[4.95rem]">{agent.displayName}</h1>
-            {agent.title ? <p className="mt-4 text-sm uppercase tracking-[0.25em] text-slate-500">{agent.title}</p> : null}
-            <p className="mt-7 max-w-2xl text-base leading-8 text-slate-600">
-              {agent.bio ?? `Te ayudo a encontrar la propiedad ideal con atención cercana, información clara y acompañamiento durante cada paso.`}
-            </p>
-            <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <div className="public-glass rounded-[1.5rem] px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Propiedades activas</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{agent.properties.length}</p>
-              </div>
-              <div className="public-glass rounded-[1.5rem] px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Responsable principal</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{primaryProperties.length}</p>
-              </div>
-              <div className="public-glass rounded-[1.5rem] px-4 py-4">
-                <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Como colaborador</p>
-                <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{collaboratorProperties.length}</p>
-              </div>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-4">
-              {agent.whatsappUrl ? (
-                <a href={agent.whatsappUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#d7ab5b] px-7 py-4 text-sm font-medium text-white shadow-[0_14px_35px_rgba(215,171,91,0.35)] transition hover:bg-[#c99a46]">
-                  Agenda una visita por WhatsApp
-                </a>
-              ) : (
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">
-                  Contacto disponible próximamente
-                </span>
-              )}
-              <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-slate-200 bg-white px-6 py-4 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                Ver propiedades disponibles
-              </Link>
-            </div>
-            <div className="mt-8 flex flex-wrap gap-5 text-sm text-slate-500">
-              {agent.whatsapp ?? agent.phone ? <span>{agent.whatsapp ?? agent.phone}</span> : null}
-              {agent.email ? <span>{agent.email}</span> : null}
-            </div>
-            <div className="public-editorial-surface mt-8 rounded-[1.9rem] border border-slate-200 px-5 py-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
-              <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Forma de trabajo</p>
-              <p className="mt-3 text-sm leading-7 text-slate-600">
-                Si una propiedad aparece aquí, este asesor participa directamente en su atención. Algunas las lidera como responsable principal y en otras colabora con el equipo comercial de la inmobiliaria.
+          <div className="relative grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+            <div className="pt-8 lg:pt-12">
+              <p className="text-xs uppercase tracking-[0.42em] text-[#d9c2a2]">Private advisor</p>
+              <h1 className="mt-6 max-w-4xl font-serif text-5xl font-semibold leading-[0.9] tracking-[-0.055em] text-white sm:text-7xl">{agent.displayName}</h1>
+              {agent.title ? <p className="mt-5 text-sm uppercase tracking-[0.28em] text-[#d8c2a2]">{agent.title}</p> : null}
+              <p className="mt-7 max-w-2xl text-base leading-8 text-[#e7d8c5]">
+                {agent.bio ?? `Te acompaño a descubrir propiedades extraordinarias con contexto, criterio y una conversación clara desde el primer contacto.`}
               </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                {agent.whatsappUrl ? (
+                  <a href={agent.whatsappUrl} target="_blank" rel="noreferrer" className="rounded-full bg-[#d0a35b] px-7 py-4 text-sm font-medium text-[#1b1713] shadow-[0_18px_45px_rgba(208,163,91,0.32)] transition hover:bg-[#dfb066]">
+                    Agenda una visita privada
+                  </a>
+                ) : null}
+                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-white/18 bg-white/8 px-7 py-4 text-sm font-medium text-[#fff7ef] backdrop-blur transition hover:bg-white/14">
+                  Ver propiedades atendidas
+                </Link>
+              </div>
+              <div className="mt-10 grid gap-4 sm:grid-cols-3">
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Activas</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{agent.properties.length}</p>
+                </div>
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Principal</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{primaryProperties.length}</p>
+                </div>
+                <div className="rounded-[1.8rem] border border-white/12 bg-white/8 px-5 py-5 backdrop-blur-xl">
+                  <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Colaboración</p>
+                  <p className="mt-3 text-4xl font-semibold tracking-tight text-white">{collaboratorProperties.length}</p>
+                </div>
+              </div>
+            </div>
+            <div className="lg:pb-6">
+              <div className="ml-auto max-w-[28rem] rounded-[2.2rem] border border-white/12 bg-white/8 p-5 backdrop-blur-xl shadow-[0_28px_80px_rgba(0,0,0,0.18)]">
+                <p className="text-[11px] uppercase tracking-[0.28em] text-[#d8c2a2]">Approach</p>
+                <p className="mt-4 text-sm leading-8 text-[#e7d8c5]">
+                  Algunas propiedades las lidero como responsable principal y en otras colaboro con el equipo comercial de la inmobiliaria. Aquí solo aparecen oportunidades donde mi participación es directa.
+                </p>
+                <div className="mt-5 flex flex-wrap gap-4 text-sm text-[#e7d8c5]">
+                  {agent.whatsapp ?? agent.phone ? <span>{agent.whatsapp ?? agent.phone}</span> : null}
+                  {agent.email ? <span>{agent.email}</span> : null}
+                </div>
+              </div>
             </div>
           </div>
         </section>
 
         {featuredProperty ? (
-          <section className="public-editorial-surface grid gap-8 rounded-[2.6rem] border border-slate-200 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.06)] lg:grid-cols-[0.92fr_1.08fr] lg:p-8">
+          <section className="grid gap-8 rounded-[2.6rem] border border-[#eadfce] bg-[#fbf7f1] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.06)] lg:grid-cols-[0.92fr_1.08fr] lg:p-8">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Propiedad destacada con este asesor</p>
-              <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">{featuredProperty.title}</h2>
-              <p className="mt-4 text-sm leading-7 text-slate-600">{featuredProperty.locationLabel}</p>
-              <p className="mt-5 text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(featuredProperty.currencyCode, featuredProperty.priceAmount)}</p>
-              <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
-                <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Signature property</p>
+              <h2 className="mt-4 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-5xl">{featuredProperty.title}</h2>
+              <p className="mt-4 text-sm leading-7 text-[#605448]">{featuredProperty.locationLabel}</p>
+              <p className="mt-5 text-3xl font-semibold tracking-tight text-[#17120e]">{formatPriceLabel(featuredProperty.currencyCode, featuredProperty.priceAmount)}</p>
+              <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-[#6d5b49]">
+                <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">
                   {featuredProperty.agent?.id === agent.id ? "Responsable principal" : "Asesor colaborador"}
                 </span>
-                {featuredProperty.publicCode ? <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1">{featuredProperty.publicCode}</span> : null}
+                {featuredProperty.publicCode ? <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">{featuredProperty.publicCode}</span> : null}
               </div>
               <div className="mt-6 flex flex-wrap gap-3">
-                <Link href={`/w/${workspaceSlug}/properties/${featuredProperty.slug}?advisor=${agent.slug}`} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
-                  Ver ficha completa
+                <Link href={`/w/${workspaceSlug}/properties/${featuredProperty.slug}?advisor=${agent.slug}`} className="rounded-full bg-[#17120e] px-6 py-3.5 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
+                  Ver residencia
                 </Link>
-                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                  Explorar más propiedades
+                <Link href={`/w/${workspaceSlug}/properties`} className="rounded-full border border-[#d9c7af] bg-white px-6 py-3.5 text-sm font-medium text-[#17120e] transition hover:bg-[#f7efe3]">
+                  Explorar más
                 </Link>
               </div>
             </div>
@@ -144,29 +142,29 @@ export default async function WorkspaceAgentPage({
         <section className="space-y-8">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Inventario atendido</p>
-              <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-slate-950">Propiedades que atiende este asesor</h2>
+              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Private collection</p>
+              <h2 className="mt-4 font-serif text-4xl font-semibold tracking-[-0.05em] text-[#17120e] sm:text-5xl">Propiedades donde su participación es directa</h2>
             </div>
             <Link href={`/w/${workspaceSlug}/properties`} className="text-sm text-slate-600 transition hover:text-slate-950">Ver más propiedades</Link>
           </div>
 
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {agent.properties.length ? agent.properties.map((property) => (
-              <article key={property.id} className="overflow-hidden rounded-[2.2rem] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
+              <article key={property.id} className="overflow-hidden rounded-[2.2rem] bg-[#fbf7f1] shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
                 <div className="public-cinematic-frame relative h-56 bg-gradient-to-br from-zinc-200 to-zinc-100">
                   {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="public-cinematic-image object-cover" unoptimized /> : null}
                 </div>
                 <div className="p-5">
-                  <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-slate-500">
-                    <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1">
+                  <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-[#6d5b49]">
+                    <span className="rounded-full border border-[#d9c7af] bg-white px-3 py-1">
                       {property.agent?.id === agent.id ? "Responsable principal" : "Colaborador"}
                     </span>
                   </div>
-                  <h3 className="font-serif text-[1.9rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950">{property.title}</h3>
-                  <p className="mt-2 text-sm leading-7 text-slate-600">{property.locationLabel}</p>
-                  <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
-                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}?advisor=${agent.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
-                    Ver propiedad
+                  <h3 className="mt-4 font-serif text-[2rem] font-semibold leading-tight tracking-[-0.04em] text-[#17120e]">{property.title}</h3>
+                  <p className="mt-2 text-sm leading-7 text-[#605448]">{property.locationLabel}</p>
+                  <p className="mt-4 text-2xl font-semibold tracking-tight text-[#17120e]">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
+                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}?advisor=${agent.slug}`} className="mt-5 inline-flex rounded-full border border-[#d9c7af] bg-white px-5 py-3 text-sm font-medium text-[#17120e] transition hover:bg-[#f7efe3]">
+                    Ver residencia
                   </Link>
                 </div>
               </article>
