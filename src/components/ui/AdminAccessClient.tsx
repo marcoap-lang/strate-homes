@@ -34,7 +34,12 @@ export function AdminAccessClient({
   const [bootstrapState, bootstrapAction, bootstrapPending] = useActionState(bootstrapInitialOwnerAction, initialBootstrapState);
 
   useEffect(() => {
-    if (!isLoading && !workspaceLoading && user && activeWorkspace?.workspaceId) {
+    if (isLoading || !user) return;
+    if (postAuthRedirectPath === "/admin") {
+      window.location.replace(postAuthRedirectPath);
+      return;
+    }
+    if (!workspaceLoading && activeWorkspace?.workspaceId) {
       window.location.replace(postAuthRedirectPath);
     }
   }, [activeWorkspace?.workspaceId, isLoading, postAuthRedirectPath, user, workspaceLoading]);
@@ -151,7 +156,7 @@ export function AdminAccessClient({
     window.location.href = postAuthRedirectPath;
   }
 
-  if (isLoading || workspaceLoading) {
+  if (isLoading || (postAuthRedirectPath !== "/admin" && workspaceLoading)) {
     return (
       <div className="rounded-[1.5rem] border border-stone-200 bg-white/80 p-4 sm:rounded-[2rem] sm:p-8 text-sm text-stone-500 shadow-sm shadow-stone-200/50">
         Preparando tu acceso a Strate Homes...
