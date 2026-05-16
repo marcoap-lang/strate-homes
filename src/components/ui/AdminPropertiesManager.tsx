@@ -34,6 +34,7 @@ type GalleryImageDraft = {
   is_cover: boolean;
   previewUrl: string;
   fileSizeLabel?: string;
+  suggestedLabel?: string;
 };
 
 type DraftSnapshotValue = string | boolean | string[];
@@ -67,7 +68,64 @@ const MAX_IMAGE_FILE_SIZE_MB = 8;
 const MAX_IMAGE_DIMENSION = 2000;
 
 function normalizeText(value?: string | null) {
-  return (value ?? "").toLowerCase();
+  return (value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+const photoLabelTokens: Array<{ label: string; tokens: string[] }> = [
+  { label: "Fachada", tokens: ["fachada", "frente", "exterior", "front", "entrada", "acceso"] },
+  { label: "Sala", tokens: ["sala", "living", "estancia"] },
+  { label: "Cocina", tokens: ["cocina", "kitchen"] },
+  { label: "Comedor", tokens: ["comedor", "dining"] },
+  { label: "Recámara principal", tokens: ["recamara principal", "habitacion principal", "master bedroom", "master", "bedroom", "recamara"] },
+  { label: "Baño principal", tokens: ["bano principal", "bathroom", "bath", "bano"] },
+  { label: "Terraza", tokens: ["terraza", "terrace", "balcon", "balcony"] },
+  { label: "Vista", tokens: ["vista", "view", "panoramica", "panoramica", "mar"] },
+  { label: "Alberca", tokens: ["alberca", "pool", "swimming"] },
+  { label: "Patio", tokens: ["patio", "jardin", "garden"] },
+  { label: "Rooftop", tokens: ["rooftop", "roof garden", "roof"] },
+  { label: "Amenidad", tokens: ["amenidad", "amenities", "gym", "gimnasio", "lobby"] },
+  { label: "Interior", tokens: ["interior", "pasillo", "hall"] },
+];
+
+function suggestPhotoLabel(source: string, fallbackIndex = 0) {
+  const normalized = normalizeText(source);
+
+  const matched = photoLabelTokens.find((entry) => entry.tokens.some((token) => normalized.includes(token)));
+  if (matched) return matched.label;
+
+  return suggestedPhotoShots[fallbackIndex] ?? "Interior";
+}
+
+function getSuggestedAltText(source: string, fallbackIndex = 0) {
+  const label = suggestPhotoLabel(source, fallbackIndex);
+  if (label === "Fachada") return "Fachada principal";
+  if (label === "Recámara principal") return "Recámara principal";
+  if (label === "Baño principal") return "Baño principal";
+  return label;
+}
+
+function scoreGalleryImageForCover(image: Pick<GalleryImageDraft, "alt_text" | "storage_path" | "suggestedLabel" | "sort_order" | "is_cover">) {
+  if (image.is_cover) return 1000 - image.sort_order;
+
+  const text = normalizeText(`${image.alt_text} ${image.storage_path} ${image.suggestedLabel ?? ""}`);
+  let score = 100 - image.sort_order;
+
+  ["fachada", "sala", "terraza", "vista", "alberca", "living", "exterior", "frente"].forEach((token) => {
+    if (text.includes(token)) score += 30;
+  });
+
+  ["cocina", "comedor", "interior", "recamara principal", "master"].forEach((token) => {
+    if (text.includes(token)) score += 12;
+  });
+
+  ["bano", "bath", "detalle", "closet", "pasillo"].forEach((token) => {
+    if (text.includes(token)) score -= 24;
+  });
+
+  return score;
 }
 
 function getPhotoCoverageFromDraft(images: Array<{ storage_path: string; alt_text?: string | null }>) {
@@ -1202,6 +1260,7 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         sort_order: index,
         is_cover: image.is_cover,
         previewUrl: formatImagePublicUrl(image.storage_path),
+        suggestedLabel: suggestPhotoLabel(`${image.alt_text ?? ""} ${image.storage_path}`, index),
       })),
   );
   const [isUploading, setIsUploading] = useState(false);
@@ -1212,11 +1271,17 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
   function normalizeGallery(nextGallery: GalleryImageDraft[]) {
     const coverIndex = nextGallery.findIndex((image) => image.is_cover);
+    const bestAutoCoverPath =
+      coverIndex === -1
+        ? nextGallery
+            .slice()
+            .sort((a, b) => scoreGalleryImageForCover(b) - scoreGalleryImageForCover(a))[0]?.storage_path
+        : null;
 
     return nextGallery.map((image, index) => ({
       ...image,
       sort_order: index,
-      is_cover: coverIndex === -1 ? index === 0 : index === coverIndex,
+      is_cover: coverIndex === -1 ? image.storage_path === bestAutoCoverPath : index === coverIndex,
     }));
   }
 
@@ -1315,11 +1380,12 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 
           uploaded.push({
             storage_path: path,
-            alt_text: "",
+            alt_text: getSuggestedAltText(originalFile.name, gallery.length + uploaded.length),
             sort_order: gallery.length + uploaded.length - 1,
             is_cover: gallery.length === 0 && uploaded.length === 1,
             previewUrl: optimized.previewUrl,
             fileSizeLabel: optimized.fileSizeLabel,
+            suggestedLabel: suggestPhotoLabel(originalFile.name, gallery.length + uploaded.length),
           });
         }
 
@@ -1346,7 +1412,13 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   }
 
   function handleAltTextChange(index: number, value: string) {
-    updateGallery(gallery.map((image, currentIndex) => (currentIndex === index ? { ...image, alt_text: value } : image)));
+    updateGallery(
+      gallery.map((image, currentIndex) =>
+        currentIndex === index
+          ? { ...image, alt_text: value, suggestedLabel: suggestPhotoLabel(`${value} ${image.storage_path}`, currentIndex) }
+          : image,
+      ),
+    );
   }
 
   async function saveGallery() {
@@ -1434,6 +1506,16 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
                     className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm"
                   />
                 </label>
+                <div className="flex flex-wrap items-center gap-2 text-xs">
+                  <span className="text-stone-500">Sugerencia automática:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleAltTextChange(index, image.suggestedLabel ?? getSuggestedAltText(image.storage_path, index))}
+                    className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 font-medium text-amber-800 transition hover:bg-amber-100"
+                  >
+                    {image.suggestedLabel ?? getSuggestedAltText(image.storage_path, index)}
+                  </button>
+                </div>
                 <p className="text-xs text-stone-500">Orden visual: {index + 1}{image.fileSizeLabel ? ` · ${image.fileSizeLabel}` : ""}</p>
                 <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
                   <button type="button" onClick={() => moveImage(index, -1)} disabled={index === 0} className="rounded-full border border-stone-200 px-3 py-2.5 text-xs text-stone-700 transition hover:bg-stone-50 disabled:opacity-40 sm:py-2">
