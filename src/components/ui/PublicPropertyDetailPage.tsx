@@ -28,6 +28,8 @@ export function PublicPropertyDetailPage({
   const cover = gallery[0] ?? null;
   const storyImages = gallery.slice(1, 5);
   const remainingImages = gallery.slice(5);
+  const editorialLead = storyImages[0] ?? null;
+  const editorialSupport = storyImages.slice(1, 3);
   const effectiveWorkspaceSlug = workspaceSlug ?? property.workspaceSlug ?? null;
   const propertyBasePath = effectiveWorkspaceSlug ? `/w/${effectiveWorkspaceSlug}/properties` : "/properties";
   const homePath = effectiveWorkspaceSlug ? `/w/${effectiveWorkspaceSlug}` : "/";
@@ -149,32 +151,62 @@ export function PublicPropertyDetailPage({
           <section className="space-y-6">
             <div className="flex items-end justify-between gap-4">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Galería</p>
-                <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Espacios que cuentan la historia de la propiedad</h2>
+                <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Galería</p>
+                <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-[#17120e] sm:text-4xl">Una secuencia visual para entender mejor la propiedad</h2>
               </div>
               <div className="flex items-center gap-4">
-                <span className="hidden text-sm text-slate-500 md:inline-flex">{gallery.length} fotos disponibles</span>
-                <Link href={propertyBasePath} className="hidden text-sm text-slate-600 transition hover:text-slate-950 md:inline-flex">Ver más propiedades</Link>
+                <span className="hidden text-sm text-[#756756] md:inline-flex">{gallery.length} fotos disponibles</span>
+                <Link href={propertyBasePath} className="hidden text-sm text-[#625547] transition hover:text-[#17120e] md:inline-flex">Ver más propiedades</Link>
               </div>
             </div>
-            <div className="overflow-x-auto pb-2">
-              <div className="flex min-w-max gap-5 pr-4">
-                {storyImages.map((image, index) => (
-                  <div key={image.id} className={`relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-slate-100 to-slate-50 ${index === 0 ? "h-[22rem] w-[34rem]" : "h-[22rem] w-[20rem]"}`}>
-                    {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+
+            <div className="grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
+              {editorialLead ? (
+                <article className="overflow-hidden rounded-[2.4rem] border border-[#e4d8c8] bg-[#fbf6ef] shadow-[0_22px_60px_rgba(15,23,42,0.08)]">
+                  <div className="relative min-h-[24rem] bg-[#eee4d7] sm:min-h-[32rem] lg:min-h-[38rem]">
+                    {editorialLead.url ? <Image src={editorialLead.url} alt={editorialLead.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+                    <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,13,10,0.02)_0%,rgba(17,13,10,0.22)_100%)]" />
+                    <span className="absolute left-5 top-5 rounded-full bg-[#17120e] px-4 py-2 text-[11px] uppercase tracking-[0.24em] text-[#f7e7c8] shadow-[0_10px_22px_rgba(23,18,14,0.18)]">
+                      Vista principal
+                    </span>
                   </div>
+                  <div className="flex items-center justify-between gap-4 px-5 py-4">
+                    <p className="text-sm leading-6 text-[#625547]">La primera mirada debe explicar presencia, escala y carácter de la propiedad.</p>
+                    <span className="text-[11px] uppercase tracking-[0.22em] text-[#8a6a43]">Selección editorial</span>
+                  </div>
+                </article>
+              ) : null}
+
+              <div className="grid gap-5">
+                {editorialSupport.map((image, index) => (
+                  <article key={image.id} className="overflow-hidden rounded-[2.1rem] border border-[#e4d8c8] bg-[#fbf6ef] shadow-[0_18px_45px_rgba(15,23,42,0.06)]">
+                    <div className="relative min-h-[15rem] bg-[#eee4d7] sm:min-h-[18rem]">
+                      {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
+                      <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,13,10,0.00)_0%,rgba(17,13,10,0.18)_100%)]" />
+                      <span className="absolute left-4 top-4 rounded-full border border-white/20 bg-white/88 px-3 py-1.5 text-[11px] uppercase tracking-[0.22em] text-[#4f4135] backdrop-blur">
+                        {index === 0 ? "Apoyo visual" : "Detalle clave"}
+                      </span>
+                    </div>
+                  </article>
                 ))}
+
+                {storyImages.length === 1 ? (
+                  <div className="rounded-[2.1rem] border border-dashed border-[#d8cbb8] bg-[#fffaf3] px-6 py-8 text-sm leading-7 text-[#625547]">
+                    Esta propiedad aún tiene pocas fotos públicas. Conviene subir dos o tres tomas más para contar mejor la distribución y el ambiente.
+                  </div>
+                ) : null}
               </div>
             </div>
+
             {remainingImages.length ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4">
-                  <p className="text-sm font-medium text-slate-900">Ver todas las fotos</p>
-                  <span className="text-sm text-slate-500">{remainingImages.length} fotos adicionales</span>
+                  <p className="text-sm font-medium text-[#17120e]">Galería complementaria</p>
+                  <span className="text-sm text-[#756756]">{remainingImages.length} fotos adicionales</span>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {remainingImages.map((image) => (
-                    <div key={image.id} className="relative h-64 overflow-hidden rounded-[1.8rem] bg-gradient-to-br from-slate-100 to-slate-50 shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
+                    <div key={image.id} className="relative h-64 overflow-hidden rounded-[1.8rem] border border-[#e4d8c8] bg-[#eee4d7] shadow-[0_16px_40px_rgba(15,23,42,0.08)]">
                       {image.url ? <Image src={image.url} alt={image.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
                     </div>
                   ))}
