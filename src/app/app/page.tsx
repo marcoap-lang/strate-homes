@@ -4,7 +4,6 @@ import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
 import { AdminPublicBrandingManager } from "@/components/ui/AdminPublicBrandingManager";
 import { AdminShell } from "@/components/ui/AdminShell";
 import { getAdminAccessState, type AdminAccessState } from "@/lib/admin-access";
-import { commercialPlans, getPlanLabel, type CommercialPlanKey } from "@/lib/commercial";
 
 type ReadyAccess = Extract<AdminAccessState, { kind: "ready" }>;
 type DashboardProperty = ReadyAccess["properties"][number];
@@ -74,8 +73,6 @@ export default async function AppPage() {
           ];
           const onboardingProgress = (onboardingItems.filter((item) => item.done).length / onboardingItems.length) * 100;
           const showInitialSetup = onboardingProgress < 100;
-          const currentPlanKey = access.subscription?.plan === "small_agency" || access.subscription?.plan === "agency" ? access.subscription.plan : "solo";
-          const currentPlan = commercialPlans[currentPlanKey as CommercialPlanKey];
           const publicationScores = access.properties.map(getPropertyPublicationScore);
           const averagePublicationScore = publicationScores.length
             ? publicationScores.reduce((total, item) => total + item.score, 0) / publicationScores.length
@@ -146,44 +143,7 @@ export default async function AppPage() {
                 ))}
               </section>
 
-              <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Capacidad contratada</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">{getPlanLabel(access.subscription?.plan)}</h3>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{currentPlan.description}</p>
-                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                    {[
-                      {
-                        label: "Propiedades activas",
-                        value: access.properties.filter((property) => property.status === "active").length,
-                        limit: currentPlan.limits.activeProperties,
-                      },
-                      {
-                        label: "Asesores",
-                        value: access.agents.length,
-                        limit: currentPlan.limits.agents,
-                      },
-                      {
-                        label: "Usuarios internos",
-                        value: access.teamMembers.length,
-                        limit: currentPlan.limits.internalUsers,
-                      },
-                      {
-                        label: "Tours",
-                        value: access.tours.length,
-                        limit: currentPlan.limits.tours,
-                      },
-                    ].map((item) => (
-                      <div key={item.label} className={`rounded-2xl border px-4 py-3 ${item.value > item.limit ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-slate-50"}`}>
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
-                        <p className="mt-2 text-2xl font-semibold text-slate-950">{item.value}</p>
-                        <p className="mt-1 text-xs text-slate-500">Límite del plan: {item.limit}</p>
-                        {item.value > item.limit ? <p className="mt-2 text-xs font-semibold text-amber-800">Revisar plan o capacidad</p> : null}
-                      </div>
-                    ))}
-                  </div>
-                </article>
-
+              <section className="grid gap-5 xl:grid-cols-[1fr_1fr]">
                 <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-[#fff8ec] p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
                   <p className="text-xs uppercase tracking-[0.24em] text-[#9b6f21]">Acciones recomendadas</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-950">Qué hacer para vender mejor esta semana</h3>
@@ -199,6 +159,17 @@ export default async function AppPage() {
                       </Link>
                     ))}
                   </div>
+                </article>
+
+                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Administración</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">Plan, usuarios y capacidad</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">
+                    Consulta la suscripción y los límites de operación en una sección separada para no mezclarlo con las prioridades del día.
+                  </p>
+                  <Link href="/app/subscription" className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    Ver suscripción
+                  </Link>
                 </article>
               </section>
 

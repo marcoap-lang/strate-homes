@@ -11,6 +11,8 @@ import { getPublicBaseUrl } from "@/lib/public-links";
 
 type PrimaryNavItem = {
   label: string;
+  shortLabel: string;
+  icon: string;
   href: string;
   description: string;
   match: (pathname: string) => boolean;
@@ -25,33 +27,51 @@ type SecondaryNavItem = {
 const primaryNavItems: PrimaryNavItem[] = [
   {
     label: "Hoy",
+    shortLabel: "Hoy",
+    icon: "⌂",
     href: "/app",
     description: "Pendientes, prioridades y visión general.",
     match: (pathname) => pathname === "/app" || pathname === "/admin",
   },
   {
     label: "Inventario",
+    shortLabel: "Inv.",
+    icon: "▦",
     href: "/app/properties",
     description: "Propiedades, recorridos y publicación.",
     match: (pathname) => pathname.startsWith("/app/properties") || pathname.startsWith("/app/tours") || pathname.startsWith("/admin/properties") || pathname.startsWith("/admin/tours"),
   },
   {
     label: "Clientes",
+    shortLabel: "Clientes",
+    icon: "◉",
     href: "/app/leads",
     description: "Interesados, citas y seguimiento comercial.",
     match: (pathname) => pathname.startsWith("/app/leads") || pathname.startsWith("/admin/leads"),
   },
   {
     label: "Sitio",
+    shortLabel: "Sitio",
+    icon: "◇",
     href: "/app/public",
     description: "Marca, inventario visible y vista pública.",
     match: (pathname) => pathname.startsWith("/app/public") || pathname.startsWith("/admin/public"),
   },
   {
     label: "Equipo",
+    shortLabel: "Equipo",
+    icon: "●",
     href: "/app/team",
     description: "Acceso interno y perfiles comerciales.",
     match: (pathname) => pathname.startsWith("/app/team") || pathname.startsWith("/admin/team"),
+  },
+  {
+    label: "Suscripción",
+    shortLabel: "Plan",
+    icon: "◌",
+    href: "/app/subscription",
+    description: "Plan contratado, capacidad y límites de operación.",
+    match: (pathname) => pathname.startsWith("/app/subscription"),
   },
 ];
 
@@ -82,6 +102,10 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
     Equipo: [
       { label: "Usuarios y perfiles", href: "/app/team" },
       { label: "Inmobiliaria", href: "/app/public" },
+    ],
+    Suscripción: [
+      { label: "Plan y capacidad", href: "/app/subscription" },
+      { label: "Usuarios y perfiles", href: "/app/team" },
     ],
   };
 }
@@ -139,10 +163,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
-        <nav className="mt-3 flex gap-2 overflow-x-auto pb-1 [-webkit-overflow-scrolling:touch]">
+        <nav className="mt-3 grid grid-cols-6 gap-1.5">
           {primaryNavItems.map((item) => (
-            <Link key={item.label} href={item.href} className={getPillClasses(item.match(pathname), true)}>
-              {item.label}
+            <Link
+              key={item.label}
+              href={item.href}
+              title={`${item.label}: ${item.description}`}
+              aria-label={`${item.label}: ${item.description}`}
+              className={`flex min-h-14 flex-col items-center justify-center rounded-2xl border px-1 py-2 text-center transition ${
+                item.match(pathname)
+                  ? "border-[color:var(--admin-sand)]/55 bg-[color:var(--admin-sand-soft)] text-[color:var(--admin-ink)] shadow-[0_12px_24px_rgba(20,33,61,0.10)]"
+                  : "border-[color:var(--admin-line)] bg-white text-slate-600"
+              }`}
+            >
+              <span className="text-lg leading-none">{item.icon}</span>
+              <span className="mt-1 max-w-full truncate text-[11px] font-semibold leading-none">{item.shortLabel}</span>
             </Link>
           ))}
         </nav>
