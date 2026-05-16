@@ -66,12 +66,12 @@ export function PublicLuxuryFilters({
 }) {
   return (
     <section className={compact ? "pt-4" : "pt-8"}>
-      <div className="rounded-[2.15rem] bg-[linear-gradient(180deg,#fffdfa_0%,#f7f1e7_100%)] px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] ring-1 ring-[#e2d1b8] sm:px-5 sm:py-5">
-        <div className="flex flex-col gap-4">
+      <div className="rounded-[2.15rem] bg-[#fffaf4] px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] ring-1 ring-[#dac7aa] sm:px-5 sm:py-5">
+        <div className="flex flex-col gap-5">
           {filterGroups.map((group) => (
-            <div key={group.key} className="grid gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-start">
-              <span className="pt-1 text-[11px] font-medium uppercase tracking-[0.28em] text-[#7f6749]">{group.label}</span>
-              <div className="flex flex-wrap gap-2">
+            <div key={group.key} className="rounded-[1.5rem] border border-[#eadcc6] bg-white px-4 py-4 shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+              <span className="block text-[11px] font-semibold uppercase tracking-[0.28em] text-[#6f573a]">{group.label}</span>
+              <div className="mt-3 flex flex-wrap gap-2.5">
                 {group.options.map((option) => {
                   const active = current[group.key] === option.value;
 
@@ -79,10 +79,10 @@ export function PublicLuxuryFilters({
                     <Link
                       key={`${group.key}-${option.value}`}
                       href={buildHref(basePath, current, group.key, option.value)}
-                      className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
+                      className={`inline-flex min-h-11 items-center rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
                         active
-                          ? "border-[#d6b27a] bg-[#1b1611] text-[#f7e7c8] shadow-[0_12px_26px_rgba(27,22,17,0.20)]"
-                          : "border-[#d8c3a1] bg-[#fffaf3] text-[#2f251c] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-[#cda66d] hover:bg-[#fbf1e2] hover:text-[#17120d]"
+                          ? "border-[#17120e] bg-[#17120e] text-[#fff7ec] shadow-[0_12px_24px_rgba(23,18,14,0.18)]"
+                          : "border-[#cdb38b] bg-[#fff7ea] text-[#221a13] hover:border-[#b9925b] hover:bg-[#f6ead8] hover:text-[#17120d]"
                       }`}
                     >
                       {option.label}
@@ -95,7 +95,7 @@ export function PublicLuxuryFilters({
           <div className="flex justify-end pt-1">
             <Link
               href={basePath}
-              className="rounded-full border border-[#d1b892] bg-[#fff8ee] px-4 py-2.5 text-sm font-semibold text-[#3f3227] transition hover:border-[#be9660] hover:bg-[#f6ead8] hover:text-[#17120d]"
+              className="rounded-full border border-[#bda27d] bg-[#f5e8d2] px-4 py-2.5 text-sm font-semibold text-[#241c15] transition hover:border-[#9f7b4c] hover:bg-[#edd9b7] hover:text-[#17120d]"
             >
               Limpiar filtros
             </Link>
