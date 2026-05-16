@@ -121,7 +121,7 @@ function getPublicationScore(property: PropertyRecord) {
     { label: "Ubicación clara", done: hasLocation, points: 10 },
     { label: "Precio", done: hasPrice, points: 10 },
     { label: "Specs", done: hasSpecs, points: 10 },
-    { label: "Asesor", done: hasAgent, points: 5 },
+    { label: "Responsable comercial", done: hasAgent, points: 5 },
   ];
 
   const score = checks.reduce((total, check) => total + (check.done ? check.points : 0), 0);
@@ -149,7 +149,7 @@ function getReadableGalleryError(error: unknown) {
   const normalized = message.toLowerCase();
 
   if (normalized.includes("row-level security") || normalized.includes("permission")) {
-    return "No tienes permiso para guardar esta galería en el workspace activo. La selección visible se conserva.";
+    return "No tienes permiso para guardar esta galería en la inmobiliaria activa. La selección visible se conserva.";
   }
 
   if (normalized.includes("duplicate") || normalized.includes("unique")) {
@@ -665,7 +665,7 @@ function PropertyForm({
     { label: "Precio", done: Boolean(reviewPrice) },
     { label: "Descripción", done: Boolean(reviewDescription.trim()) },
     { label: "Fotos", done: photosCount > 0 },
-    { label: "Asesor", done: Boolean(reviewAgent) },
+    { label: "Responsable comercial", done: Boolean(reviewAgent) },
   ];
   const completedChecklistCount = reviewChecklist.filter((item) => item.done).length;
   const visibleCompletion = Math.round((completedChecklistCount / reviewChecklist.length) * 100);
@@ -734,7 +734,7 @@ function PropertyForm({
 
         <SectionCard>
           <p className="text-sm font-semibold text-stone-900">Base comercial</p>
-          <p className="mt-2 text-sm leading-6 text-stone-600">Define operación, título, clave y asesores sin navegar entre pantallas.</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Define operación, título, clave y equipo comercial sin navegar entre pantallas.</p>
           <div className="mt-5 grid gap-5">
             <div className="grid gap-3 sm:grid-cols-2">
               {[
@@ -761,10 +761,10 @@ function PropertyForm({
             <div className="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesores de la propiedad</p>
-                  <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona uno o varios asesores y marca quién será el contacto principal de la ficha pública.</p>
+                  <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Equipo comercial de la propiedad</p>
+                  <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona quién participa en esta propiedad. El responsable comercial será el contacto principal en la página pública de la inmobiliaria; los colaboradores también aparecerán en sus páginas personales.</p>
                 </div>
-                <span className="w-fit rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-500">{selectedAdvisorCount} seleccionados</span>
+                <span className="w-fit rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-500">{selectedAdvisorCount} perfiles seleccionados</span>
               </div>
 
               <input type="hidden" name="agentId" value={reviewAgentId} />
@@ -806,14 +806,14 @@ function PropertyForm({
                           onClick={() => setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __selectedAdvisorIds: selectedAdvisorIds })}
                           className={`mt-4 rounded-full px-4 py-2 text-xs font-medium transition ${isPrimary ? "bg-[#d7ab5b] text-white" : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50"}`}
                         >
-                          {isPrimary ? "Asesor principal" : "Hacer principal"}
+                          {isPrimary ? "Responsable principal" : "Marcar responsable"}
                         </button>
                       ) : null}
                     </label>
                   );
                 })}
               </div>
-              {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar asignaciones. La propiedad se guardará con tu asesor comercial cuando corresponda.</p> : null}
+              {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar asignaciones. La propiedad se guardará con tu perfil comercial cuando corresponda.</p> : null}
             </div>
           </div>
         </SectionCard>
@@ -1040,7 +1040,7 @@ function PropertyForm({
               <p className="mt-2 text-lg font-semibold text-stone-950">{reviewLocation || "Pendiente"}</p>
             </SectionCard>
             <SectionCard>
-              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesor principal</p>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Responsable comercial</p>
               <p className="mt-2 text-lg font-semibold text-stone-950">{reviewAgent?.display_name ?? "Pendiente"}</p>
             </SectionCard>
           </div>
@@ -1452,7 +1452,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
     <div className="space-y-6">
       <PropertiesHeader
         title="Listado de propiedades"
-        description="Aquí vive el inventario real del workspace. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
+        description="Aquí vive el inventario real de la inmobiliaria. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
         action={
           <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
             Agregar propiedad
@@ -1462,8 +1462,8 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <SectionCard>
-          <p className="text-sm text-stone-500">Workspace activo</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{workspaceName ?? "Sin workspace"}</p>
+          <p className="text-sm text-stone-500">Inmobiliaria activa</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{workspaceName ?? "Sin inmobiliaria"}</p>
         </SectionCard>
         <SectionCard>
           <p className="text-sm text-stone-500">Propiedades registradas</p>

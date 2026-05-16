@@ -144,7 +144,7 @@ function getReadableBootstrapError(message: string) {
   const normalized = message.toLowerCase();
 
   if (normalized.includes("authentication_required")) {
-    return "Necesitas iniciar sesión otra vez antes de crear tu espacio.";
+    return "Necesitas iniciar sesión otra vez antes de crear tu inmobiliaria.";
   }
 
   if (normalized.includes("profile_not_ready")) {
@@ -152,15 +152,15 @@ function getReadableBootstrapError(message: string) {
   }
 
   if (normalized.includes("active_membership_exists")) {
-    return "Tu cuenta ya tiene acceso a un workspace. Recarga el admin para continuar.";
+    return "Tu cuenta ya tiene acceso a una inmobiliaria. Recarga el admin para continuar.";
   }
 
   if (normalized.includes("invalid_workspace_name")) {
-    return "Escribe un nombre válido para tu espacio de trabajo.";
+    return "Escribe un nombre válido para tu inmobiliaria.";
   }
 
   if (normalized.includes("invalid_workspace_slug")) {
-    return "El identificador del workspace no es válido. Usa letras minúsculas, números o guiones.";
+    return "El slug público no es válido. Usa letras minúsculas, números o guiones.";
   }
 
   if (normalized.includes("duplicate key value") || normalized.includes("workspaces_slug_key")) {
@@ -168,10 +168,10 @@ function getReadableBootstrapError(message: string) {
   }
 
   if (normalized.includes("row-level security")) {
-    return "No pudimos activar tu workspace inicial. Intenta de nuevo en unos segundos.";
+    return "No pudimos activar tu inmobiliaria inicial. Intenta de nuevo en unos segundos.";
   }
 
-  return "No pudimos crear tu espacio inicial. Intenta de nuevo.";
+  return "No pudimos crear tu inmobiliaria inicial. Intenta de nuevo.";
 }
 
 
@@ -187,7 +187,7 @@ function getReadablePropertyError(message: string) {
   }
 
   if (normalized.includes("row-level security") || normalized.includes("permission denied")) {
-    return "No tienes permiso para guardar esta propiedad en el workspace activo.";
+    return "No tienes permiso para guardar esta propiedad en la inmobiliaria activa.";
   }
 
   if (normalized.includes("not-null") || normalized.includes("null value")) {
@@ -483,7 +483,7 @@ export async function bootstrapInitialOwnerAction(
     const workspaceName = formData.get("workspaceName")?.toString().trim() ?? "";
 
     if (workspaceName.length < 3) {
-      return { success: false, message: "El nombre del workspace debe tener al menos 3 caracteres." };
+      return { success: false, message: "El nombre de la inmobiliaria debe tener al menos 3 caracteres." };
     }
 
     const workspaceSlug = slugify(formData.get("workspaceSlug")?.toString() || workspaceName);
@@ -500,13 +500,13 @@ export async function bootstrapInitialOwnerAction(
     const workspace = Array.isArray(data) ? data[0] : data;
 
     if (!workspace?.workspace_id) {
-      return { success: false, message: "No pudimos activar tu espacio inicial. Intenta de nuevo." };
+      return { success: false, message: "No pudimos activar tu inmobiliaria inicial. Intenta de nuevo." };
     }
 
     revalidatePath("/admin");
     return {
       success: true,
-      message: `Tu espacio inicial ya está listo: ${workspace.created_workspace_name}. Ya puedes continuar al admin.`,
+      message: `Tu inmobiliaria inicial ya está lista: ${workspace.created_workspace_name}. Ya puedes continuar al admin.`,
     };
   } catch (error) {
     return {
@@ -818,24 +818,19 @@ export async function createAgentAction(
     const { supabase, activeWorkspace } = await getWorkspaceContext();
 
     if (!canManageAgentProfiles(activeWorkspace.role)) {
-      return { success: false, message: "Solo owner/admin pueden crear asesores." };
+      return { success: false, message: "Solo owner/admin pueden crear perfiles comerciales." };
     }
 
-    const accessType = formData.get("accessType")?.toString() === "with-access" ? "with-access" : "public-only";
     const displayName = formData.get("displayName")?.toString().trim() ?? "";
     const slug = slugify(formData.get("slug")?.toString() || displayName);
     const email = normalizeNullable(formData.get("email"));
 
     if (displayName.length < 3) {
-      return { success: false, message: "El nombre público del asesor debe tener al menos 3 caracteres." };
+      return { success: false, message: "El nombre público del perfil comercial debe tener al menos 3 caracteres." };
     }
 
     if (slug.length < 3) {
-      return { success: false, message: "El slug del asesor debe tener al menos 3 caracteres." };
-    }
-
-    if (accessType === "with-access" && !email) {
-      return { success: false, message: "Para invitar con acceso, el correo es obligatorio." };
+      return { success: false, message: "El slug del perfil comercial debe tener al menos 3 caracteres." };
     }
 
     const payload = {
@@ -864,15 +859,14 @@ export async function createAgentAction(
 
     return {
       success: true,
-      message:
-        accessType === "with-access"
-          ? "Asesor creado con acceso básico preparado. Falta completar el alta de acceso más adelante."
-          : "Asesor creado correctamente.",
+      message: email
+        ? "Perfil comercial creado correctamente."
+        : "Perfil comercial creado correctamente. Si luego quieres vincularlo a un usuario interno, podrás completar ese paso después.",
     };
   } catch (error) {
     return {
       success: false,
-      message: error instanceof Error ? error.message : "No se pudo crear el asesor.",
+      message: error instanceof Error ? error.message : "No se pudo crear el perfil comercial.",
     };
   }
 }
@@ -887,7 +881,7 @@ export async function upsertAgentProfileAction(
     const standaloneAgentId = formData.get("agentId")?.toString();
 
     if (!profileId && !standaloneAgentId) {
-      return { success: false, message: "Falta identificar al asesor que quieres editar." };
+      return { success: false, message: "Falta identificar el perfil comercial que quieres editar." };
     }
 
     if (profileId) {
@@ -944,7 +938,7 @@ export async function upsertAgentProfileAction(
       .maybeSingle();
 
     if (agentError) throw agentError;
-    if (!agent) return { success: false, message: "No encontramos ese asesor en el workspace activo." };
+    if (!agent) return { success: false, message: "No encontramos ese perfil comercial en la inmobiliaria activa." };
 
     const displayName = formData.get("displayName")?.toString().trim() || agent.display_name || "Asesor";
     const slugBase = formData.get("slug")?.toString().trim() || displayName;
@@ -977,7 +971,7 @@ export async function upsertAgentProfileAction(
     revalidatePath("/admin");
     revalidatePath("/admin/team");
     revalidatePath("/admin/public/agents");
-    return { success: true, message: "Asesor actualizado correctamente." };
+    return { success: true, message: "Perfil comercial actualizado correctamente." };
   } catch (error) {
     return {
       success: false,
@@ -996,11 +990,11 @@ export async function deleteAgentAction(
     const agentId = formData.get("agentId")?.toString();
 
     if (!agentId) {
-      return { success: false, message: "Falta identificar al asesor que quieres eliminar." };
+      return { success: false, message: "Falta identificar el perfil comercial que quieres eliminar." };
     }
 
     if (!canManageAgentProfiles(activeWorkspace.role)) {
-      return { success: false, message: "Solo owner/admin pueden eliminar asesores." };
+      return { success: false, message: "Solo owner/admin pueden eliminar perfiles comerciales." };
     }
 
     const { data: agent, error: agentError } = await supabase
@@ -1043,7 +1037,7 @@ export async function deleteAgentAction(
     revalidatePath("/admin/public/agents");
     revalidatePath("/admin/public/properties");
 
-    return { success: true, message: `Asesor eliminado: ${agent.display_name}. Las propiedades quedaron sin asesor principal si dependían de él.` };
+    return { success: true, message: `Perfil comercial eliminado: ${agent.display_name}. Las propiedades quedaron sin responsable comercial si dependían de esta persona.` };
   } catch (error) {
     return {
       success: false,
@@ -1077,7 +1071,7 @@ export async function createPropertyAction(
     }
 
     if (!canManageFullInventory(activeWorkspace.role) && !agentRecord?.id) {
-      return { success: false, message: "Necesitas un perfil comercial de agente activo para crear propiedades en este workspace." };
+      return { success: false, message: "Necesitas un perfil comercial activo para crear propiedades en esta inmobiliaria." };
     }
 
     if (title.length < 3) {
@@ -1201,7 +1195,7 @@ export async function updatePropertyAction(
     const { supabase, activeWorkspace, agentRecord, canEditProperty, isFullAccessRole } = await getPropertyAccessContext(propertyId);
 
     if (!canEditProperty) {
-      return { success: false, message: "Solo puedes editar propiedades asignadas a ti dentro de este workspace." };
+      return { success: false, message: "Solo puedes editar propiedades asignadas a ti dentro de esta inmobiliaria." };
     }
 
     if (title.length < 3) {

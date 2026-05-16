@@ -25,9 +25,9 @@ export default async function AdminPublicPropertiesPage() {
       ) : access.kind === "ready" ? (
         <div className="space-y-6">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Sitio</p>
             <h3 className="mt-2 text-2xl font-semibold text-slate-950">Propiedades públicas</h3>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Controla qué propiedades salen al sitio y confirma que cada una tenga un asesor principal claro. El WhatsApp de la ficha pública debe apuntar a ese asesor.</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Controla qué propiedades salen al sitio y confirma que cada una tenga un responsable comercial claro. El WhatsApp principal de la ficha pública debe apuntar a esa persona.</p>
           </div>
 
           <div className="grid gap-4">
@@ -43,7 +43,7 @@ export default async function AdminPublicPropertiesPage() {
                   </span>
                 </div>
                 <div className="mt-4 rounded-2xl bg-slate-50 px-4 py-3 text-sm text-slate-600">
-                  <span className="font-medium text-slate-800">Asesor principal:</span> {getPrimaryAgentName(property) ?? "Sin asignar"}
+                  <span className="font-medium text-slate-800">Responsable comercial:</span> {getPrimaryAgentName(property) ?? "Sin asignar"}
                   <span className="mx-2 text-slate-300">•</span>
                   Colaboradores: {getCollaboratorNames(property).join(", ") || "sin colaboradores"}.
                 </div>

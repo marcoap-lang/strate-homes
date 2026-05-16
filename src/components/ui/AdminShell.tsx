@@ -50,7 +50,7 @@ const primaryNavItems: PrimaryNavItem[] = [
   {
     label: "Equipo",
     href: "/admin/team",
-    description: "Usuarios, asesores y perfiles.",
+    description: "Acceso interno y perfiles comerciales.",
     match: (pathname) => pathname.startsWith("/admin/team"),
   },
 ];
@@ -61,7 +61,7 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
   return {
     Hoy: [
       { label: "Resumen", href: "/admin" },
-      { label: "Marca", href: "/admin/public" },
+      { label: "Inmobiliaria", href: "/admin/public" },
       { label: "Agregar propiedad", href: "/admin/properties/new" },
     ],
     Inventario: [
@@ -74,14 +74,14 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
       { label: "Recorridos", href: "/admin/tours" },
     ],
     Sitio: [
-      { label: "Marca", href: "/admin/public" },
-      { label: "Asesores públicos", href: "/admin/public/agents" },
+      { label: "Inmobiliaria", href: "/admin/public" },
+      { label: "Perfiles comerciales", href: "/admin/public/agents" },
       { label: "Inventario público", href: "/admin/public/properties" },
       { label: "Ver sitio público", href: publicHome, external: true },
     ],
     Equipo: [
-      { label: "Equipo", href: "/admin/team" },
-      { label: "Marca", href: "/admin/public" },
+      { label: "Usuarios y perfiles", href: "/admin/team" },
+      { label: "Inmobiliaria", href: "/admin/public" },
     ],
   };
 }
@@ -89,8 +89,8 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
 function getPillClasses(isActive: boolean, compact = false) {
   const base = compact ? "px-4 py-2.5 text-sm" : "px-4 py-3 text-sm";
   const state = isActive
-    ? "border-[#d7ab5b]/40 bg-[#fff7e7] text-slate-950 shadow-[0_10px_24px_rgba(15,23,42,0.07)]"
-    : "border-slate-200/90 bg-white text-slate-700 hover:border-[#d7ab5b]/25 hover:bg-[#fffaf1]";
+    ? "border-[color:var(--admin-sand)]/45 bg-[color:var(--admin-sand-soft)] text-[color:var(--admin-ink)] shadow-[0_12px_26px_rgba(20,33,61,0.10)]"
+    : "border-[color:var(--admin-line)] bg-white text-slate-700 hover:border-[color:var(--admin-sand)]/35 hover:bg-[color:var(--admin-cloud)]";
 
   return `flex items-center justify-center rounded-full border font-medium transition ${base} ${state}`;
 }
@@ -98,8 +98,8 @@ function getPillClasses(isActive: boolean, compact = false) {
 function getPanelLinkClasses(isActive: boolean) {
   return `block rounded-[1.35rem] border px-4 py-4 transition ${
     isActive
-      ? "border-[#d7ab5b]/40 bg-[#fff7e7] shadow-[0_18px_40px_rgba(15,23,42,0.07)]"
-      : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+      ? "border-[color:var(--admin-sand)]/45 bg-[linear-gradient(180deg,#fff8eb_0%,#fff2db_100%)] shadow-[0_18px_40px_rgba(20,33,61,0.09)]"
+      : "border-[color:var(--admin-line)] bg-white hover:border-slate-300 hover:bg-[color:var(--admin-cloud)]"
   }`;
 }
 
@@ -114,7 +114,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const currentSecondaryItems = secondaryNavItems[activePrimaryItem.label] ?? [];
 
   const workspaceBrandLabel = activeWorkspace?.brandName ?? activeWorkspace?.workspaceName ?? activeWorkspace?.workspaceSlug ?? "Tu inmobiliaria";
-  const workspaceSupportLabel = activeWorkspace?.publicClaim ?? activeWorkspace?.workspaceSlug ?? activeWorkspace?.workspaceId ?? "Configura tu presencia pública";
+  const workspaceSupportLabel = activeWorkspace?.publicClaim ?? activeWorkspace?.workspaceSlug ?? activeWorkspace?.workspaceId ?? "Configura la presencia pública de tu inmobiliaria";
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -122,18 +122,18 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fffaf0_0%,#f7fbff_38%,#eef4fb_100%)] text-slate-950">
+    <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,#fff8ee_0%,#f8fafc_34%,#edf3f8_100%)] text-slate-950">
       <div className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/92 px-3 py-3 shadow-sm backdrop-blur lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">Strate Homes Admin</p>
+            <p className="text-[10px] uppercase tracking-[0.28em] text-slate-400">Inmobiliaria activa</p>
             <h1 className="truncate text-lg font-semibold text-slate-950">{workspaceBrandLabel}</h1>
             <p className="truncate text-xs text-slate-500">{workspaceSupportLabel}</p>
           </div>
           <button
             type="button"
             onClick={handleSignOut}
-            className="shrink-0 rounded-full bg-slate-950 px-4 py-2.5 text-xs font-medium text-white transition hover:bg-slate-800"
+            className="shrink-0 rounded-full bg-[color:var(--admin-ink)] px-4 py-2.5 text-xs font-medium text-white transition hover:bg-[color:var(--admin-ink-soft)]"
           >
             Salir
           </button>
@@ -149,9 +149,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       </div>
 
       <div className="mx-auto grid max-w-[1480px] gap-4 px-3 py-4 sm:px-5 sm:py-6 xl:grid-cols-[320px_1fr] xl:gap-6 xl:px-8 xl:py-8">
-        <aside className="hidden rounded-[2.35rem] border border-slate-200/90 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(248,251,255,0.95))] p-6 shadow-[0_28px_70px_rgba(15,23,42,0.10)] backdrop-blur xl:block">
+        <aside className="hidden rounded-[2.35rem] border border-[color:var(--admin-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(246,249,252,0.96))] p-6 shadow-[0_28px_70px_rgba(20,33,61,0.10)] backdrop-blur xl:block">
           <div className="rounded-[1.9rem] border border-slate-200/90 bg-white/90 p-5">
-            <p className="text-[10px] uppercase tracking-[0.30em] text-slate-400">Strate Homes</p>
+            <p className="text-[10px] uppercase tracking-[0.30em] text-slate-400">Tu inmobiliaria</p>
             <div className="mt-4 flex items-center gap-4">
               {activeWorkspace?.publicLogoUrl ? (
                 <div className="relative flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-[1.4rem] border border-slate-200 bg-white">
@@ -173,9 +173,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                 <p className="mt-1 line-clamp-2 text-sm leading-6 text-slate-600">{workspaceSupportLabel}</p>
               </div>
             </div>
-            <div className="mt-5 rounded-[1.4rem] border border-[#ead6ad] bg-[#fff8ea] px-4 py-3">
-              <p className="text-xs uppercase tracking-[0.24em] text-[#9b7b3a]">Sistema</p>
-              <p className="mt-2 text-sm leading-6 text-slate-700">Operación, captación y publicación centralizadas para tu inmobiliaria.</p>
+            <div className="mt-5 rounded-[1.4rem] border border-[color:var(--admin-sand)]/35 bg-[linear-gradient(180deg,#fff8eb_0%,#fdf1dd_100%)] px-4 py-3">
+              <p className="text-xs uppercase tracking-[0.24em] text-[#9b7b3a]">Operación</p>
+              <p className="mt-2 text-sm leading-6 text-slate-700">Controla inventario, clientes, perfiles comerciales y sitio público desde un mismo lugar.</p>
             </div>
           </div>
 
@@ -189,7 +189,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
                       <p className="text-base font-semibold text-slate-950">{item.label}</p>
                       <p className="mt-1 text-sm leading-6 text-slate-600">{item.description}</p>
                     </div>
-                    <span className={`mt-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${isActive ? "bg-[#d7ab5b] text-white" : "bg-slate-100 text-slate-500"}`}>
+                    <span className={`mt-1 rounded-full px-2.5 py-1 text-[11px] font-medium ${isActive ? "bg-[color:var(--admin-ink)] text-white" : "bg-slate-100 text-slate-500"}`}>
                       {isActive ? "Ahora" : "Ir"}
                     </span>
                   </div>
@@ -207,7 +207,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50"
+                className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]"
               >
                 Salir
               </button>
@@ -216,16 +216,16 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <section className="space-y-4">
-          <div className="rounded-[1.8rem] border border-slate-200/90 bg-white/92 p-4 shadow-[0_20px_55px_rgba(15,23,42,0.08)] backdrop-blur sm:p-5 lg:p-6">
+          <div className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(249,251,254,0.95))] p-4 shadow-[0_20px_55px_rgba(20,33,61,0.08)] backdrop-blur sm:p-5 lg:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
               <div className="min-w-0">
-                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Strate Homes Admin</p>
+                <p className="text-[11px] uppercase tracking-[0.28em] text-slate-400">Panel de la inmobiliaria</p>
                 <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{activePrimaryItem.label}</h2>
                 <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">{activePrimaryItem.description}</p>
               </div>
-              <div className="rounded-[1.4rem] border border-slate-200 bg-[#f8fbff] px-4 py-3 text-sm text-slate-600">
+              <div className="rounded-[1.4rem] border border-[color:var(--admin-line)] bg-[color:var(--admin-cloud)] px-4 py-3 text-sm text-slate-600">
                 <p className="font-medium text-slate-900">{workspaceBrandLabel}</p>
-                <p className="mt-1">{activeWorkspace?.workspaceSlug ? `/${activeWorkspace.workspaceSlug}` : "Workspace activo"}</p>
+                <p className="mt-1">{activeWorkspace?.workspaceSlug ? `/${activeWorkspace.workspaceSlug}` : "Inmobiliaria activa"}</p>
               </div>
             </div>
 
@@ -251,7 +251,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             ) : null}
           </div>
 
-          <section className="rounded-[1.6rem] border border-slate-200/90 bg-white/94 p-4 shadow-[0_20px_50px_rgba(15,23,42,0.07)] backdrop-blur sm:p-6 lg:rounded-[2rem] lg:p-8">
+          <section className="rounded-[1.6rem] border border-[color:var(--admin-line)] bg-white/95 p-4 shadow-[0_20px_50px_rgba(20,33,61,0.07)] backdrop-blur sm:p-6 lg:rounded-[2rem] lg:p-8">
             {children}
           </section>
         </section>

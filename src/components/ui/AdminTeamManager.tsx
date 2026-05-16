@@ -18,19 +18,37 @@ function roleLabel(role: string) {
   return role;
 }
 
+function getCommercialProfileSummary(member: TeamMemberRecord) {
+  if (!member.agent_profile) {
+    return {
+      tone: "border-amber-200 bg-amber-50 text-amber-700",
+      label: "Sin perfil comercial",
+    };
+  }
+
+  return member.agent_profile.is_public
+    ? {
+        tone: "border-emerald-200 bg-emerald-50 text-emerald-700",
+        label: "Perfil comercial público",
+      }
+    : {
+        tone: "border-slate-200 bg-slate-100 text-slate-600",
+        label: "Perfil comercial interno",
+      };
+}
+
 function NewAgentForm() {
   const [open, setOpen] = useState(false);
-  const [accessType, setAccessType] = useState<"public-only" | "with-access">("public-only");
   const [state, action, pending] = useActionState(createAgentAction, initialCreateState);
 
   return (
     <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesores</p>
-          <h3 className="mt-2 text-2xl font-semibold text-stone-950">Equipo comercial</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Perfiles comerciales</p>
+          <h3 className="mt-2 text-2xl font-semibold text-stone-950">Nuevo asesor comercial</h3>
           <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-            Crea asesores para asignar propiedades y mostrarlos en el sitio público, con o sin acceso al sistema.
+            Crea perfiles comerciales para asignar propiedades, repartir visibilidad pública y construir la página personal de cada asesor.
           </p>
         </div>
         <button
@@ -44,20 +62,8 @@ function NewAgentForm() {
 
       {open ? (
         <form action={action} className="mt-6 space-y-4">
+          <input type="hidden" name="accessType" value="public-only" />
           <div className="grid gap-4 md:grid-cols-2">
-            <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo de acceso</span>
-              <select
-                name="accessType"
-                value={accessType}
-                onChange={(event) => setAccessType(event.target.value === "with-access" ? "with-access" : "public-only")}
-                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950"
-              >
-                <option value="public-only">Solo perfil público</option>
-                <option value="with-access">Invitar con acceso</option>
-              </select>
-            </label>
-
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre público</span>
               <input name="displayName" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-stone-950 outline-none transition focus:border-stone-400" />
@@ -101,8 +107,12 @@ function NewAgentForm() {
 
           <label className="inline-flex items-center gap-3 text-sm text-stone-700">
             <input type="checkbox" name="isPublic" defaultChecked className="size-4 rounded border-stone-300 bg-white" />
-            Mostrar asesor públicamente
+            Mostrar perfil en el sitio público
           </label>
+
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-600">
+            Este bloque crea solo el perfil comercial. El acceso al sistema se gestiona por separado desde usuarios internos.
+          </div>
 
           {state.message ? (
             <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
@@ -111,7 +121,7 @@ function NewAgentForm() {
           ) : null}
 
           <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {pending ? "Guardando..." : accessType === "with-access" ? "Crear asesor con acceso básico" : "Crear asesor"}
+            {pending ? "Guardando..." : "Crear perfil comercial"}
           </button>
         </form>
       ) : null}
@@ -130,9 +140,9 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
     <div className="mt-4 rounded-2xl border border-stone-200 bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-stone-900">Perfil del asesor</p>
+          <p className="text-sm font-semibold text-stone-900">Perfil comercial vinculado</p>
           <p className="mt-1 text-xs leading-5 text-stone-500">
-            Edita la presencia comercial del asesor sin tocar sus permisos internos.
+            Edita la presencia comercial de esta persona sin tocar su acceso al sistema.
           </p>
         </div>
         <button
@@ -140,7 +150,7 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
           onClick={() => setOpen((value) => !value)}
           className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-stone-100"
         >
-          {open ? "Cerrar" : profile ? "Editar asesor" : "Activar asesor"}
+          {open ? "Cerrar" : profile ? "Editar perfil" : "Crear perfil"}
         </button>
       </div>
 
@@ -196,7 +206,7 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
 
           <label className="inline-flex items-center gap-3 text-sm text-stone-700">
             <input type="checkbox" name="isPublic" defaultChecked={profile?.is_public ?? true} className="size-4 rounded border-stone-300 bg-white" />
-            Mostrar asesor públicamente
+            Mostrar perfil comercial en el sitio público
           </label>
 
           {state.message ? (
@@ -206,7 +216,7 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
           ) : null}
 
           <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {pending ? "Guardando..." : profile ? "Guardar asesor" : "Activar asesor"}
+            {pending ? "Guardando..." : profile ? "Guardar perfil comercial" : "Crear perfil comercial"}
           </button>
         </form>
       ) : null}
@@ -214,10 +224,10 @@ function AgentProfileEditor({ member, workspaceId }: { member: TeamMemberRecord;
       {profile ? (
         <form action={deleteAction} className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
           <input type="hidden" name="agentId" value={profile.id} />
-          <p className="text-xs leading-5 text-rose-700">Eliminar desactiva el asesor público, lo quita como colaborador y deja sin asesor principal las propiedades donde sea responsable.</p>
+          <p className="text-xs leading-5 text-rose-700">Eliminar este perfil comercial lo quita como colaborador y deja sin responsable principal las propiedades donde hoy aparezca como contacto principal.</p>
           {deleteState.message ? <p className={`mt-3 rounded-xl border px-3 py-2 text-xs ${deleteState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-white text-rose-700"}`}>{deleteState.message}</p> : null}
           <button disabled={deletePending} className="mt-3 rounded-full border border-rose-200 bg-white px-4 py-2 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-60">
-            {deletePending ? "Eliminando..." : "Eliminar asesor"}
+            {deletePending ? "Eliminando..." : "Eliminar perfil comercial"}
           </button>
         </form>
       ) : null}
@@ -236,13 +246,13 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-lg font-semibold text-stone-950">{agent.display_name}</p>
-          <p className="mt-2 text-sm text-stone-600">{agent.title ?? "Asesor inmobiliario"}</p>
+          <p className="mt-2 text-sm text-stone-600">{agent.title ?? "Asesor comercial"}</p>
           {agent.email ? <p className="mt-3 text-sm text-stone-500">{agent.email}</p> : null}
           {agent.whatsapp ?? agent.phone ? <p className="mt-1 text-sm text-stone-500">{agent.whatsapp ?? agent.phone}</p> : null}
           <p className="mt-3 text-xs text-stone-500">Slug: {agent.slug}</p>
         </div>
         <button type="button" onClick={() => setOpen((value) => !value)} className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-stone-100">
-          {open ? "Cerrar" : "Editar asesor"}
+          {open ? "Cerrar" : "Editar perfil"}
         </button>
       </div>
 
@@ -288,21 +298,21 @@ function StandaloneAgentEditor({ agent, workspaceId }: { agent: StandaloneAgentR
           </label>
           <label className="inline-flex items-center gap-3 text-sm text-stone-700">
             <input type="checkbox" name="isPublic" defaultChecked={agent.is_public} className="size-4 rounded border-stone-300 bg-white" />
-            Mostrar asesor públicamente
+            Mostrar perfil comercial en el sitio público
           </label>
           {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
           <button disabled={pending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-            {pending ? "Guardando..." : "Guardar asesor"}
+            {pending ? "Guardando..." : "Guardar perfil comercial"}
           </button>
         </form>
       ) : null}
 
       <form action={deleteAction} className="mt-4 rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3">
         <input type="hidden" name="agentId" value={agent.id} />
-        <p className="text-xs leading-5 text-rose-700">Eliminar desactiva el asesor público, lo quita como colaborador y deja sin asesor principal las propiedades donde sea responsable.</p>
+        <p className="text-xs leading-5 text-rose-700">Eliminar este perfil comercial lo quita como colaborador y deja sin responsable principal las propiedades donde hoy aparezca como contacto principal.</p>
         {deleteState.message ? <p className={`mt-3 rounded-xl border px-3 py-2 text-xs ${deleteState.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-white text-rose-700"}`}>{deleteState.message}</p> : null}
         <button disabled={deletePending} className="mt-3 rounded-full border border-rose-200 bg-white px-4 py-2 text-xs font-medium text-rose-700 transition hover:bg-rose-100 disabled:opacity-60">
-          {deletePending ? "Eliminando..." : "Eliminar asesor"}
+          {deletePending ? "Eliminando..." : "Eliminar perfil comercial"}
         </button>
       </form>
     </div>
@@ -315,10 +325,10 @@ function StandaloneAgentsList({ agents, workspaceId }: { agents: StandaloneAgent
   return (
     <div className="space-y-4">
       <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
-        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesores sin acceso</p>
-        <h3 className="mt-2 text-2xl font-semibold text-stone-950">Perfiles comerciales independientes</h3>
+        <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Perfiles comerciales externos</p>
+        <h3 className="mt-2 text-2xl font-semibold text-stone-950">Asesores sin acceso al sistema</h3>
         <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
-          Estos asesores pueden recibir propiedades y aparecer en el sitio público sin entrar al sistema.
+          Estos asesores pueden participar en propiedades y aparecer en el sitio público sin entrar al sistema.
         </p>
       </div>
 
@@ -332,30 +342,56 @@ function StandaloneAgentsList({ agents, workspaceId }: { agents: StandaloneAgent
 }
 
 export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }: { teamMembers: TeamMemberRecord[]; standaloneAgents: StandaloneAgentRecord[]; workspaceId: string }) {
+  const linkedCommercialProfiles = teamMembers.filter((member) => member.agent_profile).length;
+  const internalOnlyUsers = teamMembers.filter((member) => !member.agent_profile).length;
+
   return (
     <div className="space-y-6">
+      <div className="rounded-[1.75rem] border border-stone-200 bg-[linear-gradient(180deg,#ffffff_0%,#f7fafc_100%)] p-6 shadow-sm shadow-stone-200/40">
+        <p className="text-xs uppercase tracking-[0.22em] text-stone-500">Equipo</p>
+        <h2 className="mt-2 text-3xl font-semibold tracking-tight text-stone-950">Usuarios internos y perfiles comerciales</h2>
+        <p className="mt-3 max-w-4xl text-sm leading-7 text-stone-600">
+          Aquí se separa quién entra al sistema y quién atiende propiedades públicamente. Una misma persona puede ser ambas cosas, pero esa relación debe sentirse explícita.
+        </p>
+      </div>
+
       <NewAgentForm />
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 md:grid-cols-4">
         <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
-          <p className="text-sm text-stone-500">Miembros activos</p>
+          <p className="text-sm text-stone-500">Usuarios del sistema</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.length}</p>
         </div>
         <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
-          <p className="text-sm text-stone-500">Con asesor activo</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.filter((member) => member.agent_profile).length}</p>
+          <p className="text-sm text-stone-500">Con perfil comercial</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{linkedCommercialProfiles}</p>
         </div>
         <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
           <p className="text-sm text-stone-500">Solo operación interna</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{teamMembers.filter((member) => !member.agent_profile).length}</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{internalOnlyUsers}</p>
         </div>
         <div className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
-          <p className="text-sm text-stone-500">Asesores sin acceso</p>
+          <p className="text-sm text-stone-500">Perfiles externos</p>
           <p className="mt-3 text-2xl font-semibold text-stone-950">{standaloneAgents.length}</p>
         </div>
       </div>
 
-      <div className="space-y-4">
+      <div className="rounded-[1.75rem] border border-stone-200 bg-white p-6 shadow-sm shadow-stone-200/40">
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Acceso interno</p>
+            <h3 className="mt-2 text-2xl font-semibold text-stone-950">Usuarios del sistema</h3>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-stone-600">
+              Estas personas entran al admin. Pueden o no tener un perfil comercial vinculado para aparecer públicamente y recibir propiedades.
+            </p>
+          </div>
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm leading-6 text-stone-600">
+            <p><span className="font-medium text-stone-900">Rol del sistema:</span> define permisos internos.</p>
+            <p><span className="font-medium text-stone-900">Perfil comercial:</span> define presencia pública y asignación a propiedades.</p>
+          </div>
+        </div>
+
+        <div className="mt-5 space-y-4">
         {teamMembers.map((member) => (
           <div key={member.membership_id} className="rounded-[1.35rem] border border-stone-200 bg-white p-4 sm:rounded-[1.5rem] sm:p-5 shadow-sm shadow-stone-200/30">
             <div className="flex flex-wrap items-start justify-between gap-4">
@@ -370,29 +406,23 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
               </div>
               <div className="flex flex-wrap gap-2">
                 <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-xs text-stone-700">
-                  Permiso interno: {roleLabel(member.workspace_role)}
+                  Rol del sistema: {roleLabel(member.workspace_role)}
                 </span>
-                {member.agent_profile ? (
-                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
-                    Asesor activo
-                  </span>
-                ) : (
-                  <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs text-amber-700">
-                    Sin asesor activo
-                  </span>
-                )}
+                <span className={`rounded-full border px-3 py-1 text-xs ${getCommercialProfileSummary(member).tone}`}>
+                  {getCommercialProfileSummary(member).label}
+                </span>
               </div>
             </div>
 
             <div className="mt-4 grid gap-4 md:grid-cols-2">
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Operación interna</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Acceso al sistema</p>
                 <p className="mt-2 text-sm leading-6 text-stone-700">
-                  Este dato controla lo que la persona puede hacer dentro del sistema.
+                  Este dato controla lo que la persona puede hacer dentro del admin de la inmobiliaria.
                 </p>
               </div>
               <div className="rounded-2xl border border-stone-200 bg-stone-50 p-4">
-                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesor comercial</p>
+                <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Perfil comercial</p>
                 {member.agent_profile ? (
                   <div className="mt-2 text-sm leading-6 text-stone-700">
                     <p className="font-medium text-stone-900">{member.agent_profile.display_name}</p>
@@ -401,7 +431,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
                   </div>
                 ) : (
                   <p className="mt-2 text-sm leading-6 text-stone-700">
-                    Esta persona participa internamente, pero todavía no tiene asesor comercial activo.
+                    Esta persona participa internamente, pero todavía no tiene un perfil comercial vinculado.
                   </p>
                 )}
               </div>
@@ -410,6 +440,7 @@ export function AdminTeamManager({ teamMembers, standaloneAgents, workspaceId }:
             <AgentProfileEditor member={member} workspaceId={workspaceId} />
           </div>
         ))}
+        </div>
       </div>
 
       <StandaloneAgentsList agents={standaloneAgents} workspaceId={workspaceId} />

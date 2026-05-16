@@ -81,9 +81,9 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
   return (
     <div className="space-y-6">
       <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Perfil inmobiliaria</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Edita la página pública de la inmobiliaria: identidad comercial, hero y datos de contacto. Debe sentirse como sitio premium, no como dashboard.</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Inmobiliaria</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Marca y presencia pública</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Edita la cara pública del negocio: identidad comercial, hero y datos de contacto. Esta capa debe sentirse como sitio premium, no como dashboard.</p>
       </div>
 
       <form action={action} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-sm shadow-slate-200/30 space-y-6">
@@ -98,7 +98,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Slug público principal</span>
             <input name="workspaceSlug" defaultValue={workspace.workspaceSlug ?? ""} placeholder="ej. sarita-homes" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
-            <span className="block text-xs leading-5 text-slate-500">Define la URL principal: /w/slug-de-la-inmobiliaria. Usa minúsculas, números y guiones.</span>
+            <span className="block text-xs leading-5 text-slate-500">Define la URL principal de la inmobiliaria: /w/slug-de-la-inmobiliaria. Usa minúsculas, números y guiones.</span>
           </label>
           <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Claim</span>
@@ -152,7 +152,7 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
         {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
 
         <button disabled={pending || isUploading} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-          {pending || isUploading ? "Guardando..." : "Guardar perfil inmobiliaria"}
+          {pending || isUploading ? "Guardando..." : "Guardar marca de la inmobiliaria"}
         </button>
       </form>
     </div>

@@ -195,7 +195,7 @@ export function PublicPropertyDetailPage({
           </div>
 
           <aside className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{isContextualAdvisor ? "Tu asesor" : "Asesor principal"}</p>
+            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{isContextualAdvisor ? "Tu asesor" : "Responsable comercial"}</p>
             {displayedAdvisor ? (
               <div className="mt-6 text-center">
                 <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700 sm:h-28 sm:w-28">

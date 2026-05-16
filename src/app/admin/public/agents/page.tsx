@@ -13,9 +13,9 @@ export default async function AdminPublicAgentsPage() {
       ) : access.kind === "ready" ? (
         <div className="space-y-6">
           <div className="rounded-[2rem] border border-slate-200 bg-white p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Área Pública</p>
-            <h3 className="mt-2 text-2xl font-semibold text-slate-950">Asesores públicos</h3>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Aquí ves qué asesores aparecen en el sitio público. Cada asesor debe sentirse humano y comercial: foto, WhatsApp, bio, especialidad y propiedades propias.</p>
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Sitio</p>
+            <h3 className="mt-2 text-2xl font-semibold text-slate-950">Perfiles comerciales públicos</h3>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Aquí ves qué perfiles comerciales aparecen en el sitio público. Cada uno debe sentirse humano y útil: foto, WhatsApp, bio, especialidad y propiedades donde participa.</p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

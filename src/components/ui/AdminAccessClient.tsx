@@ -178,14 +178,14 @@ export function AdminAccessClient() {
       <div className="grid gap-6 xl:grid-cols-[1fr_0.92fr]">
         <div className="rounded-[1.5rem] border border-stone-200 bg-gradient-to-br from-white via-amber-50 to-stone-50 p-4 sm:rounded-[2rem] sm:p-8 shadow-[0_30px_80px_rgba(120,113,108,0.12)]">
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Primer acceso</p>
-          <h3 className="mt-3 text-3xl font-semibold text-stone-950">Activa tu espacio de trabajo</h3>
+          <h3 className="mt-3 text-3xl font-semibold text-stone-950">Crea tu inmobiliaria</h3>
           <p className="mt-4 max-w-2xl text-sm leading-7 text-stone-600">
-            Tu cuenta ya está lista. Ahora solo falta crear el espacio donde vas a organizar tu inventario, administrar propiedades y empezar a operar Strate Homes.
+            Tu cuenta ya está lista. Ahora solo falta crear la inmobiliaria donde vas a organizar inventario, administrar propiedades y empezar a operar.
           </p>
 
           <form action={bootstrapAction} className="mt-8 space-y-5">
             <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre del espacio</span>
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Nombre de la inmobiliaria</span>
               <input
                 name="workspaceName"
                 required
@@ -196,7 +196,7 @@ export function AdminAccessClient() {
             </label>
 
             <label className="space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Identificador corto (opcional)</span>
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Slug público inicial (opcional)</span>
               <input
                 name="workspaceSlug"
                 placeholder="rivera-propiedades"
@@ -212,7 +212,7 @@ export function AdminAccessClient() {
 
             <div className="flex flex-wrap gap-3">
               <button disabled={bootstrapPending} className="w-full rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm sm:w-auto font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
-                {bootstrapPending ? "Preparando tu espacio..." : "Crear espacio y continuar"}
+                {bootstrapPending ? "Preparando tu inmobiliaria..." : "Crear inmobiliaria y continuar"}
               </button>
               <button type="button" onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">
                 Cerrar sesión
@@ -225,8 +225,8 @@ export function AdminAccessClient() {
           <p className="text-xs uppercase tracking-[0.24em] text-stone-500">Lo que obtienes</p>
           <h4 className="mt-3 text-2xl font-semibold text-stone-950">Tu base operativa desde el primer día</h4>
           <ul className="mt-6 space-y-3 text-sm leading-7 text-stone-600">
-            <li>• un espacio claro para administrar tus propiedades</li>
-            <li>• acceso como owner del workspace inicial</li>
+            <li>• una inmobiliaria lista para administrar propiedades y clientes</li>
+            <li>• acceso como owner de la cuenta principal</li>
             <li>• una entrada limpia al admin sin pasos confusos</li>
             <li>• mejor guía para cargar fotos y presentar cada propiedad</li>
           </ul>
@@ -241,7 +241,7 @@ export function AdminAccessClient() {
   return (
     <div className="rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-white to-emerald-50 p-4 sm:rounded-[2rem] sm:p-8 text-sm leading-7 text-emerald-800 shadow-sm shadow-emerald-100">
       <p className="text-xs uppercase tracking-[0.24em] text-emerald-700/70">Acceso listo</p>
-      <h3 className="mt-3 text-2xl font-semibold text-stone-950">Tu espacio ya está operativo</h3>
+      <h3 className="mt-3 text-2xl font-semibold text-stone-950">Tu inmobiliaria ya está operativa</h3>
       <p className="mt-4 text-stone-700">
         Iniciaste sesión como <span className="font-medium text-stone-950">{user.email ?? user.id}</span> en
         <span className="font-medium text-stone-950"> {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}</span>.
