@@ -60,11 +60,11 @@ export default function Home() {
             <p className="mt-1 text-sm text-[#4d4236]">Presencia y operación inmobiliaria</p>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/login?next=/admin" className="hidden rounded-full border border-[#d8c9b4] bg-transparent px-4 py-2.5 text-sm font-medium text-[#6d5c49] transition hover:bg-white/60 hover:text-[#15110d] md:inline-flex">
-              Admin Strate
+            <Link href="/login?next=/admin" className="rounded-full border border-[#d8c9b4] bg-transparent px-3 py-2.5 text-sm font-medium text-[#6d5c49] transition hover:bg-white/60 hover:text-[#15110d] sm:px-4">
+              Admin
             </Link>
-            <Link href="/login" className="rounded-full border border-[#d8c9b4] bg-white/65 px-4 py-2.5 text-sm font-semibold text-[#2a2118] transition hover:bg-white">
-              Entrar a mi app
+            <Link href="/login" className="rounded-full border border-[#d8c9b4] bg-white/65 px-3 py-2.5 text-sm font-semibold text-[#2a2118] transition hover:bg-white sm:px-4">
+              Entrar
             </Link>
             <Link href="/properties" className="hidden rounded-full bg-[#18120d] px-4 py-2.5 text-sm font-semibold text-[#fff8ee] transition hover:bg-[#2a2118] sm:inline-flex">
               Ver ejemplo público
@@ -197,6 +197,9 @@ export default function Home() {
           <div className="flex flex-col gap-3 sm:flex-row">
             <Link href="/login" className="rounded-full bg-[#17120e] px-6 py-4 text-center text-sm font-semibold text-[#fff8ee] transition hover:bg-[#2a2118]">
               Entrar a mi app
+            </Link>
+            <Link href="/login?next=/admin" className="rounded-full border border-[#d8c9b4] bg-[#fffaf3] px-6 py-4 text-center text-sm font-semibold text-[#2a2118] transition hover:bg-white">
+              Admin Strate
             </Link>
             <Link href="/properties" className="rounded-full border border-[#d8c9b4] bg-white px-6 py-4 text-center text-sm font-semibold text-[#2a2118] transition hover:bg-[#fffaf3]">
               Ver demo
