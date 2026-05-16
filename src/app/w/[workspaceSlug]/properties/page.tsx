@@ -65,15 +65,16 @@ export default async function WorkspacePropertiesPage({
               property.bathrooms ? `${property.bathrooms} baños` : null,
               property.constructionAreaM2 ? `${property.constructionAreaM2} m²` : null,
             ].filter(Boolean).join(" · ");
+            const operationLabel = property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible";
 
             return (
-              <article key={property.id} className="group overflow-hidden rounded-[2.4rem] border border-[#e4d8c8] bg-[#fbf6ef] shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
-                <div className="relative h-[26rem] overflow-hidden bg-gradient-to-br from-[#f0e5d6] via-white to-[#efe7da]">
+              <article key={property.id} className="group overflow-hidden rounded-[2.5rem] border border-[#e4d8c8] bg-[#fbf6ef] shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 group-hover:-translate-y-1.5 group-hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
+                <div className="relative h-[29rem] overflow-hidden bg-gradient-to-br from-[#f0e5d6] via-white to-[#efe7da]">
                   {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover transition duration-500 group-hover:scale-[1.03]" unoptimized /> : null}
-                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,13,10,0.04)_0%,rgba(17,13,10,0.14)_100%)]" />
+                  <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,13,10,0.00)_0%,rgba(17,13,10,0.10)_42%,rgba(17,13,10,0.74)_100%)]" />
                   <div className="absolute left-5 top-5 flex flex-wrap gap-2 text-[11px] uppercase tracking-[0.22em]">
-                    <span className="rounded-full bg-[#17120e] px-3 py-1.5 text-[#f7e7c8] shadow-[0_10px_22px_rgba(23,18,14,0.18)]">
-                      {property.operationType === "sale" ? "Venta" : property.operationType === "rent" ? "Renta" : "Disponible"}
+                    <span className="rounded-full bg-[#17120e]/88 px-3 py-1.5 text-[#f7e7c8] shadow-[0_10px_22px_rgba(23,18,14,0.18)] backdrop-blur">
+                      {operationLabel}
                     </span>
                     {property.agent?.displayName ? (
                       <span className="rounded-full border border-white/18 bg-white/88 px-3 py-1.5 text-[#4f4135] backdrop-blur">
@@ -81,15 +82,29 @@ export default async function WorkspacePropertiesPage({
                       </span>
                     ) : null}
                   </div>
-                </div>
-                <div className="space-y-3 p-6">
-                  <h2 className="font-serif text-2xl font-semibold leading-tight tracking-[-0.04em] text-[#17120e] sm:text-[2rem]">{property.title}</h2>
-                  <p className="text-sm leading-7 text-[#625547]">{property.locationLabel}</p>
-                  <p className="text-2xl font-semibold tracking-tight text-[#17120e]">{property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}</p>
-                  {specsInline ? <p className="text-sm text-[#756756]">{specsInline}</p> : null}
-                  <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full bg-[#17120e] px-5 py-3 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
-                    Ver residencia
-                  </Link>
+                  <div className="absolute inset-x-0 bottom-0 p-5">
+                    <div className="rounded-[2rem] border border-white/10 bg-[linear-gradient(180deg,rgba(255,250,243,0.94),rgba(247,239,229,0.88))] p-5 shadow-[0_18px_45px_rgba(15,23,42,0.14)] backdrop-blur">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <p className="text-[11px] uppercase tracking-[0.24em] text-[#8a6a43]">{operationLabel}</p>
+                          <h2 className="mt-3 font-serif text-2xl font-semibold leading-tight tracking-[-0.04em] text-[#17120e] sm:text-[2rem]">{property.title}</h2>
+                        </div>
+                        <p className="text-right text-xl font-semibold tracking-tight text-[#17120e]">
+                          {property.currencyCode} {property.priceAmount?.toLocaleString("es-MX") ?? "Consultar"}
+                        </p>
+                      </div>
+                      <p className="mt-3 text-sm leading-7 text-[#625547]">{property.locationLabel}</p>
+                      {specsInline ? <p className="mt-3 text-sm text-[#756756]">{specsInline}</p> : null}
+                      <div className="mt-5 flex items-center justify-between gap-4">
+                        <span className="text-xs uppercase tracking-[0.22em] text-[#8a6a43]">
+                          {property.agent?.displayName ? `Representada por ${property.agent.displayName}` : "Selección destacada"}
+                        </span>
+                        <Link href={`/w/${workspaceSlug}/properties/${property.slug}`} className="inline-flex rounded-full bg-[#17120e] px-5 py-3 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
+                          Ver residencia
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </article>
             );
