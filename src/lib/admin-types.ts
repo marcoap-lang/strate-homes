@@ -63,7 +63,7 @@ export type PropertyRecord = {
     created_at: string;
     updated_at: string;
   }>;
-  agents?: { id: string; display_name: string } | { id: string; display_name: string }[] | null;
+  agents?: { id: string; display_name: string; whatsapp?: string | null; phone?: string | null } | { id: string; display_name: string; whatsapp?: string | null; phone?: string | null }[] | null;
   property_agent_assignments?: Array<{
     id: string;
     agent_id: string;

@@ -11,7 +11,7 @@ export default async function AdminLeadsPage() {
       {access.kind === "no-session" ? (
         <AdminAccessClient />
       ) : access.kind === "ready" ? (
-        <AdminLeadsManager leads={access.leads} properties={access.properties} workspaceSlug={access.activeWorkspace.workspaceSlug} />
+        <AdminLeadsManager leads={access.leads} properties={access.properties} agents={access.agents} workspaceSlug={access.activeWorkspace.workspaceSlug} />
       ) : (
         <AdminAccessClient />
       )}

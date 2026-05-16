@@ -1,257 +1,175 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
-import { AdminPublicBrandingManager } from "@/components/ui/AdminPublicBrandingManager";
-import { AdminShell } from "@/components/ui/AdminShell";
-import { getAdminAccessState } from "@/lib/admin-access";
+import { getPlatformAdminState } from "@/lib/platform-admin";
 
-function formatPercent(value: number) {
-  return `${Math.max(0, Math.min(100, Math.round(value)))}%`;
+function formatEventLabel(value: string) {
+  const labels: Record<string, string> = {
+    lead_received: "Lead recibido",
+    lead_updated: "Lead actualizado",
+    property_created: "Propiedad creada",
+    property_updated: "Propiedad actualizada",
+    property_published: "Propiedad publicada",
+    property_status_updated: "Estatus actualizado",
+    agent_created: "Asesor creado",
+    agent_updated: "Asesor actualizado",
+    branding_updated: "Marca actualizada",
+  };
+
+  return labels[value] ?? value.replaceAll("_", " ");
 }
 
-function firstJoined<T>(value: T | T[] | null | undefined): T | null {
-  if (Array.isArray(value)) return value[0] ?? null;
-  return value ?? null;
+function healthClass(score: number) {
+  if (score >= 80) return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (score >= 55) return "border-amber-200 bg-amber-50 text-amber-800";
+  return "border-rose-200 bg-rose-50 text-rose-700";
 }
-
-function getStatusBadge(status: string) {
-  if (status === "active") return "border-emerald-200 bg-emerald-50 text-emerald-700";
-  if (status === "draft") return "border-amber-200 bg-amber-50 text-amber-700";
-  return "border-slate-200 bg-slate-100 text-slate-600";
-}
-
-const primaryButtonClass = "inline-flex items-center justify-between gap-3 rounded-[1.2rem] bg-[linear-gradient(135deg,var(--admin-ink)_0%,var(--admin-ink-soft)_100%)] px-5 py-4 text-sm font-medium text-white shadow-[0_18px_35px_rgba(20,33,61,0.18)] transition hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(20,33,61,0.22)]";
-const secondaryButtonClass = "inline-flex items-center justify-between gap-3 rounded-[1.2rem] border border-[color:var(--admin-line)] bg-white px-5 py-4 text-sm font-medium text-slate-700 transition hover:-translate-y-0.5 hover:bg-[color:var(--admin-cloud)]";
-const warmButtonClass = "inline-flex items-center justify-between gap-3 rounded-[1.2rem] border border-[color:var(--admin-sand)]/35 bg-[linear-gradient(180deg,#fff8eb_0%,#fdf1dd_100%)] px-5 py-4 text-sm font-medium text-[color:var(--admin-ink)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_30px_rgba(208,163,91,0.16)]";
 
 export default async function AdminPage() {
-  const access = await getAdminAccessState();
+  const state = await getPlatformAdminState();
 
-  if (access.kind === "no-session") {
+  if (state.kind === "no-session") {
     redirect("/login");
   }
 
+  if (state.kind === "forbidden") {
+    return (
+      <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
+        <section className="mx-auto max-w-2xl rounded-[2rem] border border-white/10 bg-white/[0.06] p-8 shadow-[0_30px_90px_rgba(0,0,0,0.35)]">
+          <p className="text-xs uppercase tracking-[0.28em] text-white/45">Strate Homes Admin</p>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight">Acceso interno restringido</h1>
+          <p className="mt-4 text-sm leading-7 text-white/65">
+            Este `/admin` queda reservado para operación interna de Strate. La app de la inmobiliaria vive en `/app`.
+          </p>
+          <p className="mt-4 rounded-2xl border border-white/10 bg-white/[0.06] px-4 py-3 text-sm text-white/70">
+            Usuario actual: {state.email ?? "sin email visible"}. Para habilitarlo, agrégalo a `platform_admins` o a `STRATE_PLATFORM_ADMIN_EMAILS`.
+          </p>
+          <Link href="/app" className="mt-6 inline-flex rounded-full bg-white px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-white/90">
+            Ir a la app del cliente
+          </Link>
+        </section>
+      </main>
+    );
+  }
+
   return (
-    <AdminShell>
-      {access.kind === "ready" ? (
-        (() => {
-          const propertiesReadyToPublish = access.properties.filter(
-            (property) =>
-              property.status !== "active"
-              && Boolean(property.price_amount)
-              && Boolean(property.location_label)
-              && Boolean(property.property_images.length)
-              && Boolean(property.description?.trim()),
-          );
-          const leadsWithoutFollowUp = access.leads.filter((lead) => lead.status === "new");
-          const incompleteProperties = access.properties.filter(
-            (property) =>
-              !property.price_amount
-              || !property.location_label
-              || !property.agent_id
-              || !property.property_images.length
-              || !(property.description?.trim()),
-          );
-          const publicSitePendingTasks = [
-            !access.activeWorkspace.brandName ? "Agregar nombre comercial" : null,
-            !access.activeWorkspace.publicLogoUrl ? "Subir logo principal" : null,
-            !access.activeWorkspace.publicClaim ? "Definir claim público" : null,
-            !access.activeWorkspace.publicPhone && !access.activeWorkspace.publicWhatsapp ? "Agregar canal de contacto" : null,
-          ].filter(Boolean);
-          const publishedProperties = access.properties.filter((property) => property.status === "active").length;
-          const publicationReadiness = access.properties.length
-            ? (publishedProperties / access.properties.length) * 100
-            : 0;
-
-          return (
-            <div className="space-y-8">
-              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                {[
-                  {
-                    label: "Propiedades listas para publicar",
-                    value: propertiesReadyToPublish.length,
-                    tone: "bg-[#fff8ea] border-[#ead6ad] text-[#8e6b2d]",
-                  },
-                  {
-                    label: "Leads sin seguimiento",
-                    value: leadsWithoutFollowUp.length,
-                    tone: "bg-[#f8fbff] border-sky-200 text-sky-800",
-                  },
-                  {
-                    label: "Fichas incompletas",
-                    value: incompleteProperties.length,
-                    tone: "bg-white border-slate-200 text-slate-800",
-                  },
-                  {
-                    label: "Sitio público pendiente",
-                    value: publicSitePendingTasks.length,
-                    tone: "bg-[#f6f8fb] border-slate-200 text-slate-700",
-                  },
-                ].map((item) => (
-                  <article key={item.label} className={`rounded-[1.65rem] border p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] ${item.tone}`}>
-                    <p className="text-xs uppercase tracking-[0.22em]">{item.label}</p>
-                    <p className="mt-4 text-4xl font-semibold tracking-tight">{item.value}</p>
-                  </article>
-                ))}
-              </div>
-
-              <div className="grid gap-5 xl:grid-cols-[1.2fr_0.8fr]">
-                <section className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
-                  <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Prioridades</p>
-                      <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Pendientes para publicar</h3>
-                      <p className="mt-2 text-sm leading-6 text-slate-600">Lo que ya va encaminado y necesita cierre operativo para salir al sitio.</p>
-                    </div>
-                    <Link href="/app/properties" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
-                      Ver inventario
-                    </Link>
-                  </div>
-
-                  <div className="mt-5 space-y-3">
-                    {(propertiesReadyToPublish.length ? propertiesReadyToPublish : access.properties.slice(0, 3)).map((property) => {
-                      const primaryAgent = firstJoined(property.agents);
-                      const completionChecks = [
-                        Boolean(property.price_amount),
-                        Boolean(property.location_label),
-                        Boolean(property.agent_id),
-                        Boolean(property.property_images.length),
-                        Boolean(property.description?.trim()),
-                      ];
-                      const completion = (completionChecks.filter(Boolean).length / completionChecks.length) * 100;
-
-                      return (
-                        <article key={property.id} className="rounded-[1.45rem] border border-[color:var(--admin-line)] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] p-4 shadow-[0_8px_24px_rgba(20,33,61,0.04)]">
-                          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-                            <div className="min-w-0">
-                              <p className="text-lg font-semibold text-slate-950">{property.title}</p>
-                              <p className="mt-1 text-sm text-slate-500">
-                                {property.location_label ?? "Ubicación pendiente"} · {primaryAgent?.display_name ?? "Sin responsable comercial"}
-                              </p>
-                            </div>
-                            <div className="flex items-center gap-3">
-                              <span className={`rounded-full border px-3 py-1 text-xs font-medium ${getStatusBadge(property.status)}`}>
-                                {property.status}
-                              </span>
-                              <Link href={`/app/properties/${property.id}`} className="rounded-full bg-[color:var(--admin-ink)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:var(--admin-ink-soft)]">
-                                Editar
-                              </Link>
-                            </div>
-                          </div>
-                          <div className="mt-4">
-                            <div className="h-2 overflow-hidden rounded-full bg-slate-100">
-                              <div className="h-full rounded-full bg-[linear-gradient(90deg,var(--admin-sand)_0%,#e4bc78_100%)]" style={{ width: formatPercent(completion) }} />
-                            </div>
-                            <p className="mt-2 text-xs text-slate-500">Completitud estimada: {formatPercent(completion)}</p>
-                          </div>
-                        </article>
-                      );
-                    })}
-                  </div>
-                </section>
-
-                <section className="space-y-5">
-                  <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Acciones rápidas</p>
-                    <div className="mt-4 grid gap-3">
-                      <Link href="/app/properties/new" className={primaryButtonClass}>
-                        <span>
-                          <span className="block text-base font-semibold">Agregar propiedad</span>
-                          <span className="mt-1 block text-xs text-white/70">Dar de alta una nueva ficha sin salir del flujo.</span>
-                        </span>
-                        <span className="text-lg leading-none text-white/80">+</span>
-                      </Link>
-                      <Link href="/app/leads" className={secondaryButtonClass}>
-                        <span>
-                          <span className="block text-base font-semibold text-slate-900">Responder leads</span>
-                          <span className="mt-1 block text-xs text-slate-500">Entrar al seguimiento comercial y contestar primero.</span>
-                        </span>
-                        <span className="text-sm text-slate-400">→</span>
-                      </Link>
-                      <Link href="/app/public" className={warmButtonClass}>
-                        <span>
-                          <span className="block text-base font-semibold">Ajustar inmobiliaria</span>
-                          <span className="mt-1 block text-xs text-slate-500">Pulir marca, visibilidad y presencia digital.</span>
-                        </span>
-                        <span className="text-sm text-[#8e6b2d]">↗</span>
-                      </Link>
-                    </div>
-                  </article>
-
-                  <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
-                    <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Actividad del sitio</p>
-                    <h3 className="mt-2 text-xl font-semibold text-slate-950">Marca y presencia pública</h3>
-                    <div className="mt-4 space-y-3">
-                      {publicSitePendingTasks.length ? publicSitePendingTasks.map((task) => (
-                        <div key={task} className="rounded-[1.2rem] border border-[color:var(--admin-line)] bg-slate-50/70 px-4 py-3 text-sm text-slate-700">
-                          {task}
-                        </div>
-                      )) : (
-                        <div className="rounded-[1.2rem] border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
-                          La base pública de la inmobiliaria ya está configurada.
-                        </div>
-                      )}
-                    </div>
-                    <div className="mt-5 rounded-[1.3rem] border border-[color:var(--admin-line)] bg-[color:var(--admin-cloud)] p-4">
-                      <p className="text-sm font-medium text-slate-900">Publicación activa</p>
-                      <p className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">{formatPercent(publicationReadiness)}</p>
-                      <p className="mt-2 text-sm text-slate-500">{publishedProperties} de {access.properties.length} propiedades activas.</p>
-                    </div>
-                  </article>
-                </section>
-              </div>
-
-              <div className="grid gap-5 xl:grid-cols-[0.95fr_1.05fr]">
-                <section className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Clientes</p>
-                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">Leads nuevos</h3>
-                    </div>
-                    <Link href="/app/leads" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
-                      Ver todos
-                    </Link>
-                  </div>
-
-                  <div className="mt-5 space-y-3">
-                    {access.leads.slice(0, 4).map((lead) => (
-                      <article key={lead.id} className="rounded-[1.35rem] border border-[color:var(--admin-line)] bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] px-4 py-4">
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div>
-                            <p className="font-semibold text-slate-950">{lead.full_name}</p>
-                            <p className="mt-1 text-sm text-slate-500">{lead.phone}{lead.property_title ? ` · ${lead.property_title}` : ""}</p>
-                          </div>
-                          <span className={`w-fit rounded-full border px-3 py-1 text-xs font-medium ${lead.status === "new" ? "border-sky-200 bg-sky-50 text-sky-700" : "border-slate-200 bg-white text-slate-600"}`}>
-                            {lead.status}
-                          </span>
-                        </div>
-                      </article>
-                    ))}
-                    {!access.leads.length ? (
-                      <div className="rounded-[1.35rem] border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">
-                        Todavía no hay leads recibidos.
-                      </div>
-                    ) : null}
-                  </div>
-                </section>
-
-                <section className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sitio</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">Inmobiliaria y sitio público</h3>
-                  <p className="mt-2 max-w-3xl text-sm leading-6 text-slate-600">
-                    Ajusta la marca visible, el claim, los datos de contacto y la portada principal del negocio. Esto alimenta tanto la página de la inmobiliaria como la experiencia pública del sitio.
-                  </p>
-                  <div className="mt-5">
-                    <AdminPublicBrandingManager workspace={access.activeWorkspace} />
-                  </div>
-                </section>
-              </div>
+    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#2f251b_0%,#101723_38%,#060a12_100%)] px-4 py-8 text-white sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] space-y-6">
+        <header className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-6 shadow-[0_30px_90px_rgba(0,0,0,0.28)] backdrop-blur">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.30em] text-[#d7ab5b]">Strate Homes Admin</p>
+              <h1 className="mt-4 text-4xl font-semibold tracking-tight sm:text-5xl">Operación interna</h1>
+              <p className="mt-3 max-w-3xl text-sm leading-7 text-white/62">
+                Vista de salud para vender, monitorear y dar soporte a inmobiliarias sin entrar a ciegas a cada cuenta.
+              </p>
             </div>
-          );
-        })()
-      ) : (
-        <AdminAccessClient />
-      )}
-    </AdminShell>
+            <Link href="/app" className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-white/15">
+              Abrir app cliente
+            </Link>
+          </div>
+        </header>
+
+        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
+          {[
+            { label: "Inmobiliarias", value: state.totals.workspaces },
+            { label: "Activas", value: state.totals.activeWorkspaces },
+            { label: "Usuarios", value: state.totals.users },
+            { label: "Propiedades", value: state.totals.properties },
+            { label: "Publicadas", value: state.totals.publishedProperties },
+            { label: "Leads", value: state.totals.leads },
+          ].map((item) => (
+            <article key={item.label} className="rounded-[1.6rem] border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.22em] text-white/42">{item.label}</p>
+              <p className="mt-4 text-3xl font-semibold">{item.value}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="grid gap-5 xl:grid-cols-[1.25fr_0.75fr]">
+          <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-white/[0.07] shadow-[0_30px_90px_rgba(0,0,0,0.22)] backdrop-blur">
+            <div className="border-b border-white/10 px-5 py-5">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/42">Cuentas</p>
+              <h2 className="mt-2 text-2xl font-semibold">Inmobiliarias y salud operativa</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-left text-sm">
+                <thead className="text-xs uppercase tracking-[0.18em] text-white/42">
+                  <tr className="border-b border-white/10">
+                    <th className="px-5 py-4 font-medium">Inmobiliaria</th>
+                    <th className="px-5 py-4 font-medium">Owner</th>
+                    <th className="px-5 py-4 font-medium">Equipo</th>
+                    <th className="px-5 py-4 font-medium">Inventario</th>
+                    <th className="px-5 py-4 font-medium">Leads</th>
+                    <th className="px-5 py-4 font-medium">Salud</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {state.workspaces.map((workspace) => (
+                    <tr key={workspace.id} className="border-b border-white/10 text-white/72 last:border-0">
+                      <td className="px-5 py-4">
+                        <p className="font-semibold text-white">{workspace.brand_name ?? workspace.name}</p>
+                        <p className="mt-1 text-xs text-white/42">/{workspace.slug}</p>
+                      </td>
+                      <td className="px-5 py-4">
+                        <p>{workspace.owner_name ?? "Sin owner visible"}</p>
+                        <p className="mt-1 text-xs text-white/42">{workspace.owner_email ?? "Email pendiente"}</p>
+                      </td>
+                      <td className="px-5 py-4">{workspace.users_count} usuarios · {workspace.agents_count} asesores</td>
+                      <td className="px-5 py-4">{workspace.published_count}/{workspace.properties_count} publicadas</td>
+                      <td className="px-5 py-4">{workspace.leads_count}</td>
+                      <td className="px-5 py-4">
+                        <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${healthClass(workspace.health_score)}`}>
+                          {workspace.health_score}%
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                  {!state.workspaces.length ? (
+                    <tr>
+                      <td colSpan={6} className="px-5 py-8 text-center text-white/50">Todavía no hay inmobiliarias registradas.</td>
+                    </tr>
+                  ) : null}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <aside className="space-y-5">
+            <article className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.22)] backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/42">Alertas</p>
+              <h2 className="mt-2 text-2xl font-semibold">Dónde intervenir</h2>
+              <div className="mt-5 space-y-3 text-sm">
+                {state.workspaces.filter((workspace) => workspace.health_score < 65).slice(0, 5).map((workspace) => (
+                  <div key={workspace.id} className="rounded-2xl border border-amber-200/20 bg-amber-200/10 px-4 py-3 text-amber-50">
+                    <p className="font-semibold">{workspace.brand_name ?? workspace.name}</p>
+                    <p className="mt-1 text-xs text-amber-50/65">Salud {workspace.health_score}%. Revisar onboarding, publicación o leads.</p>
+                  </div>
+                ))}
+                {!state.workspaces.some((workspace) => workspace.health_score < 65) ? (
+                  <div className="rounded-2xl border border-emerald-200/20 bg-emerald-200/10 px-4 py-3 text-emerald-50">
+                    No hay cuentas críticas por ahora.
+                  </div>
+                ) : null}
+              </div>
+            </article>
+
+            <article className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.22)] backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/42">Actividad reciente</p>
+              <div className="mt-4 space-y-3">
+                {state.activity.map((event) => (
+                  <div key={event.id} className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+                    <p className="text-sm font-semibold">{formatEventLabel(event.event_type)}</p>
+                    <p className="mt-1 text-xs text-white/45">{event.workspace_name ?? "Sistema"} · {new Date(event.created_at).toLocaleString("es-MX")}</p>
+                  </div>
+                ))}
+                {!state.activity.length ? (
+                  <p className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-4 text-sm text-white/50">Aún no hay actividad registrada.</p>
+                ) : null}
+              </div>
+            </article>
+          </aside>
+        </section>
+      </div>
+    </main>
   );
 }

@@ -9,8 +9,27 @@ export type LeadRecord = {
   message: string | null;
   internal_note: string | null;
   status: string;
+  source_type: string | null;
+  assigned_agent_id: string | null;
+  assigned_agent_name: string | null;
+  assigned_agent_whatsapp: string | null;
+  next_follow_up_at: string | null;
+  last_contacted_at: string | null;
   created_at: string;
   property_title: string | null;
+  tasks?: Array<{
+    id: string;
+    title: string;
+    due_at: string | null;
+    status: string;
+    assigned_agent_id: string | null;
+  }>;
+  notes?: Array<{
+    id: string;
+    body: string;
+    created_at: string;
+    author_name: string | null;
+  }>;
   tours?: Array<{ id: string; title: string; slug: string }>;
 };
 
@@ -34,7 +53,19 @@ type JoinedLeadRecord = {
   message?: string | null;
   internal_note?: string | null;
   status?: string;
+  source_type?: string | null;
+  assigned_agent_id?: string | null;
+  next_follow_up_at?: string | null;
+  last_contacted_at?: string | null;
   created_at?: string;
+  agents?: { display_name?: string | null; whatsapp?: string | null } | Array<{ display_name?: string | null; whatsapp?: string | null }> | null;
+  lead_tasks?: Array<{ id: string; title: string; due_at: string | null; status: string; assigned_agent_id: string | null }>;
+  lead_notes?: Array<{
+    id: string;
+    body: string;
+    created_at: string;
+    profiles?: { full_name?: string | null } | Array<{ full_name?: string | null }> | null;
+  }>;
   property_tours?: Array<{ id: string; title: string; slug: string }>;
 };
 
@@ -174,7 +205,9 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
           agent_id,
           agents:agent_id (
             id,
-            display_name
+            display_name,
+            phone,
+            whatsapp
           ),
           property_agent_assignments (
             id,
@@ -209,6 +242,10 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
               message,
               internal_note,
               status,
+              source_type,
+              assigned_agent_id,
+              next_follow_up_at,
+              last_contacted_at,
               created_at
             )
           )
@@ -255,7 +292,30 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
             message,
             internal_note,
             status,
+            source_type,
+            assigned_agent_id,
+            next_follow_up_at,
+            last_contacted_at,
             created_at,
+            agents:assigned_agent_id (
+              display_name,
+              whatsapp
+            ),
+            lead_tasks (
+              id,
+              title,
+              due_at,
+              status,
+              assigned_agent_id
+            ),
+            lead_notes (
+              id,
+              body,
+              created_at,
+              profiles:author_profile_id (
+                full_name
+              )
+            ),
             property_tours (
               id,
               title,
@@ -300,7 +360,41 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
   if (propertiesError) throw propertiesError;
   if (agentsError) throw agentsError;
   if (teamError) throw teamError;
-  if (leadsError) throw leadsError;
+
+  let leadsData: unknown = leads;
+  if (leadsError) {
+    const { data: fallbackLeads, error: fallbackLeadsError } = await supabase
+      .from("lead_property_interests")
+      .select(
+        `
+          created_at,
+          leads:lead_id (
+            id,
+            full_name,
+            phone,
+            email,
+            message,
+            internal_note,
+            status,
+            created_at,
+            property_tours (
+              id,
+              title,
+              slug
+            )
+          ),
+          properties:property_id (
+            title
+          )
+        `,
+      )
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .order("created_at", { ascending: false });
+
+    if (fallbackLeadsError) throw leadsError;
+    leadsData = fallbackLeads;
+  }
+
   if (toursError) throw toursError;
 
   const agentByProfileId = new Map(
@@ -380,7 +474,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .filter((interest) => interest !== null),
   }));
 
-  const normalizedLeads: LeadRecord[] = ((leads ?? []) as LeadInterestListItem[])
+  const normalizedLeads: LeadRecord[] = ((leadsData ?? []) as LeadInterestListItem[])
     .map((item) => {
       const lead = firstJoined(item.leads);
       const property = firstJoined(item.properties);
@@ -394,8 +488,26 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
         message: lead.message ?? null,
         internal_note: lead.internal_note ?? null,
         status: lead.status,
+        source_type: lead.source_type ?? null,
+        assigned_agent_id: lead.assigned_agent_id ?? null,
+        assigned_agent_name: firstJoined(lead.agents)?.display_name ?? null,
+        assigned_agent_whatsapp: firstJoined(lead.agents)?.whatsapp ?? null,
+        next_follow_up_at: lead.next_follow_up_at ?? null,
+        last_contacted_at: lead.last_contacted_at ?? null,
         created_at: lead.created_at,
         property_title: property?.title ?? null,
+        tasks: (lead.lead_tasks ?? [])
+          .slice()
+          .sort((a, b) => new Date(a.due_at ?? "9999-12-31").getTime() - new Date(b.due_at ?? "9999-12-31").getTime()),
+        notes: (lead.lead_notes ?? [])
+          .slice()
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+          .map((note) => ({
+            id: note.id,
+            body: note.body,
+            created_at: note.created_at,
+            author_name: firstJoined(note.profiles)?.full_name ?? null,
+          })),
         tours: (lead.property_tours ?? []).map((tour) => ({
           id: tour.id,
           title: tour.title,

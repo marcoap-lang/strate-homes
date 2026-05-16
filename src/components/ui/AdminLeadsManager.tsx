@@ -9,6 +9,49 @@ import { buildPublicTourUrl } from "@/lib/public-links";
 const initialState: LeadUpdateState = { success: false, message: "" };
 const initialTourState: PropertyTourCreateState = { success: false, message: "" };
 
+const leadStatuses = [
+  { value: "new", label: "Nuevo" },
+  { value: "contacted", label: "Contactado" },
+  { value: "interested", label: "Interesado" },
+  { value: "visited", label: "Visita agendada" },
+  { value: "negotiation", label: "Negociación" },
+  { value: "closed", label: "Cerrado" },
+  { value: "lost", label: "Perdido" },
+];
+
+function formatWhatsAppUrl(phone?: string | null, message?: string) {
+  const digits = (phone ?? "").replace(/\D/g, "");
+  if (!digits) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message ?? "Hola, te contacto por tu interés en una propiedad.")}`;
+}
+
+function formatDateTimeInput(value?: string | null) {
+  if (!value) return "";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 16);
+}
+
+function getLeadAlert(lead: LeadRecord) {
+  const ageHours = (Date.now() - new Date(lead.created_at).getTime()) / 36e5;
+  const followUpAgeHours = lead.last_contacted_at
+    ? (Date.now() - new Date(lead.last_contacted_at).getTime()) / 36e5
+    : ageHours;
+
+  if (lead.status === "new" && ageHours >= 2) return "Lead nuevo sin primera respuesta.";
+  if (!lead.next_follow_up_at && !["closed", "lost"].includes(lead.status)) return "Falta próximo seguimiento.";
+  if (followUpAgeHours >= 48 && !["closed", "lost"].includes(lead.status)) return "Sin movimiento en más de 48h.";
+  return null;
+}
+
+function getSourceLabel(value?: string | null) {
+  if (value === "property_form") return "Formulario de propiedad";
+  if (value === "manual") return "Carga manual";
+  if (value === "tour") return "Recorrido";
+  if (value === "whatsapp") return "WhatsApp";
+  return "Origen pendiente";
+}
+
 function CreateTourBox({ lead, properties, workspaceSlug }: { lead: LeadRecord; properties: PropertyRecord[]; workspaceSlug?: string | null }) {
   const [state, action, pending] = useActionState(createPropertyTourAction, initialTourState);
   const publicProperties = properties.filter((property) => property.status === "active");
@@ -61,8 +104,11 @@ function CreateTourBox({ lead, properties, workspaceSlug }: { lead: LeadRecord; 
   );
 }
 
-function LeadCard({ lead, properties, workspaceSlug }: { lead: LeadRecord; properties: PropertyRecord[]; workspaceSlug?: string | null }) {
+function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecord; properties: PropertyRecord[]; agents: Array<{ id: string; display_name: string; whatsapp?: string | null }>; workspaceSlug?: string | null }) {
   const [state, action, pending] = useActionState(updateLeadStateAction, initialState);
+  const alert = getLeadAlert(lead);
+  const whatsappUrl = formatWhatsAppUrl(lead.phone, `Hola ${lead.full_name}, te contacto por tu interés${lead.property_title ? ` en ${lead.property_title}` : ""}.`);
+  const openTasks = (lead.tasks ?? []).filter((task) => task.status === "open");
 
   return (
     <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/30 sm:rounded-[1.5rem] sm:p-5">
@@ -70,13 +116,29 @@ function LeadCard({ lead, properties, workspaceSlug }: { lead: LeadRecord; prope
         <div>
           <p className="text-lg font-semibold text-slate-950">{lead.full_name}</p>
           <p className="mt-1 text-sm text-slate-500">{lead.phone}{lead.email ? ` · ${lead.email}` : ""}</p>
+          <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-400">{getSourceLabel(lead.source_type)}</p>
         </div>
-        <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">{lead.status}</span>
+        <div className="flex flex-wrap items-center gap-2">
+          {whatsappUrl ? (
+            <a href={whatsappUrl} target="_blank" rel="noreferrer" className="rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white transition hover:bg-emerald-700">
+              WhatsApp
+            </a>
+          ) : null}
+          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">{lead.status}</span>
+        </div>
       </div>
+
+      {alert ? (
+        <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800">
+          {alert}
+        </div>
+      ) : null}
 
       <div className="mt-4 grid gap-3 text-sm text-slate-700 md:grid-cols-2">
         <p><span className="font-medium text-slate-900">Propiedad de origen:</span> {lead.property_title ?? "Sin referencia"}</p>
         <p><span className="font-medium text-slate-900">Fecha de entrada:</span> {new Date(lead.created_at).toLocaleString("es-MX")}</p>
+        <p><span className="font-medium text-slate-900">Responsable:</span> {lead.assigned_agent_name ?? "Sin asignar"}</p>
+        <p><span className="font-medium text-slate-900">Próximo seguimiento:</span> {lead.next_follow_up_at ? new Date(lead.next_follow_up_at).toLocaleString("es-MX") : "Pendiente"}</p>
       </div>
 
       {lead.message ? <p className="mt-4 text-sm leading-7 text-slate-600"><span className="font-medium text-slate-900">Mensaje inicial:</span> {lead.message}</p> : null}
@@ -89,18 +151,66 @@ function LeadCard({ lead, properties, workspaceSlug }: { lead: LeadRecord; prope
           <label className="space-y-2 text-sm text-slate-700">
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Estado</span>
             <select name="status" defaultValue={lead.status} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-950 sm:py-3 sm:text-sm">
-              <option value="new">nuevo</option>
-              <option value="contacted">contactado</option>
-              <option value="interested">interesado</option>
-              <option value="lost">perdido</option>
+              {leadStatuses.map((status) => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
             </select>
           </label>
 
           <label className="space-y-2 text-sm text-slate-700">
-            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Nota interna</span>
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Responsable comercial</span>
+            <select name="assignedAgentId" defaultValue={lead.assigned_agent_id ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-950 sm:py-3 sm:text-sm">
+              <option value="">Sin asignar</option>
+              {agents.map((agent) => (
+                <option key={agent.id} value={agent.id}>{agent.display_name}</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Próximo contacto</span>
+            <input name="nextFollowUpAt" type="datetime-local" defaultValue={formatDateTimeInput(lead.next_follow_up_at)} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-950 outline-none transition focus:border-slate-400 sm:py-3 sm:text-sm" />
+          </label>
+
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Nota rápida fija</span>
             <input name="internalNote" defaultValue={lead.internal_note ?? ""} placeholder="Ej. pidió llamada por la tarde" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base text-slate-950 outline-none transition focus:border-slate-400 sm:py-3 sm:text-sm" />
           </label>
         </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Nueva nota de historial</span>
+            <textarea name="newNote" rows={3} placeholder="Qué se habló, objeciones, presupuesto o siguiente paso." className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400" />
+          </label>
+
+          <div className="space-y-3">
+            <label className="block space-y-2 text-sm text-slate-700">
+              <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Nueva tarea</span>
+              <input name="taskTitle" placeholder="Ej. llamar para confirmar visita" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400" />
+            </label>
+            <input name="taskDueAt" type="datetime-local" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-950 outline-none transition focus:border-slate-400" />
+          </div>
+        </div>
+
+        {openTasks.length ? (
+          <div className="rounded-2xl border border-slate-200 bg-white p-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Tareas abiertas</p>
+            <div className="mt-3 space-y-2">
+              {openTasks.map((task) => (
+                <label key={task.id} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                  <input type="checkbox" name="completedTaskIds" value={task.id} className="mt-1" />
+                  <span>
+                    <span className="block font-medium text-slate-950">{task.title}</span>
+                    <span className="text-xs text-slate-500">{task.due_at ? new Date(task.due_at).toLocaleString("es-MX") : "Sin fecha"}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </div>
+        ) : null}
 
         {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>{state.message}</p> : null}
 
@@ -108,21 +218,52 @@ function LeadCard({ lead, properties, workspaceSlug }: { lead: LeadRecord; prope
           {pending ? "Guardando..." : "Guardar seguimiento"}
         </button>
       </form>
+
+      {lead.notes?.length ? (
+        <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+          <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Historial</p>
+          <div className="mt-3 space-y-3">
+            {lead.notes.slice(0, 4).map((note) => (
+              <article key={note.id} className="rounded-xl bg-white px-3 py-3 text-sm text-slate-700">
+                <p className="leading-6">{note.body}</p>
+                <p className="mt-2 text-xs text-slate-400">{note.author_name ?? "Equipo"} · {new Date(note.created_at).toLocaleString("es-MX")}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-export function AdminLeadsManager({ leads, properties, workspaceSlug }: { leads: LeadRecord[]; properties: PropertyRecord[]; workspaceSlug?: string | null }) {
+export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: { leads: LeadRecord[]; properties: PropertyRecord[]; agents: Array<{ id: string; display_name: string; whatsapp?: string | null }>; workspaceSlug?: string | null }) {
+  const openLeads = leads.filter((lead) => !["closed", "lost"].includes(lead.status));
+  const overdueAlerts = leads.filter((lead) => getLeadAlert(lead)).length;
+
   return (
     <div className="space-y-6">
       <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:p-6">
         <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Leads</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Interesados recibidos</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Seguimiento básico, recorrido personalizado y link compartible para cada lead.</p>
+        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Pipeline comercial</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Dale dueño, estado, próximo contacto, tareas e historial a cada interesado para que ningún lead se enfríe.</p>
+        <div className="mt-5 grid gap-3 sm:grid-cols-3">
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Abiertos</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-950">{openLeads.length}</p>
+          </div>
+          <div className="rounded-2xl border border-amber-100 bg-amber-50 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-amber-700">Alertas</p>
+            <p className="mt-2 text-2xl font-semibold text-amber-900">{overdueAlerts}</p>
+          </div>
+          <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+            <p className="text-xs uppercase tracking-[0.18em] text-slate-400">Cerrados</p>
+            <p className="mt-2 text-2xl font-semibold text-slate-950">{leads.filter((lead) => lead.status === "closed").length}</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {leads.length ? leads.map((lead) => <LeadCard key={`${lead.id}-${lead.created_at}`} lead={lead} properties={properties} workspaceSlug={workspaceSlug} />) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos.</div>}
+        {leads.length ? leads.map((lead) => <LeadCard key={`${lead.id}-${lead.created_at}`} lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} />) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
       </div>
     </div>
   );

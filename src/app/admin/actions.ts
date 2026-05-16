@@ -118,6 +118,8 @@ const INITIAL_WORKSPACE_BRANDING_STATE: WorkspaceBrandingState = {
   message: "",
 };
 
+const leadStatusValues = new Set(["new", "contacted", "interested", "visited", "negotiation", "closed", "lost"]);
+
 function revalidateAdminSurfacePath(path: string) {
   revalidatePath(path);
   if (path === "/admin" || path.startsWith("/admin/")) {
@@ -135,6 +137,13 @@ function normalizeNumber(value: FormDataEntryValue | null) {
   if (!text) return null;
   const parsed = Number(text);
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+function normalizeDateTime(value: FormDataEntryValue | null) {
+  const text = value?.toString().trim();
+  if (!text) return null;
+  const parsed = new Date(text);
+  return Number.isNaN(parsed.getTime()) ? null : parsed.toISOString();
 }
 
 function slugify(value: string) {
@@ -397,6 +406,37 @@ async function getWorkspaceContext() {
   return { supabase, activeWorkspace, user, agentRecord };
 }
 
+async function recordActivityEvent({
+  supabase,
+  workspaceId,
+  actorProfileId,
+  eventType,
+  entityType,
+  entityId,
+  metadata = {},
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  workspaceId: string | null;
+  actorProfileId?: string | null;
+  eventType: string;
+  entityType?: string | null;
+  entityId?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  const { error } = await supabase.from("activity_events").insert({
+    workspace_id: workspaceId,
+    actor_profile_id: actorProfileId ?? null,
+    event_type: eventType,
+    entity_type: entityType ?? null,
+    entity_id: entityId ?? null,
+    metadata,
+  });
+
+  if (error) {
+    console.warn("activity_events insert skipped", error.message);
+  }
+}
+
 async function getPropertyAccessContext(propertyId: string) {
   const context = await getWorkspaceContext();
   const { supabase, activeWorkspace, agentRecord } = context;
@@ -571,6 +611,16 @@ export async function captureLeadFromPropertyAction(
       return { success: false, message: interestError.message };
     }
 
+    await recordActivityEvent({
+      supabase,
+      workspaceId,
+      actorProfileId: null,
+      eventType: "lead_received",
+      entityType: "lead",
+      entityId: lead.id,
+      metadata: { source_type: normalizeNullable(formData.get("sourceType")) ?? "property_form", property_id: propertyId },
+    });
+
     return { success: true, message: "Gracias. Ya recibimos tus datos y te contactaremos pronto." };
   } catch (error) {
     return {
@@ -590,22 +640,86 @@ export async function updateLeadStateAction(
     const leadId = formData.get("leadId")?.toString();
     const status = formData.get("status")?.toString();
 
-    if (!leadId || !status) {
+    if (!leadId || !status || !leadStatusValues.has(status)) {
       return { success: false, message: "Faltan datos para actualizar el lead." };
     }
+
+    const assignedAgentId = normalizeNullable(formData.get("assignedAgentId"));
+    const nextFollowUpAt = normalizeDateTime(formData.get("nextFollowUpAt"));
+    const newNote = normalizeNullable(formData.get("newNote"));
+    const taskTitle = normalizeNullable(formData.get("taskTitle"));
+    const taskDueAt = normalizeDateTime(formData.get("taskDueAt"));
+    const completedTaskIds = formData.getAll("completedTaskIds").map((value) => value.toString()).filter(Boolean);
 
     const { error } = await supabase
       .from("leads")
       .update({
         status,
         internal_note: normalizeNullable(formData.get("internalNote")),
+        assigned_agent_id: assignedAgentId,
+        next_follow_up_at: nextFollowUpAt,
+        last_contacted_at: status === "new" ? null : new Date().toISOString(),
       })
       .eq("id", leadId)
       .eq("workspace_id", activeWorkspace.workspaceId);
 
     if (error) {
-      return { success: false, message: error.message };
+      const { error: fallbackError } = await supabase
+        .from("leads")
+        .update({
+          status,
+          internal_note: normalizeNullable(formData.get("internalNote")),
+        })
+        .eq("id", leadId)
+        .eq("workspace_id", activeWorkspace.workspaceId);
+
+      if (fallbackError) return { success: false, message: error.message };
     }
+
+    if (newNote) {
+      const { error: noteError } = await supabase.from("lead_notes").insert({
+        workspace_id: activeWorkspace.workspaceId,
+        lead_id: leadId,
+        author_profile_id: activeWorkspace.profileId ?? null,
+        body: newNote,
+      });
+
+      if (noteError) console.warn("lead_notes insert skipped", noteError.message);
+    }
+
+    if (taskTitle) {
+      const { error: taskError } = await supabase.from("lead_tasks").insert({
+        workspace_id: activeWorkspace.workspaceId,
+        lead_id: leadId,
+        assigned_agent_id: assignedAgentId,
+        title: taskTitle,
+        due_at: taskDueAt,
+        status: "open",
+      });
+
+      if (taskError) console.warn("lead_tasks insert skipped", taskError.message);
+    }
+
+    if (completedTaskIds.length) {
+      const { error: tasksError } = await supabase
+        .from("lead_tasks")
+        .update({ status: "done", completed_at: new Date().toISOString() })
+        .eq("workspace_id", activeWorkspace.workspaceId)
+        .eq("lead_id", leadId)
+        .in("id", completedTaskIds);
+
+      if (tasksError) console.warn("lead_tasks completion skipped", tasksError.message);
+    }
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "lead_updated",
+      entityType: "lead",
+      entityId: leadId,
+      metadata: { status, assigned_agent_id: assignedAgentId, has_note: Boolean(newNote), has_task: Boolean(taskTitle) },
+    });
 
     revalidateAdminSurfacePath("/admin/leads");
     return { success: true, message: "Lead actualizado correctamente." };
@@ -661,6 +775,16 @@ export async function createPropertyLeadAction(
       return { success: false, message: interestError.message };
     }
 
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "lead_received",
+      entityType: "lead",
+      entityId: lead.id,
+      metadata: { source_type: "manual", property_id: propertyId },
+    });
+
     revalidateAdminSurfacePath(`/admin/properties/${propertyId}`);
     revalidateAdminSurfacePath(`/admin/leads`);
     return { success: true, message: "Lead agregado correctamente a esta propiedad." };
@@ -706,6 +830,16 @@ export async function updateWorkspaceBrandingAction(
     if (error) {
       return { success: false, message: getReadableWorkspaceError(error.message) };
     }
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "branding_updated",
+      entityType: "workspace",
+      entityId: activeWorkspace.workspaceId,
+      metadata: { brand_name: brandName, slug },
+    });
 
     revalidateAdminSurfacePath("/admin");
     revalidateAdminSurfacePath("/admin/public");
@@ -855,11 +989,21 @@ export async function createAgentAction(
       is_active: true,
     };
 
-    const { error } = await supabase.from("agents").insert(payload);
+    const { data: agent, error } = await supabase.from("agents").insert(payload).select("id").single();
 
     if (error) {
       return { success: false, message: error.message };
     }
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "agent_created",
+      entityType: "agent",
+      entityId: agent?.id ?? null,
+      metadata: { display_name: displayName, is_public: payload.is_public },
+    });
 
     revalidateAdminSurfacePath("/admin");
     revalidateAdminSurfacePath("/admin/team");
@@ -927,6 +1071,16 @@ export async function upsertAgentProfileAction(
         const { error } = await supabase.from("agents").insert(payload);
         if (error) return { success: false, message: error.message };
       }
+
+      await recordActivityEvent({
+        supabase,
+        workspaceId: activeWorkspace.workspaceId,
+        actorProfileId: activeWorkspace.profileId,
+        eventType: existingAgent?.id ? "agent_updated" : "agent_created",
+        entityType: "agent",
+        entityId: existingAgent?.id ?? null,
+        metadata: { display_name: displayName, profile_id: profileId, is_public: payload.is_public },
+      });
 
       revalidateAdminSurfacePath("/admin");
       revalidateAdminSurfacePath("/admin/team");
@@ -1167,6 +1321,16 @@ export async function createPropertyAction(
       collaboratorAgentIds: advisorSelection.collaboratorAgentIds,
     });
 
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: status === "active" ? "property_published" : "property_created",
+      entityType: "property",
+      entityId: property.id,
+      metadata: { status, title },
+    });
+
     try {
       revalidateAdminSurfacePath("/admin");
       revalidateAdminSurfacePath("/admin/properties");
@@ -1293,6 +1457,16 @@ export async function updatePropertyAction(
       collaboratorAgentIds: advisorSelection.collaboratorAgentIds,
     });
 
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: status === "active" ? "property_published" : "property_updated",
+      entityType: "property",
+      entityId: propertyId,
+      metadata: { status, title },
+    });
+
     try {
       revalidateAdminSurfacePath("/admin");
       revalidateAdminSurfacePath("/admin/properties");
@@ -1333,6 +1507,16 @@ export async function updatePropertyStatusAction(formData: FormData) {
     .eq("workspace_id", activeWorkspace.workspaceId);
 
   if (error) throw error;
+
+  await recordActivityEvent({
+    supabase,
+    workspaceId: activeWorkspace.workspaceId,
+    actorProfileId: activeWorkspace.profileId,
+    eventType: status === "active" ? "property_published" : "property_status_updated",
+    entityType: "property",
+    entityId: propertyId,
+    metadata: { status },
+  });
 
   revalidateAdminSurfacePath("/admin");
   revalidateAdminSurfacePath("/admin/properties");
