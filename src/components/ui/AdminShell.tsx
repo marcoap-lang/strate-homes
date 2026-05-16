@@ -70,7 +70,7 @@ const primaryNavItems: PrimaryNavItem[] = [
     shortLabel: "Plan",
     icon: "◌",
     href: "/app/subscription",
-    description: "Plan contratado, capacidad y límites de operación.",
+    description: "Tipo de cuenta, asesores y usuarios internos.",
     match: (pathname) => pathname.startsWith("/app/subscription"),
   },
 ];

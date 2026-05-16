@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AnnouncementForm, AnnouncementToggleForm } from "@/components/ui/PlatformAdminForms";
+import { getPlanLabel } from "@/lib/commercial";
 import { getPlatformAdminState, type PlatformActivityEvent } from "@/lib/platform-admin";
 
 function formatEventLabel(value: string) {
@@ -22,6 +23,7 @@ function formatEventLabel(value: string) {
     workspace_owner_changed: "Owner actualizado",
     feature_flag_updated: "Feature flag",
     announcement_created: "Anuncio creado",
+    workspace_deleted: "Organización eliminada",
   };
 
   return labels[value] ?? value.replaceAll("_", " ");
@@ -166,7 +168,7 @@ export default async function AdminPage({
                 <thead className="text-xs uppercase tracking-[0.18em] text-white/42">
                   <tr className="border-b border-white/10">
                     <th className="px-5 py-4 font-medium">Inmobiliaria</th>
-                    <th className="px-5 py-4 font-medium">Plan</th>
+                    <th className="px-5 py-4 font-medium">Tipo cuenta</th>
                     <th className="px-5 py-4 font-medium">Equipo</th>
                     <th className="px-5 py-4 font-medium">Inventario</th>
                     <th className="px-5 py-4 font-medium">Leads</th>
@@ -181,7 +183,7 @@ export default async function AdminPage({
                         <p className="mt-1 text-xs text-white/42">/{workspace.slug} · {workspace.owner_email ?? "sin owner"}</p>
                         {workspace.alerts[0] ? <p className="mt-2 text-xs text-amber-100">{workspace.alerts.slice(0, 2).join(" · ")}</p> : null}
                       </td>
-                      <td className="px-5 py-4">{workspace.subscription?.plan ?? "solo"} · {workspace.subscription?.status ?? "trial"}</td>
+                      <td className="px-5 py-4">{getPlanLabel(workspace.subscription?.plan)} · {workspace.subscription?.status ?? "trial"}</td>
                       <td className="px-5 py-4">{workspace.users_count} usuarios · {workspace.agents_count} asesores</td>
                       <td className="px-5 py-4">{workspace.published_count}/{workspace.properties_count} publicadas</td>
                       <td className="px-5 py-4">{workspace.leads_count} · {workspace.stale_leads_count} alerta</td>

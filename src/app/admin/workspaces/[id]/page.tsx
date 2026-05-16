@@ -5,10 +5,12 @@ import {
   FeatureFlagForm,
   OwnerChangeForm,
   SubscriptionForm,
+  WorkspaceDeleteForm,
   WorkspaceFollowupForm,
   WorkspaceNoteForm,
   WorkspaceStatusForm,
 } from "@/components/ui/PlatformAdminForms";
+import { getPlanLabel } from "@/lib/commercial";
 import { getPlatformWorkspaceDetail } from "@/lib/platform-admin";
 
 function healthClass(score: number) {
@@ -60,7 +62,7 @@ export default async function PlatformWorkspacePage({
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           {[
             ["Salud", `${workspace.health_score}%`],
-            ["Tipo cuenta", workspace.subscription?.plan ?? "solo"],
+            ["Tipo cuenta", getPlanLabel(workspace.subscription?.plan)],
             ["Cuenta", workspace.subscription?.status ?? "trial"],
             ["Usuarios", workspace.users_count],
             ["Publicadas", `${workspace.published_count}/${workspace.properties_count}`],
@@ -205,6 +207,17 @@ export default async function PlatformWorkspacePage({
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                   Para recovery de usuario, pídele abrir `/login?next=/app`, elegir Recuperar y usar su correo.
                 </div>
+              </div>
+            </Card>
+
+            <Card className="border-rose-200 bg-rose-50/70">
+              <p className="text-xs uppercase tracking-[0.22em] text-rose-500">Zona de riesgo</p>
+              <h2 className="mt-2 text-2xl font-semibold text-rose-950">Eliminar cuenta de prueba</h2>
+              <p className="mt-2 text-sm leading-6 text-rose-800">
+                Esta acción es para limpiar organizaciones basura de las primeras pruebas. No edita inventario: elimina la organización completa.
+              </p>
+              <div className="mt-4">
+                <WorkspaceDeleteForm workspaceId={workspace.id} workspaceName={workspace.brand_name ?? workspace.name} />
               </div>
             </Card>
 

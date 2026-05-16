@@ -7,6 +7,7 @@ import {
   createAnnouncementAction,
   createWorkspaceFollowupAction,
   createWorkspaceNoteAction,
+  deleteWorkspaceAction,
   toggleAnnouncementAction,
   updateWorkspaceFeatureFlagAction,
   updateWorkspaceStatusAction,
@@ -162,6 +163,25 @@ export function WorkspaceStatusForm({ workspaceId, isActive }: { workspaceId: st
       <ActionMessage state={state} />
       <button disabled={pending} className="rounded-full bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800">
         {isActive ? "Pausar" : "Reactivar"}
+      </button>
+    </form>
+  );
+}
+
+export function WorkspaceDeleteForm({ workspaceId, workspaceName }: { workspaceId: string; workspaceName: string }) {
+  const [state, action, pending] = useActionState(deleteWorkspaceAction, initialState);
+
+  return (
+    <form action={action} className="space-y-3 rounded-2xl border border-rose-200 bg-rose-50 p-4">
+      <input type="hidden" name="workspaceId" value={workspaceId} />
+      <p className="text-sm font-semibold text-rose-950">Eliminar organización</p>
+      <p className="text-xs leading-5 text-rose-800">
+        Borra {workspaceName} y su información operativa relacionada. Úsalo solo para cuentas basura o pruebas iniciales.
+      </p>
+      <input name="confirm" className={inputClass} placeholder="ELIMINAR" />
+      <ActionMessage state={state} />
+      <button disabled={pending} className="rounded-full bg-rose-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-800">
+        {pending ? "Eliminando..." : "Eliminar organización"}
       </button>
     </form>
   );

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { assertPlatformAdmin } from "@/lib/platform-admin";
 
 type PlatformActionState = {
@@ -216,6 +217,48 @@ export async function updateWorkspaceStatusAction(_prevState: PlatformActionStat
   } catch (error) {
     return fail(error instanceof Error ? error.message : "No se pudo cambiar el estatus.");
   }
+}
+
+export async function deleteWorkspaceAction(_prevState: PlatformActionState, formData: FormData): Promise<PlatformActionState> {
+  let deleted = false;
+
+  try {
+    const { supabase } = await assertPlatformAdmin();
+    const workspaceId = formData.get("workspaceId")?.toString();
+    const confirm = formData.get("confirm")?.toString().trim().toUpperCase();
+
+    if (!workspaceId || confirm !== "ELIMINAR") return fail("Escribe ELIMINAR para borrar esta organización.");
+
+    const { data: workspace, error: workspaceError } = await supabase
+      .from("workspaces")
+      .select("id, name, brand_name, slug")
+      .eq("id", workspaceId)
+      .maybeSingle();
+
+    if (workspaceError) return fail(workspaceError.message);
+    if (!workspace) return fail("No encontré esa organización.");
+
+    const { error } = await supabase.from("workspaces").delete().eq("id", workspaceId);
+    if (error) return fail(error.message);
+
+    await recordPlatformEvent({
+      eventType: "workspace_deleted",
+      entityType: "workspace",
+      entityId: workspaceId,
+      metadata: {
+        name: workspace.brand_name ?? workspace.name,
+        slug: workspace.slug,
+      },
+    });
+
+    revalidatePlatform();
+    deleted = true;
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "No se pudo eliminar la organización.");
+  }
+
+  if (deleted) redirect("/admin");
+  return ok("Organización eliminada.");
 }
 
 export async function changeWorkspaceOwnerAction(_prevState: PlatformActionState, formData: FormData): Promise<PlatformActionState> {

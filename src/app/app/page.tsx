@@ -165,7 +165,7 @@ export default async function AppPage() {
                   <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Administración</p>
                   <h3 className="mt-2 text-2xl font-semibold text-slate-950">Plan, usuarios y capacidad</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Consulta la suscripción y los límites de operación en una sección separada para no mezclarlo con las prioridades del día.
+                    Consulta el tipo de cuenta y la capacidad del equipo en una sección separada para no mezclarlo con las prioridades del día.
                   </p>
                   <Link href="/app/subscription" className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
                     Ver suscripción
