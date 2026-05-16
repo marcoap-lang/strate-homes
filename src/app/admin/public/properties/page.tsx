@@ -51,7 +51,7 @@ export default async function AdminPublicPropertiesPage() {
                   <a href={buildPublicPropertyUrl(property.slug, access.activeWorkspace.workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                     Ver pública
                   </a>
-                  <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
+                  <Link href={`/app/properties/${property.id}`} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50">
                     Editar propiedad
                   </Link>
                 </div>

@@ -25,33 +25,33 @@ type SecondaryNavItem = {
 const primaryNavItems: PrimaryNavItem[] = [
   {
     label: "Hoy",
-    href: "/admin",
+    href: "/app",
     description: "Pendientes, prioridades y visión general.",
-    match: (pathname) => pathname === "/admin",
+    match: (pathname) => pathname === "/app" || pathname === "/admin",
   },
   {
     label: "Inventario",
-    href: "/admin/properties",
+    href: "/app/properties",
     description: "Propiedades, recorridos y publicación.",
-    match: (pathname) => pathname.startsWith("/admin/properties") || pathname.startsWith("/admin/tours"),
+    match: (pathname) => pathname.startsWith("/app/properties") || pathname.startsWith("/app/tours") || pathname.startsWith("/admin/properties") || pathname.startsWith("/admin/tours"),
   },
   {
     label: "Clientes",
-    href: "/admin/leads",
+    href: "/app/leads",
     description: "Leads y seguimiento comercial.",
-    match: (pathname) => pathname.startsWith("/admin/leads"),
+    match: (pathname) => pathname.startsWith("/app/leads") || pathname.startsWith("/admin/leads"),
   },
   {
     label: "Sitio",
-    href: "/admin/public",
+    href: "/app/public",
     description: "Marca, inventario visible y vista pública.",
-    match: (pathname) => pathname.startsWith("/admin/public"),
+    match: (pathname) => pathname.startsWith("/app/public") || pathname.startsWith("/admin/public"),
   },
   {
     label: "Equipo",
-    href: "/admin/team",
+    href: "/app/team",
     description: "Acceso interno y perfiles comerciales.",
-    match: (pathname) => pathname.startsWith("/admin/team"),
+    match: (pathname) => pathname.startsWith("/app/team") || pathname.startsWith("/admin/team"),
   },
 ];
 
@@ -60,28 +60,28 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
 
   return {
     Hoy: [
-      { label: "Resumen", href: "/admin" },
-      { label: "Inmobiliaria", href: "/admin/public" },
-      { label: "Agregar propiedad", href: "/admin/properties/new" },
+      { label: "Resumen", href: "/app" },
+      { label: "Inmobiliaria", href: "/app/public" },
+      { label: "Agregar propiedad", href: "/app/properties/new" },
     ],
     Inventario: [
-      { label: "Propiedades", href: "/admin/properties" },
-      { label: "Nueva propiedad", href: "/admin/properties/new" },
-      { label: "Recorridos", href: "/admin/tours" },
+      { label: "Propiedades", href: "/app/properties" },
+      { label: "Nueva propiedad", href: "/app/properties/new" },
+      { label: "Recorridos", href: "/app/tours" },
     ],
     Clientes: [
-      { label: "Leads", href: "/admin/leads" },
-      { label: "Recorridos", href: "/admin/tours" },
+      { label: "Leads", href: "/app/leads" },
+      { label: "Recorridos", href: "/app/tours" },
     ],
     Sitio: [
-      { label: "Inmobiliaria", href: "/admin/public" },
-      { label: "Perfiles comerciales", href: "/admin/public/agents" },
-      { label: "Inventario público", href: "/admin/public/properties" },
+      { label: "Inmobiliaria", href: "/app/public" },
+      { label: "Perfiles comerciales", href: "/app/public/agents" },
+      { label: "Inventario público", href: "/app/public/properties" },
       { label: "Ver sitio público", href: publicHome, external: true },
     ],
     Equipo: [
-      { label: "Usuarios y perfiles", href: "/admin/team" },
-      { label: "Inmobiliaria", href: "/admin/public" },
+      { label: "Usuarios y perfiles", href: "/app/team" },
+      { label: "Inmobiliaria", href: "/app/public" },
     ],
   };
 }
@@ -118,7 +118,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    window.location.href = "/admin";
+    window.location.href = "/app";
   }
 
   return (

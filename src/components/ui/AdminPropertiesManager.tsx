@@ -598,7 +598,7 @@ function PropertyForm({
       };
       window.localStorage.setItem(nextStorageKey, JSON.stringify(migratedDraft));
       window.localStorage.removeItem(storageKey);
-      router.push(`/admin/properties/${state.propertyId}`);
+      router.push(`/app/properties/${state.propertyId}`);
       return;
     }
 
@@ -1182,7 +1182,7 @@ function PropertyForm({
               Ver pública
             </a>
           ) : null}
-          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <Link href="/app/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado
           </Link>
         </div>
@@ -1222,7 +1222,7 @@ function PropertyLeadInterestsManager({ property }: { property: PropertyRecord }
             {interest.internal_note ? <p className="mt-2 text-sm leading-6 text-stone-600"><span className="font-medium text-stone-900">Nota interna:</span> {interest.internal_note}</p> : null}
             <div className="mt-4 flex flex-wrap gap-3">
               <a href={`https://wa.me/${interest.phone.replace(/\D/g, "")}`} target="_blank" rel="noreferrer" className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">WhatsApp</a>
-              <Link href="/admin/leads" className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">Ver lead</Link>
+              <Link href="/app/leads" className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">Ver lead</Link>
               <button type="button" onClick={() => navigator.clipboard.writeText(interest.phone)} className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm text-stone-700 transition hover:bg-stone-100">Copiar teléfono</button>
             </div>
           </div>
@@ -1559,7 +1559,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
         title="Listado de propiedades"
         description="Aquí vive el inventario real de la inmobiliaria. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
         action={
-          <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
+          <Link href="/app/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
             Agregar propiedad
           </Link>
         }
@@ -1610,7 +1610,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                 <div className="space-y-4 p-4 sm:p-5">
                   <div>
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-500">{property.operation_type}</p>
-                    <Link href={`/admin/properties/${property.id}`} className="mt-2 block text-xl font-semibold leading-tight text-slate-950 transition hover:text-slate-700 sm:text-2xl">
+                    <Link href={`/app/properties/${property.id}`} className="mt-2 block text-xl font-semibold leading-tight text-slate-950 transition hover:text-slate-700 sm:text-2xl">
                       {property.title}
                     </Link>
                     <p className="mt-2 text-sm leading-7 text-slate-600">
@@ -1641,10 +1641,10 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                     )}
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-                    <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[#c99a46] sm:py-2">
+                    <Link href={`/app/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[#c99a46] sm:py-2">
                       Editar
                     </Link>
-                    <Link href={`/admin/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
+                    <Link href={`/app/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
                       Ver interesados
                     </Link>
                     <a href={buildPublicPropertyUrl(property.slug, workspaceSlug ?? null)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
@@ -1673,7 +1673,7 @@ export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">)
         title="Agregar propiedad"
         description="Crea una nueva propiedad en una vista enfocada y sin mezclarla con el inventario existente."
         action={
-          <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+          <Link href="/app/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado
           </Link>
         }
@@ -1691,10 +1691,10 @@ export function AdminPropertyInterestedView({ property }: { property: PropertyRe
         description="Gestiona aquí el seguimiento comercial de esta propiedad sin mezclarlo con la edición de ficha."
         action={
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-            <Link href={`/admin/properties/${property.id}`} className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            <Link href={`/app/properties/${property.id}`} className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver a edición
             </Link>
-            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            <Link href="/app/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver al listado
             </Link>
           </div>
@@ -1737,10 +1737,10 @@ export function AdminPropertyEditView({ property, agents }: { property: Property
         description="Edita la propiedad en una vista separada, con su información comercial y su galería visual en el mismo contexto de trabajo."
         action={
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-            <Link href="/admin/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+            <Link href="/app/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Volver al listado
             </Link>
-            <Link href="/admin/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
+            <Link href="/app/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
               Agregar propiedad
             </Link>
           </div>

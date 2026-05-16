@@ -103,7 +103,7 @@ export default async function AdminPage() {
                       <h3 className="mt-2 text-2xl font-semibold tracking-tight text-slate-950">Pendientes para publicar</h3>
                       <p className="mt-2 text-sm leading-6 text-slate-600">Lo que ya va encaminado y necesita cierre operativo para salir al sitio.</p>
                     </div>
-                    <Link href="/admin/properties" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
+                    <Link href="/app/properties" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2.5 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
                       Ver inventario
                     </Link>
                   </div>
@@ -133,7 +133,7 @@ export default async function AdminPage() {
                               <span className={`rounded-full border px-3 py-1 text-xs font-medium ${getStatusBadge(property.status)}`}>
                                 {property.status}
                               </span>
-                              <Link href={`/admin/properties/${property.id}`} className="rounded-full bg-[color:var(--admin-ink)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:var(--admin-ink-soft)]">
+                              <Link href={`/app/properties/${property.id}`} className="rounded-full bg-[color:var(--admin-ink)] px-4 py-2 text-sm font-medium text-white transition hover:bg-[color:var(--admin-ink-soft)]">
                                 Editar
                               </Link>
                             </div>
@@ -154,21 +154,21 @@ export default async function AdminPage() {
                   <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)] sm:p-6">
                     <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Acciones rápidas</p>
                     <div className="mt-4 grid gap-3">
-                      <Link href="/admin/properties/new" className={primaryButtonClass}>
+                      <Link href="/app/properties/new" className={primaryButtonClass}>
                         <span>
                           <span className="block text-base font-semibold">Agregar propiedad</span>
                           <span className="mt-1 block text-xs text-white/70">Dar de alta una nueva ficha sin salir del flujo.</span>
                         </span>
                         <span className="text-lg leading-none text-white/80">+</span>
                       </Link>
-                      <Link href="/admin/leads" className={secondaryButtonClass}>
+                      <Link href="/app/leads" className={secondaryButtonClass}>
                         <span>
                           <span className="block text-base font-semibold text-slate-900">Responder leads</span>
                           <span className="mt-1 block text-xs text-slate-500">Entrar al seguimiento comercial y contestar primero.</span>
                         </span>
                         <span className="text-sm text-slate-400">→</span>
                       </Link>
-                      <Link href="/admin/public" className={warmButtonClass}>
+                      <Link href="/app/public" className={warmButtonClass}>
                         <span>
                           <span className="block text-base font-semibold">Ajustar inmobiliaria</span>
                           <span className="mt-1 block text-xs text-slate-500">Pulir marca, visibilidad y presencia digital.</span>
@@ -208,7 +208,7 @@ export default async function AdminPage() {
                       <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Clientes</p>
                       <h3 className="mt-2 text-2xl font-semibold text-slate-950">Leads nuevos</h3>
                     </div>
-                    <Link href="/admin/leads" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
+                    <Link href="/app/leads" className="rounded-full border border-[color:var(--admin-line)] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-[color:var(--admin-cloud)]">
                       Ver todos
                     </Link>
                   </div>

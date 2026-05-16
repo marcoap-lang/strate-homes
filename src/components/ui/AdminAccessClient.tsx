@@ -58,7 +58,7 @@ export function AdminAccessClient() {
       });
 
       if (result.kind === "signed-in") {
-        window.location.href = "/admin";
+        window.location.href = "/app";
         return;
       }
 
@@ -83,12 +83,12 @@ export function AdminAccessClient() {
       return;
     }
 
-    window.location.href = "/admin";
+    window.location.href = "/app";
   }
 
   async function handleSignOut() {
     await supabase.auth.signOut();
-    window.location.href = "/admin";
+    window.location.href = "/app";
   }
 
   if (isLoading || workspaceLoading) {
@@ -227,7 +227,7 @@ export function AdminAccessClient() {
           <ul className="mt-6 space-y-3 text-sm leading-7 text-stone-600">
             <li>• una inmobiliaria lista para administrar propiedades y clientes</li>
             <li>• acceso como owner de la cuenta principal</li>
-            <li>• una entrada limpia al admin sin pasos confusos</li>
+            <li>• una entrada limpia a la app sin pasos confusos</li>
             <li>• mejor guía para cargar fotos y presentar cada propiedad</li>
           </ul>
           <div className="mt-6 rounded-3xl border border-stone-200 bg-stone-50 p-5 text-sm leading-6 text-stone-600">
@@ -247,8 +247,8 @@ export function AdminAccessClient() {
         <span className="font-medium text-stone-950"> {activeWorkspace.workspaceName ?? activeWorkspace.workspaceSlug ?? activeWorkspace.workspaceId}</span>.
       </p>
       <div className="mt-6 flex flex-wrap gap-3">
-        <a href="/admin" className="rounded-full bg-[#d7ab5b] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#c99a46]">
-          Entrar al admin
+        <a href="/app" className="rounded-full bg-[#d7ab5b] px-4 py-2 text-xs font-medium text-white transition hover:bg-[#c99a46]">
+          Entrar a la app
         </a>
         <button onClick={handleSignOut} className="rounded-full border border-stone-300 px-4 py-2 text-xs text-stone-700 transition hover:bg-white/70">
           Cerrar sesión

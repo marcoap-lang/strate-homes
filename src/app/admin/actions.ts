@@ -118,6 +118,13 @@ const INITIAL_WORKSPACE_BRANDING_STATE: WorkspaceBrandingState = {
   message: "",
 };
 
+function revalidateAdminSurfacePath(path: string) {
+  revalidatePath(path);
+  if (path === "/admin" || path.startsWith("/admin/")) {
+    revalidatePath(path.replace(/^\/admin/, "/app"));
+  }
+}
+
 function normalizeNullable(value: FormDataEntryValue | null) {
   const text = value?.toString().trim();
   return text ? text : null;
@@ -503,7 +510,7 @@ export async function bootstrapInitialOwnerAction(
       return { success: false, message: "No pudimos activar tu inmobiliaria inicial. Intenta de nuevo." };
     }
 
-    revalidatePath("/admin");
+    revalidateAdminSurfacePath("/admin");
     return {
       success: true,
       message: `Tu inmobiliaria inicial ya está lista: ${workspace.created_workspace_name}. Ya puedes continuar al admin.`,
@@ -600,7 +607,7 @@ export async function updateLeadStateAction(
       return { success: false, message: error.message };
     }
 
-    revalidatePath("/admin/leads");
+    revalidateAdminSurfacePath("/admin/leads");
     return { success: true, message: "Lead actualizado correctamente." };
   } catch (error) {
     return {
@@ -654,8 +661,8 @@ export async function createPropertyLeadAction(
       return { success: false, message: interestError.message };
     }
 
-    revalidatePath(`/admin/properties/${propertyId}`);
-    revalidatePath(`/admin/leads`);
+    revalidateAdminSurfacePath(`/admin/properties/${propertyId}`);
+    revalidateAdminSurfacePath(`/admin/leads`);
     return { success: true, message: "Lead agregado correctamente a esta propiedad." };
   } catch (error) {
     return {
@@ -700,9 +707,9 @@ export async function updateWorkspaceBrandingAction(
       return { success: false, message: getReadableWorkspaceError(error.message) };
     }
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/public");
-    revalidatePath("/admin/public/properties");
+    revalidateAdminSurfacePath("/admin");
+    revalidateAdminSurfacePath("/admin/public");
+    revalidateAdminSurfacePath("/admin/public/properties");
     if (activeWorkspace.workspaceSlug) revalidatePath(`/w/${activeWorkspace.workspaceSlug}`);
     if (slug) revalidatePath(`/w/${slug}`);
     return { success: true, message: "Datos públicos de la inmobiliaria actualizados correctamente." };
@@ -762,9 +769,9 @@ export async function createPropertyTourAction(
 
     const tourUrl = buildPublicTourUrl(slug, activeWorkspace.workspaceSlug ?? null);
 
-    revalidatePath("/admin/leads");
-    revalidatePath("/admin/tours");
-    revalidatePath("/admin/public/properties");
+    revalidateAdminSurfacePath("/admin/leads");
+    revalidateAdminSurfacePath("/admin/tours");
+    revalidateAdminSurfacePath("/admin/public/properties");
     revalidatePath(`/w/${activeWorkspace.workspaceSlug}/tours/${slug}`);
     return { success: true, message: "Recorrido creado correctamente. Ya puedes abrir el link público.", tourUrl };
   } catch (error) {
@@ -798,8 +805,8 @@ export async function deletePropertyTourAction(
       return { success: false, message: error.message };
     }
 
-    revalidatePath("/admin/tours");
-    revalidatePath("/admin/leads");
+    revalidateAdminSurfacePath("/admin/tours");
+    revalidateAdminSurfacePath("/admin/leads");
     return { success: true, message: "Recorrido borrado correctamente." };
   } catch (error) {
     return {
@@ -854,8 +861,8 @@ export async function createAgentAction(
       return { success: false, message: error.message };
     }
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/team");
+    revalidateAdminSurfacePath("/admin");
+    revalidateAdminSurfacePath("/admin/team");
 
     return {
       success: true,
@@ -921,8 +928,8 @@ export async function upsertAgentProfileAction(
         if (error) return { success: false, message: error.message };
       }
 
-      revalidatePath("/admin");
-      revalidatePath("/admin/team");
+      revalidateAdminSurfacePath("/admin");
+      revalidateAdminSurfacePath("/admin/team");
       return {
         success: true,
         message: existingAgent?.id ? "Perfil comercial actualizado correctamente." : "Perfil comercial activado correctamente.",
@@ -968,9 +975,9 @@ export async function upsertAgentProfileAction(
       return { success: false, message: error.message };
     }
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/team");
-    revalidatePath("/admin/public/agents");
+    revalidateAdminSurfacePath("/admin");
+    revalidateAdminSurfacePath("/admin/team");
+    revalidateAdminSurfacePath("/admin/public/agents");
     return { success: true, message: "Perfil comercial actualizado correctamente." };
   } catch (error) {
     return {
@@ -1031,11 +1038,11 @@ export async function deleteAgentAction(
 
     if (updateError) throw updateError;
 
-    revalidatePath("/admin");
-    revalidatePath("/admin/team");
-    revalidatePath("/admin/properties");
-    revalidatePath("/admin/public/agents");
-    revalidatePath("/admin/public/properties");
+    revalidateAdminSurfacePath("/admin");
+    revalidateAdminSurfacePath("/admin/team");
+    revalidateAdminSurfacePath("/admin/properties");
+    revalidateAdminSurfacePath("/admin/public/agents");
+    revalidateAdminSurfacePath("/admin/public/properties");
 
     return { success: true, message: `Perfil comercial eliminado: ${agent.display_name}. Las propiedades quedaron sin responsable comercial si dependían de esta persona.` };
   } catch (error) {
@@ -1161,9 +1168,9 @@ export async function createPropertyAction(
     });
 
     try {
-      revalidatePath("/admin");
-      revalidatePath("/admin/properties");
-      revalidatePath(`/admin/properties/${property.id}`);
+      revalidateAdminSurfacePath("/admin");
+      revalidateAdminSurfacePath("/admin/properties");
+      revalidateAdminSurfacePath(`/admin/properties/${property.id}`);
     } catch {}
 
     return {
@@ -1287,9 +1294,9 @@ export async function updatePropertyAction(
     });
 
     try {
-      revalidatePath("/admin");
-      revalidatePath("/admin/properties");
-      revalidatePath(`/admin/properties/${propertyId}`);
+      revalidateAdminSurfacePath("/admin");
+      revalidateAdminSurfacePath("/admin/properties");
+      revalidateAdminSurfacePath(`/admin/properties/${propertyId}`);
     } catch {}
 
     return { success: true, propertyId, message: intent === "publish" ? "Propiedad publicada correctamente." : "Borrador guardado" };
@@ -1327,9 +1334,9 @@ export async function updatePropertyStatusAction(formData: FormData) {
 
   if (error) throw error;
 
-  revalidatePath("/admin");
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidateAdminSurfacePath("/admin");
+  revalidateAdminSurfacePath("/admin/properties");
+  revalidateAdminSurfacePath(`/admin/properties/${propertyId}`);
 }
 
 export async function addPropertyImageAction(formData: FormData) {
@@ -1355,7 +1362,7 @@ export async function addPropertyImageAction(formData: FormData) {
 
   if (error) throw error;
 
-  revalidatePath("/admin");
+  revalidateAdminSurfacePath("/admin");
 }
 
 export async function updatePropertyImagesAction(formData: FormData) {
@@ -1452,9 +1459,9 @@ export async function updatePropertyImagesAction(formData: FormData) {
     if (deleteError) throw deleteError;
   }
 
-  revalidatePath("/admin");
-  revalidatePath("/admin/properties");
-  revalidatePath(`/admin/properties/${propertyId}`);
+  revalidateAdminSurfacePath("/admin");
+  revalidateAdminSurfacePath("/admin/properties");
+  revalidateAdminSurfacePath(`/admin/properties/${propertyId}`);
 }
 
 export async function deletePropertyImageAction(formData: FormData) {
@@ -1478,5 +1485,5 @@ export async function deletePropertyImageAction(formData: FormData) {
     await supabase.storage.from("property-images").remove([storagePath]);
   }
 
-  revalidatePath("/admin");
+  revalidateAdminSurfacePath("/admin");
 }

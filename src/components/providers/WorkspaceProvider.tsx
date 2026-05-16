@@ -136,7 +136,7 @@ export function WorkspaceProvider({
             : null,
         );
 
-        window.location.href = "/admin";
+        window.location.href = "/app";
       },
     }),
     [activeWorkspace, memberships, isLoading, user],
