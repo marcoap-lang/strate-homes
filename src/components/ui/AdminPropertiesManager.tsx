@@ -36,13 +36,14 @@ type GalleryImageDraft = {
   fileSizeLabel?: string;
 };
 
+type DraftSnapshotValue = string | boolean | string[];
+
 const initialState: PropertyFormState = { success: false, message: "" };
 const initialPropertyLeadCreateState: PropertyLeadCreateState = { success: false, message: "" };
 
 const propertyTypes = ["house", "apartment", "land", "office", "commercial", "warehouse", "building", "development", "mixed_use"];
 const statuses = ["draft", "active", "pending", "sold", "rented", "archived"];
 const suggestedPhotoShots = ["Fachada", "Sala", "Cocina", "Recámara principal", "Baño principal"];
-const wizardSteps = ["Base", "Ubicación", "Características", "Fotos", "Descripción", "Publicación", "Revisión"] as const;
 const descriptionTones = ["premium", "familiar", "inversion", "ejecutivo", "comercial"] as const;
 const amenityOptions = [
   "terraza",
@@ -455,8 +456,7 @@ function PropertyForm({
     ? agents
     : agents.filter((agent) => !ownAgentId || agent.id === ownAgentId);
   const storageKey = useMemo(() => `property-wizard:${mode}:${property?.id ?? "new"}`, [mode, property?.id]);
-  const [currentStep, setCurrentStep] = useState(0);
-  const [draftSnapshot, setDraftSnapshot] = useState<Record<string, string | boolean>>({});
+  const [draftSnapshot, setDraftSnapshot] = useState<Record<string, DraftSnapshotValue>>({});
   const draftPropertyId = typeof draftSnapshot.__createdPropertyId === "string" ? draftSnapshot.__createdPropertyId : "";
   const [selectedAmenities, setSelectedAmenities] = useState<string[]>(() => property?.amenities ?? []);
   const [descriptionToneState, setDescriptionToneState] = useState("premium");
@@ -465,19 +465,6 @@ function PropertyForm({
   const [descriptionEditedManually, setDescriptionEditedManually] = useState(false);
   const [publicationStatus, setPublicationStatus] = useState(property?.status ?? "draft");
   const [selectedAdvisorIds, setSelectedAdvisorIds] = useState<string[]>(() => getInitialPropertyAdvisorIds(property, ownAgentId));
-  const currentStepFieldNames = useMemo(() => {
-    const fieldsByStep = [
-      ["operationType", "title", "slug", "publicCode", "agentId", "advisorIds"],
-      ["locationLabel", "city", "state", "countryCode", "neighborhood", "addressLine"],
-      ["propertyType", "bedrooms", "bathrooms", "parkingSpots", "lotAreaM2", "constructionAreaM2", "priceAmount", "currencyCode", "extraFeatures", ...amenityOptions.map((amenity) => `amenity:${amenity}`)],
-      [],
-      ["descriptionTone", "description", "shortDescription"],
-      ["operationType", "status", "isFeatured"],
-      [],
-    ];
-
-    return new Set(fieldsByStep[currentStep] ?? []);
-  }, [currentStep]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -488,18 +475,26 @@ function PropertyForm({
     if (!saved) return;
 
     try {
-      const parsed = JSON.parse(saved) as Record<string, string | boolean>;
+      const parsed = JSON.parse(saved) as Record<string, DraftSnapshotValue>;
       // eslint-disable-next-line react-hooks/set-state-in-effect -- Hydrates the saved client draft after reading localStorage.
       setDraftSnapshot(parsed);
       setDescriptionToneState(String(parsed.descriptionTone ?? "premium"));
       setPublicationStatus(String(parsed.status ?? property?.status ?? "draft"));
       const hasAmenityDraft = amenityOptions.some((amenity) => Object.prototype.hasOwnProperty.call(parsed, `amenity:${amenity}`));
       setSelectedAmenities(hasAmenityDraft ? amenityOptions.filter((amenity) => parsed[`amenity:${amenity}`] === true || parsed[`amenity:${amenity}`] === "on") : property?.amenities ?? []);
-      if (typeof parsed.__currentStep === "string") setCurrentStep(Math.min(wizardSteps.length - 1, Math.max(0, Number(parsed.__currentStep) || 0)));
+      if (Array.isArray(parsed.__selectedAdvisorIds)) {
+        setSelectedAdvisorIds(parsed.__selectedAdvisorIds.filter((value) => typeof value === "string" && value.trim().length > 0));
+      }
       Object.entries(parsed).forEach(([name, value]) => {
         const field = form.elements.namedItem(name);
         if (!field) return;
-        if (field instanceof RadioNodeList) return;
+        if (field instanceof RadioNodeList) {
+          Array.from(field).forEach((node) => {
+            if (!(node instanceof HTMLInputElement)) return;
+            node.checked = node.value === String(value);
+          });
+          return;
+        }
         if (field instanceof HTMLInputElement && field.type === "checkbox") {
           field.checked = value === true || value === "on";
           return;
@@ -528,10 +523,10 @@ function PropertyForm({
     };
   }, []);
 
-  function getPersistedOnlyDraftFields(snapshot: Record<string, string | boolean>) {
+  function getPersistedOnlyDraftFields(snapshot: Record<string, DraftSnapshotValue>) {
     return Object.fromEntries(
       Object.entries(snapshot).filter(([name]) => name.startsWith("__") || isDraftFieldPersistedOnly(name)),
-    ) as Record<string, string | boolean>;
+    ) as Record<string, DraftSnapshotValue>;
   }
 
   useEffect(() => {
@@ -542,7 +537,6 @@ function PropertyForm({
       const migratedDraft = {
         ...draftSnapshot,
         __createdPropertyId: state.propertyId,
-        __currentStep: String(currentStep),
       };
       window.localStorage.setItem(nextStorageKey, JSON.stringify(migratedDraft));
       window.localStorage.removeItem(storageKey);
@@ -554,14 +548,11 @@ function PropertyForm({
     const savedDraft = window.localStorage.getItem(storageKey);
     if (savedDraft) {
       try {
-        latestDraft = JSON.parse(savedDraft) as Record<string, string | boolean>;
+        latestDraft = JSON.parse(savedDraft) as Record<string, DraftSnapshotValue>;
       } catch {}
     }
 
-    const persistedOnlyDraft = getPersistedOnlyDraftFields({
-      ...latestDraft,
-      __currentStep: String(currentStep),
-    });
+    const persistedOnlyDraft = getPersistedOnlyDraftFields(latestDraft);
 
     if (Object.keys(persistedOnlyDraft).length > 1) {
       window.localStorage.setItem(storageKey, JSON.stringify(persistedOnlyDraft));
@@ -571,13 +562,13 @@ function PropertyForm({
       window.localStorage.removeItem(storageKey);
       setDraftSnapshot({});
     }
-  }, [currentStep, draftSnapshot, mode, router, state.propertyId, state.success, storageKey]);
+  }, [draftSnapshot, mode, router, state.propertyId, state.success, storageKey]);
 
   function buildDraftSnapshot(form: HTMLFormElement) {
     const data = new FormData(form);
-    const next: Record<string, string | boolean> = {
+    const next: Record<string, DraftSnapshotValue> = {
       ...draftSnapshot,
-      __currentStep: String(currentStep),
+      __selectedAdvisorIds: selectedAdvisorIds,
     };
     form.querySelectorAll<HTMLInputElement>('input[type="checkbox"]').forEach((field) => {
       if (field.name) next[field.name] = field.checked;
@@ -592,9 +583,9 @@ function PropertyForm({
     return next;
   }
 
-  function persistDraft(form: HTMLFormElement, step = currentStep) {
+  function persistDraft(form: HTMLFormElement) {
     if (typeof window === "undefined") return;
-    const next = { ...buildDraftSnapshot(form), __currentStep: String(step) };
+    const next = buildDraftSnapshot(form);
     window.localStorage.setItem(storageKey, JSON.stringify(next));
     setDraftSnapshot(next);
   }
@@ -622,7 +613,7 @@ function PropertyForm({
     const nextDraft = {
       ...draftSnapshot,
       ...amenityDraft,
-      __currentStep: String(currentStep),
+      __selectedAdvisorIds: selectedAdvisorIds,
       [`amenity:${amenity}`]: checked,
     };
     setSelectedAmenities(nextAmenities);
@@ -667,33 +658,6 @@ function PropertyForm({
   }, [draftSnapshot.description, draftSnapshot.shortDescription, property?.description, property?.short_description, suggestedDescription, suggestedShortDescription, descriptionEditedManually]);
 
   const reviewDescription = descriptionValue || String(draftSnapshot.description ?? property?.description ?? suggestedDescription);
-  const submissionFallbackFields: Record<string, string> = {
-    operationType: reviewOperation,
-    title: reviewTitle === "Sin título" ? "" : reviewTitle,
-    slug: String(draftSnapshot.slug ?? property?.slug ?? ""),
-    publicCode: String(draftSnapshot.publicCode ?? property?.public_code ?? ""),
-    agentId: reviewAgentId,
-    locationLabel: String(draftSnapshot.locationLabel ?? property?.location_label ?? ""),
-    city: String(draftSnapshot.city ?? property?.city ?? ""),
-    state: String(draftSnapshot.state ?? property?.state ?? ""),
-    countryCode: String(draftSnapshot.countryCode ?? property?.country_code ?? "MX"),
-    neighborhood: String(draftSnapshot.neighborhood ?? property?.neighborhood ?? ""),
-    addressLine: String(draftSnapshot.addressLine ?? property?.address_line ?? ""),
-    propertyType: reviewType,
-    bedrooms: String(draftSnapshot.bedrooms ?? property?.bedrooms ?? ""),
-    bathrooms: String(draftSnapshot.bathrooms ?? property?.bathrooms ?? ""),
-    parkingSpots: String(draftSnapshot.parkingSpots ?? property?.parking_spots ?? ""),
-    lotAreaM2: String(draftSnapshot.lotAreaM2 ?? property?.lot_area_m2 ?? ""),
-    constructionAreaM2: String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? ""),
-    priceAmount: reviewPrice,
-    currencyCode: reviewCurrency,
-    extraFeatures: reviewExtraFeatures,
-    descriptionTone: descriptionToneState,
-    description: reviewDescription,
-    shortDescription: shortDescriptionValue || String(draftSnapshot.shortDescription ?? property?.short_description ?? suggestedShortDescription),
-    status: publicationStatus,
-  };
-  const draftFieldNames = new Set(Object.keys(draftSnapshot).filter((name) => !name.startsWith("__")));
   const photosCount = property?.property_images.length ?? 0;
   const reviewChecklist = [
     { label: "Datos base", done: Boolean(reviewTitle && reviewTitle !== "Sin título") },
@@ -703,17 +667,8 @@ function PropertyForm({
     { label: "Fotos", done: photosCount > 0 },
     { label: "Asesor", done: Boolean(reviewAgent) },
   ];
-
-  const stepCompletion = [
-    Boolean(property?.title),
-    Boolean(property?.location_label || property?.city || property?.state),
-    Boolean(property?.bedrooms || property?.bathrooms || property?.construction_area_m2),
-    Boolean(property?.property_images?.length),
-    Boolean(property?.description),
-    Boolean(property?.status || property?.operation_type),
-    false,
-  ];
-  const visibleCompletion = Math.round((((currentStep + 1) / wizardSteps.length) * 100));
+  const completedChecklistCount = reviewChecklist.filter((item) => item.done).length;
+  const visibleCompletion = Math.round((completedChecklistCount / reviewChecklist.length) * 100);
 
   return (
     <form
@@ -739,16 +694,16 @@ function PropertyForm({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-stone-500">{mode === "create" ? "Nueva propiedad" : "Editar propiedad"}</p>
-          <h3 className="mt-2 text-xl font-semibold leading-tight text-stone-950">{mode === "create" ? "Alta guiada de propiedad" : property?.title}</h3>
+          <h3 className="mt-2 text-xl font-semibold leading-tight text-stone-950">{mode === "create" ? "Alta de propiedad en una sola página" : property?.title}</h3>
           <p className="mt-2 text-sm leading-6 text-stone-600">
-            Completa la propiedad paso a paso para mantener claridad, progreso visible y una captura más fácil de terminar.
+            Completa la ficha en bloques continuos para mantener claridad, progreso visible y un guardado mucho más predecible.
           </p>
         </div>
         <div className="rounded-3xl border border-amber-200 bg-amber-50 px-4 py-3 sm:min-w-[170px] sm:px-5 sm:py-4">
           <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Progreso</p>
           <div className="mt-2 flex items-end justify-between gap-4 sm:block">
             <p className="text-2xl font-semibold text-amber-950 sm:text-3xl">{visibleCompletion}%</p>
-            <p className="text-sm text-amber-800 sm:mt-1">Paso {currentStep + 1} de {wizardSteps.length}</p>
+            <p className="text-sm text-amber-800 sm:mt-1">{completedChecklistCount} de {reviewChecklist.length} puntos clave</p>
           </div>
         </div>
       </div>
@@ -756,56 +711,32 @@ function PropertyForm({
       {mode === "edit" ? <input type="hidden" name="propertyId" defaultValue={property?.id} /> : null}
       {mode === "create" && draftPropertyId ? <input type="hidden" name="draftPropertyId" value={draftPropertyId} /> : null}
       {visibleSelectedAdvisorIds.map((agentId) => <input key={agentId} type="hidden" name="advisorIds" value={agentId} />)}
+      <div className="space-y-5">
+        <SectionCard className="border-amber-200 bg-amber-50/80">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs uppercase tracking-[0.2em] text-amber-700">Completitud</p>
+              <h4 className="mt-2 text-2xl font-semibold text-amber-950">{visibleCompletion}% listo para publicar</h4>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-amber-900/80">
+                Simplificamos la captura a una sola página para evitar pérdidas entre pasos. Puedes bajar, editar cualquier bloque y guardar cuando quieras.
+              </p>
+            </div>
+            <div className="min-w-56 rounded-2xl border border-amber-200 bg-white/80 p-4">
+              <div className="h-2 overflow-hidden rounded-full bg-amber-100">
+                <div className="h-full rounded-full bg-[#d7ab5b]" style={{ width: `${visibleCompletion}%` }} />
+              </div>
+              <p className="mt-3 text-xs leading-5 text-amber-900/80">
+                {completedChecklistCount} de {reviewChecklist.length} señales clave completas.
+              </p>
+            </div>
+          </div>
+        </SectionCard>
 
-      <div className="rounded-3xl border border-stone-200 bg-stone-50 p-3 md:hidden">
-        <label className="block space-y-2 text-sm text-stone-700">
-          <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Paso actual</span>
-          <select
-            value={currentStep}
-            onChange={(event) => {
-              const index = Number(event.target.value);
-              const form = event.currentTarget.form;
-              if (form) persistDraft(form, index);
-              setCurrentStep(index);
-            }}
-            className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400"
-          >
-            {wizardSteps.map((step, index) => (
-              <option key={step} value={index}>{index + 1}. {step}{stepCompletion[index] ? " ✓" : ""}</option>
-            ))}
-          </select>
-        </label>
-        <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-200">
-          <div className="h-full rounded-full bg-[#d7ab5b] transition-all" style={{ width: `${visibleCompletion}%` }} />
-        </div>
-        <p className="mt-2 text-sm font-medium text-stone-900">{wizardSteps[currentStep]}</p>
-      </div>
-
-      <div className="hidden gap-3 md:grid md:grid-cols-4 xl:grid-cols-7">
-        {wizardSteps.map((step, index) => (
-          <button
-            key={step}
-            type="button"
-            onClick={(event) => {
-              const form = event.currentTarget.form;
-              if (form) persistDraft(form, index);
-              setCurrentStep(index);
-            }}
-            className={`rounded-2xl border px-4 py-3 text-left transition ${index === currentStep ? "border-[#d7ab5b]/40 bg-[#fff8ec] text-stone-950" : "border-stone-200 bg-stone-50 text-stone-600 hover:bg-white"}`}
-          >
-            <p className="text-[11px] uppercase tracking-[0.18em]">Paso {index + 1}</p>
-            <p className="mt-2 text-sm font-medium">{step}</p>
-            {stepCompletion[index] ? <p className="mt-2 text-xs text-emerald-600">Completo</p> : null}
-          </button>
-        ))}
-      </div>
-
-      {currentStep === 0 ? (
-        <div className="space-y-5">
-          <SectionCard>
-            <p className="text-sm font-semibold text-stone-900">Operación</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Define desde el inicio si esta propiedad se trabajará para venta o renta.</p>
-            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <SectionCard>
+          <p className="text-sm font-semibold text-stone-900">Base comercial</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Define operación, título, clave y asesores sin navegar entre pantallas.</p>
+          <div className="mt-5 grid gap-5">
+            <div className="grid gap-3 sm:grid-cols-2">
               {[
                 { value: "sale", label: "Venta", description: "Propiedad orientada a compraventa." },
                 { value: "rent", label: "Renta", description: "Propiedad orientada a arrendamiento." },
@@ -820,17 +751,18 @@ function PropertyForm({
                 );
               })}
             </div>
-          </SectionCard>
 
-          <div className="grid gap-4 md:grid-cols-2">
-            <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
-            <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
-            <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
-            <div className="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4 md:col-span-2">
+            <div className="grid gap-4 md:grid-cols-2">
+              <Field label="Título" name="title" defaultValue={String(draftSnapshot.title ?? property?.title ?? "")} required placeholder="Casa amplia en zona norte" />
+              <Field label="Slug" name="slug" defaultValue={String(draftSnapshot.slug ?? property?.slug ?? "")} placeholder="casa-amplia-zona-norte" />
+              <Field label="Clave pública" name="publicCode" defaultValue={String(draftSnapshot.publicCode ?? property?.public_code ?? "")} placeholder="SH-102" />
+            </div>
+
+            <div className="space-y-3 rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesores de la propiedad</p>
-                  <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona uno o varios asesores y marca quién será el asesor principal. Ese WhatsApp será el contacto principal de la ficha pública.</p>
+                  <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona uno o varios asesores y marca quién será el contacto principal de la ficha pública.</p>
                 </div>
                 <span className="w-fit rounded-full border border-stone-200 bg-white px-3 py-1 text-xs text-stone-500">{selectedAdvisorCount} seleccionados</span>
               </div>
@@ -857,10 +789,11 @@ function PropertyForm({
                               : selectedAdvisorIds.filter((id) => id !== agent.id);
                             setSelectedAdvisorIds(next);
                             if (!event.currentTarget.checked && isPrimary) {
-                              const nextPrimary = next[0] ?? "";
-                              setDraftSnapshot({ ...draftSnapshot, agentId: nextPrimary, __currentStep: String(currentStep) });
+                              setDraftSnapshot({ ...draftSnapshot, agentId: next[0] ?? "", __selectedAdvisorIds: next });
                             } else if (event.currentTarget.checked && !reviewAgentId) {
-                              setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __currentStep: String(currentStep) });
+                              setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __selectedAdvisorIds: next });
+                            } else {
+                              setDraftSnapshot({ ...draftSnapshot, __selectedAdvisorIds: next });
                             }
                           }}
                           className="mt-1 size-4 rounded border-stone-300 bg-white"
@@ -870,7 +803,7 @@ function PropertyForm({
                         <button
                           type="button"
                           disabled={!canManageAssignments}
-                          onClick={() => setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __currentStep: String(currentStep) })}
+                          onClick={() => setDraftSnapshot({ ...draftSnapshot, agentId: agent.id, __selectedAdvisorIds: selectedAdvisorIds })}
                           className={`mt-4 rounded-full px-4 py-2 text-xs font-medium transition ${isPrimary ? "bg-[#d7ab5b] text-white" : "border border-stone-200 bg-white text-stone-700 hover:bg-stone-50"}`}
                         >
                           {isPrimary ? "Asesor principal" : "Hacer principal"}
@@ -883,211 +816,193 @@ function PropertyForm({
               {!canManageAssignments ? <p className="text-xs leading-5 text-stone-500">Tu cuenta no puede cambiar asignaciones. La propiedad se guardará con tu asesor comercial cuando corresponda.</p> : null}
             </div>
           </div>
-        </div>
-      ) : null}
+        </SectionCard>
 
-      {currentStep === 1 ? (
-        <div className="grid gap-4 md:grid-cols-2">
-          <Field label="Ubicación corta" name="locationLabel" defaultValue={String(draftSnapshot.locationLabel ?? property?.location_label ?? "")} required placeholder="Lomas del Valle" />
-          <Field label="Ciudad" name="city" defaultValue={String(draftSnapshot.city ?? property?.city ?? "")} />
-          <Field label="Estado" name="state" defaultValue={String(draftSnapshot.state ?? property?.state ?? "")} />
-          <Field label="País" name="countryCode" defaultValue={String(draftSnapshot.countryCode ?? property?.country_code ?? "MX")} />
-          <Field label="Colonia / zona" name="neighborhood" defaultValue={String(draftSnapshot.neighborhood ?? property?.neighborhood ?? "")} />
-          <Field label="Dirección" name="addressLine" defaultValue={String(draftSnapshot.addressLine ?? property?.address_line ?? "")} />
-        </div>
-      ) : null}
+        <SectionCard>
+          <p className="text-sm font-semibold text-stone-900">Ubicación</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Captura la referencia corta que verá el cliente y el detalle interno que ayuda a operar.</p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <Field label="Ubicación corta" name="locationLabel" defaultValue={String(draftSnapshot.locationLabel ?? property?.location_label ?? "")} required placeholder="Lomas del Valle" />
+            <Field label="Ciudad" name="city" defaultValue={String(draftSnapshot.city ?? property?.city ?? "")} />
+            <Field label="Estado" name="state" defaultValue={String(draftSnapshot.state ?? property?.state ?? "")} />
+            <Field label="País" name="countryCode" defaultValue={String(draftSnapshot.countryCode ?? property?.country_code ?? "MX")} />
+            <Field label="Colonia / zona" name="neighborhood" defaultValue={String(draftSnapshot.neighborhood ?? property?.neighborhood ?? "")} />
+            <Field label="Dirección" name="addressLine" defaultValue={String(draftSnapshot.addressLine ?? property?.address_line ?? "")} />
+          </div>
+        </SectionCard>
 
-      {currentStep === 2 ? (
-        <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <SectionCard>
+          <p className="text-sm font-semibold text-stone-900">Características y precio</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">Concentra aquí specs, tipo y atributos vendibles para que el guardado sea predecible.</p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <label className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tipo</span>
-              <select name="propertyType" defaultValue={property?.property_type ?? "house"} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{propertyTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
+              <select name="propertyType" defaultValue={String(draftSnapshot.propertyType ?? property?.property_type ?? "house")} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950">{propertyTypes.map((option) => <option key={option} value={option}>{option}</option>)}</select>
             </label>
-            <Field label="Recámaras" name="bedrooms" defaultValue={property?.bedrooms} />
-            <Field label="Baños" name="bathrooms" defaultValue={property?.bathrooms} />
-            <Field label="Estacionamientos" name="parkingSpots" defaultValue={property?.parking_spots} />
-            <Field label="Terreno m²" name="lotAreaM2" defaultValue={property?.lot_area_m2} />
-            <Field label="Construcción m²" name="constructionAreaM2" defaultValue={property?.construction_area_m2} />
-            <Field label="Precio" name="priceAmount" defaultValue={property?.price_amount} />
-            <Field label="Moneda" name="currencyCode" defaultValue={property?.currency_code ?? "MXN"} />
+            <Field label="Recámaras" name="bedrooms" defaultValue={String(draftSnapshot.bedrooms ?? property?.bedrooms ?? "")} />
+            <Field label="Baños" name="bathrooms" defaultValue={String(draftSnapshot.bathrooms ?? property?.bathrooms ?? "")} />
+            <Field label="Estacionamientos" name="parkingSpots" defaultValue={String(draftSnapshot.parkingSpots ?? property?.parking_spots ?? "")} />
+            <Field label="Terreno m²" name="lotAreaM2" defaultValue={String(draftSnapshot.lotAreaM2 ?? property?.lot_area_m2 ?? "")} />
+            <Field label="Construcción m²" name="constructionAreaM2" defaultValue={String(draftSnapshot.constructionAreaM2 ?? property?.construction_area_m2 ?? "")} />
+            <Field label="Precio" name="priceAmount" defaultValue={String(draftSnapshot.priceAmount ?? property?.price_amount ?? "")} />
+            <Field label="Moneda" name="currencyCode" defaultValue={String(draftSnapshot.currencyCode ?? property?.currency_code ?? "MXN")} />
           </div>
 
+          <div className="mt-5 flex flex-wrap gap-3">
+            {amenityOptions.map((amenity) => (
+              <label key={amenity} className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
+                <input
+                  type="checkbox"
+                  name={`amenity:${amenity}`}
+                  value="on"
+                  checked={isAmenitySelected(amenity)}
+                  onChange={(event) => updateAmenitySelection(amenity, event.currentTarget.checked, event.currentTarget.form)}
+                  className="size-4 rounded border-stone-300 bg-white"
+                />
+                {amenity}
+              </label>
+            ))}
+          </div>
+          <label className="mt-4 block space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Otras características</span>
+            <input name="extraFeatures" defaultValue={reviewExtraFeatures} placeholder="Ej. doble altura, pet friendly, vista panorámica" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
+          </label>
+        </SectionCard>
+
+        <SectionCard>
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold text-stone-900">Descripción comercial</p>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">Genera una base con lo que ya capturaste y edítala sin salir del mismo formulario.</p>
+            </div>
+            <label className="w-full space-y-2 text-sm text-stone-700 lg:max-w-xs">
+              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
+              <select
+                name="descriptionTone"
+                value={descriptionToneState}
+                onChange={(event) => {
+                  const nextTone = event.target.value;
+                  setDescriptionToneState(nextTone);
+                  setDescriptionEditedManually(false);
+                  const nextDraft = { ...draftSnapshot, descriptionTone: nextTone, __selectedAdvisorIds: selectedAdvisorIds };
+                  setDraftSnapshot(nextDraft);
+                  if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+                }}
+                className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
+              >
+                {descriptionTones.map((tone) => (
+                  <option key={tone} value={tone}>{tone}</option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
+            La propuesta se arma con tipo, ubicación, precio, amenidades y características ya capturadas para que no empieces desde cero.
+          </div>
+          <label className="mt-4 block space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
+            <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
+          </label>
+          <label className="mt-4 block space-y-2 text-sm text-stone-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión corta para WhatsApp / redes</span>
+            <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
+          </label>
+          <div className="mt-4 flex flex-wrap gap-3">
+            <button type="button" onClick={() => {
+              const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState, __selectedAdvisorIds: selectedAdvisorIds };
+              setDescriptionValue(suggestedDescription);
+              setShortDescriptionValue(suggestedShortDescription);
+              setDescriptionEditedManually(false);
+              setDraftSnapshot(nextDraft);
+              if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+            }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
+              Generar descripción
+            </button>
+            <button type="button" onClick={() => {
+              const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState, __selectedAdvisorIds: selectedAdvisorIds };
+              setDescriptionValue(suggestedDescription);
+              setShortDescriptionValue(suggestedShortDescription);
+              setDescriptionEditedManually(false);
+              setDraftSnapshot(nextDraft);
+              if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
+            }} className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100">
+              Regenerar con este tono
+            </button>
+            {descriptionEditedManually ? <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-xs text-slate-600">Edición manual detectada</span> : null}
+          </div>
+        </SectionCard>
+
+        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
           <SectionCard>
-            <p className="text-sm font-semibold text-stone-900">Amenidades y atributos vendibles</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Selecciona rápido lo que mejor ayuda a vender o posicionar esta propiedad.</p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              {amenityOptions.map((amenity) => (
-                <label key={amenity} className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-stone-50 px-4 py-2 text-sm text-stone-700 transition hover:bg-white">
-                  <input
-                    type="checkbox"
-                    name={`amenity:${amenity}`}
-                    value="on"
-                    checked={isAmenitySelected(amenity)}
-                    onChange={(event) => updateAmenitySelection(amenity, event.currentTarget.checked, event.currentTarget.form)}
-                    className="size-4 rounded border-stone-300 bg-white"
-                  />
-                  {amenity}
-                </label>
+            <p className="text-sm font-semibold text-stone-900">Fotos de la propiedad</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">La captura ya no depende de un paso separado. Aquí solo revisas el material visual disponible.</p>
+            {mode === "edit" && property ? (
+              <div className="mt-5 space-y-4">
+                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                  <span className="text-stone-700">Fotos disponibles</span>
+                  <span className="font-semibold text-stone-950">{property.property_images.length}</span>
+                </div>
+
+                {property.property_images.length ? (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {property.property_images
+                      .slice()
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map((image, index) => (
+                        <div key={image.id} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
+                          <div className="relative aspect-[4/3] bg-stone-100">
+                            <Image src={formatImagePublicUrl(image.storage_path)} alt={image.alt_text ?? `Foto ${index + 1}`} fill className="object-cover" unoptimized />
+                            {image.is_cover ? <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada</span> : null}
+                          </div>
+                          <div className="p-4 text-sm text-stone-600">
+                            <p className="font-medium text-stone-900">{image.alt_text ?? `Foto ${index + 1}`}</p>
+                            <p className="mt-1 text-xs text-stone-500">Orden visual: {index + 1}</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
+                    Todavía no hay fotos cargadas para esta propiedad.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-600">
+                Primero guarda la propiedad para habilitar la galería. Después podrás volver aquí y cargar fotos sin cambiar de flujo.
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard>
+            <p className="text-sm font-semibold text-stone-900">Checklist visual mínimo</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Referencia rápida para detectar qué material falta antes de publicar o compartir.</p>
+            <div className="mt-4 space-y-3">
+              {getPhotoCoverageFromDraft(
+                (property?.property_images ?? []).map((image) => ({
+                  storage_path: image.storage_path,
+                  alt_text: image.alt_text ?? "",
+                })),
+              ).checks.map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                  <span className="text-stone-800">{item.label}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                    {item.covered ? "Lista" : "Falta"}
+                  </span>
+                </div>
               ))}
             </div>
-            <label className="mt-4 block space-y-2 text-sm text-stone-700">
-              <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Otras características</span>
-              <input name="extraFeatures" defaultValue={reviewExtraFeatures} placeholder="Ej. doble altura, pet friendly, vista panorámica" className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
-            </label>
+            <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
+              {mode === "edit" && property ? "Puedes seguir usando el módulo de galería de esta pantalla para subir, ordenar y definir portada." : "La galería se activa después del primer guardado."}
+            </div>
           </SectionCard>
         </div>
-      ) : null}
 
-      {currentStep === 3 ? (
-        <div className="space-y-5">
-          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Fotos de la propiedad</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Este paso te ayuda a revisar rápido si la propiedad ya tiene material visual suficiente antes de publicar.
-              </p>
+        <SectionCard>
+          <p className="text-sm font-semibold text-stone-900">Publicación y revisión</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">El resumen final queda visible en la misma página para evitar saltos y guardar con más confianza.</p>
 
-              {mode === "edit" && property ? (
-                <div className="mt-5 space-y-4">
-                  <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
-                    <span className="text-stone-700">Fotos disponibles</span>
-                    <span className="font-semibold text-stone-950">{property.property_images.length}</span>
-                  </div>
-
-                  {property.property_images.length ? (
-                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                      {property.property_images
-                        .slice()
-                        .sort((a, b) => a.sort_order - b.sort_order)
-                        .map((image, index) => (
-                          <div key={image.id} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
-                            <div className="relative aspect-[4/3] bg-stone-100">
-                              <Image src={formatImagePublicUrl(image.storage_path)} alt={image.alt_text ?? `Foto ${index + 1}`} fill className="object-cover" unoptimized />
-                              {image.is_cover ? (
-                                <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada</span>
-                              ) : null}
-                            </div>
-                            <div className="p-4 text-sm text-stone-600">
-                              <p className="font-medium text-stone-900">{image.alt_text ?? `Foto ${index + 1}`}</p>
-                              <p className="mt-1 text-xs text-stone-500">Orden visual: {index + 1}</p>
-                            </div>
-                          </div>
-                        ))}
-                    </div>
-                  ) : (
-                    <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-                      Todavía no hay fotos cargadas para esta propiedad.
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-600">
-                  Primero guarda la propiedad para habilitar la galería. Después podrás volver a este paso y cargar fotos sin perder la captura.
-                </div>
-              )}
-            </SectionCard>
-
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Checklist visual mínimo</p>
-              <p className="mt-2 text-sm leading-6 text-stone-600">
-                Usa esta referencia para detectar rápido qué material falta antes de cerrar la publicación.
-              </p>
-              <div className="mt-4 space-y-3">
-                {getPhotoCoverageFromDraft(
-                  (property?.property_images ?? []).map((image) => ({
-                    storage_path: image.storage_path,
-                    alt_text: image.alt_text ?? "",
-                  })),
-                ).checks.map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
-                    <span className="text-stone-800">{item.label}</span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                      {item.covered ? "Lista" : "Falta"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
-                {mode === "edit" && property ? "Puedes seguir usando el módulo actual de galería en esta misma pantalla para subir, ordenar y definir portada." : "La galería se activa después de guardar la propiedad por primera vez."}
-              </div>
-            </SectionCard>
-          </div>
-        </div>
-      ) : null}
-
-      {currentStep === 4 ? (
-        <div className="space-y-5">
-          <SectionCard>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-              <div>
-                <p className="text-sm font-semibold text-stone-900">Descripción comercial</p>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">Genera una base con los datos capturados y edítala aquí mismo antes de guardar.</p>
-              </div>
-              <label className="w-full space-y-2 text-sm text-stone-700 lg:max-w-xs">
-                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Tono sugerido</span>
-                <select
-                  name="descriptionTone"
-                  value={descriptionToneState}
-                  onChange={(event) => {
-                    const nextTone = event.target.value;
-                    setDescriptionToneState(nextTone);
-                    setDescriptionEditedManually(false);
-                    const nextDraft = { ...draftSnapshot, descriptionTone: nextTone };
-                    setDraftSnapshot(nextDraft);
-                    if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
-                  }}
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-950"
-                >
-                  {descriptionTones.map((tone) => (
-                    <option key={tone} value={tone}>{tone}</option>
-                  ))}
-                </select>
-              </label>
-            </div>
-            <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 p-4 text-sm leading-6 text-stone-600">
-              La propuesta se arma con tipo de propiedad, ubicación, precio, amenidades y características ya capturadas para que no empieces desde cero.
-            </div>
-              <label className="mt-4 block space-y-2 text-sm text-stone-700">
-                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión larga</span>
-                <textarea name="description" value={descriptionValue} onChange={(event) => { setDescriptionValue(event.target.value); setDescriptionEditedManually(true); }} rows={7} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
-              </label>
-              <label className="mt-4 block space-y-2 text-sm text-stone-700">
-                <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Versión corta para WhatsApp / redes</span>
-                <textarea name="shortDescription" value={shortDescriptionValue} onChange={(event) => setShortDescriptionValue(event.target.value)} rows={3} className="w-full rounded-2xl border border-stone-200 bg-white px-4 py-3.5 text-base text-stone-950 outline-none transition focus:border-stone-400 sm:py-3 sm:text-sm" />
-              </label>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <button type="button" onClick={() => {
-                  const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState };
-                  setDescriptionValue(suggestedDescription);
-                  setShortDescriptionValue(suggestedShortDescription);
-                  setDescriptionEditedManually(false);
-                  setDraftSnapshot(nextDraft);
-                  if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
-                }} className="rounded-full border border-stone-300 px-4 py-2 text-sm font-medium text-stone-700 transition hover:bg-stone-100">
-                  Generar descripción
-                </button>
-                <button type="button" onClick={() => {
-                  const nextDraft = { ...draftSnapshot, description: suggestedDescription, shortDescription: suggestedShortDescription, descriptionTone: descriptionToneState };
-                  setDescriptionValue(suggestedDescription);
-                  setShortDescriptionValue(suggestedShortDescription);
-                  setDescriptionEditedManually(false);
-                  setDraftSnapshot(nextDraft);
-                  if (typeof window !== "undefined") window.localStorage.setItem(storageKey, JSON.stringify(nextDraft));
-                }} className="rounded-full border border-amber-200 bg-amber-50 px-4 py-2 text-sm font-medium text-amber-700 transition hover:bg-amber-100">
-                  Regenerar con este tono
-                </button>
-                {descriptionEditedManually ? <span className="inline-flex items-center rounded-full bg-slate-100 px-3 py-2 text-xs text-slate-600">Edición manual detectada</span> : null}
-              </div>
-            </SectionCard>
-        </div>
-      ) : null}
-
-      {currentStep === 5 ? (
-        <div className="space-y-5">
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <input type="hidden" name="operationType" value={reviewOperation} />
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <div className="space-y-2 text-sm text-stone-700">
               <span className="block text-xs uppercase tracking-[0.2em] text-stone-500">Operación</span>
               <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm font-medium text-stone-950">
@@ -1111,63 +1026,10 @@ function PropertyForm({
             </label>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Visibilidad actual</p>
-              <div className="mt-4 space-y-3 text-sm text-stone-600">
-                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-                  <span>Estado de la propiedad</span>
-                  <span className="font-semibold text-stone-950">{reviewStatus === "active" ? "Activa" : reviewStatus === "archived" ? "Archivada" : "Borrador"}</span>
-                </div>
-                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-                  <span>Visibilidad</span>
-                  <span className="font-semibold text-stone-950">{reviewStatus === "active" ? "Visible en el sitio público" : "No visible para clientes"}</span>
-                </div>
-                <div className={`rounded-2xl border px-4 py-4 ${reviewStatus === "active" ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-800"}`}>
-                  {reviewStatus === "active" ? "Esta propiedad será visible en el sitio público." : "Esta propiedad no será visible hasta activarla."}
-                </div>
-              </div>
-            </SectionCard>
-
-            <SectionCard>
-              <p className="text-sm font-semibold text-stone-900">Avisos antes de publicar</p>
-              <div className="mt-4 space-y-3">
-                {[
-                  { label: "Precio", ok: Boolean(reviewPrice) },
-                  { label: "Ubicación", ok: Boolean(reviewLocation) },
-                  { label: "Fotos", ok: photosCount > 0 },
-                ].map((item) => (
-                  <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
-                    <span className="text-stone-800">{item.label}</span>
-                    <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.ok ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                      {item.ok ? "Listo" : "Revisar"}
-                    </span>
-                  </div>
-                ))}
-              </div>
-              <p className="mt-4 text-sm leading-6 text-stone-600">
-                Si faltan datos clave, puedes guardar como borrador y completarlos después. Por ahora esto es una advertencia visual, no un bloqueo.
-              </p>
-            </SectionCard>
-          </div>
-        </div>
-      ) : null}
-
-      {currentStep === 6 ? (
-        <div className="space-y-5">
-          <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-5 text-sm text-stone-600">
-            <p className="font-semibold text-stone-900">Revisión final</p>
-            <p className="mt-2">Antes de guardar, revisa el resumen general y detecta rápido qué falta completar.</p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <SectionCard>
               <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Título</p>
               <p className="mt-2 text-lg font-semibold text-stone-950">{reviewTitle}</p>
-            </SectionCard>
-            <SectionCard>
-              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Operación</p>
-              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewOperation}</p>
             </SectionCard>
             <SectionCard>
               <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Precio</p>
@@ -1177,14 +1039,17 @@ function PropertyForm({
               <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Ubicación</p>
               <p className="mt-2 text-lg font-semibold text-stone-950">{reviewLocation || "Pendiente"}</p>
             </SectionCard>
+            <SectionCard>
+              <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Asesor principal</p>
+              <p className="mt-2 text-lg font-semibold text-stone-950">{reviewAgent?.display_name ?? "Pendiente"}</p>
+            </SectionCard>
           </div>
 
-          <div className="grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
+          <div className="mt-5 grid gap-4 lg:grid-cols-[1.05fr_0.95fr]">
             <SectionCard>
               <p className="text-sm font-semibold text-stone-900">Resumen comercial</p>
               <div className="mt-4 space-y-3 text-sm text-stone-600">
                 <p><span className="font-medium text-stone-900">Specs principales:</span> {[reviewSpecs[0] ? `${reviewSpecs[0]} recámaras` : null, reviewSpecs[1] ? `${reviewSpecs[1]} baños` : null, reviewSpecs[2] ? `${reviewSpecs[2]} m²` : null].filter(Boolean).join(" · ") || "Pendientes"}</p>
-                <p><span className="font-medium text-stone-900">Asesor asignado:</span> {reviewAgent?.display_name ?? "Pendiente"}</p>
                 <p><span className="font-medium text-stone-900">Estado / publicación:</span> {reviewStatus}</p>
                 <p><span className="font-medium text-stone-900">Fotos disponibles:</span> {photosCount ? `${photosCount} cargadas` : mode === "create" ? "Se habilitan después de guardar" : "Pendientes"}</p>
                 <p><span className="font-medium text-stone-900">Amenidades:</span> {[...reviewAmenities, reviewExtraFeatures].filter(Boolean).join(", ") || "Pendientes"}</p>
@@ -1206,19 +1071,8 @@ function PropertyForm({
               </div>
             </SectionCard>
           </div>
-        </div>
-      ) : null}
-
-      {Object.entries(draftSnapshot)
-        .filter(([name, value]) => !name.startsWith("__") && !currentStepFieldNames.has(name) && !(String(value) === "" && submissionFallbackFields[name]))
-        .map(([name, value]) => (
-          <input key={`draft-${name}`} type="hidden" name={name} value={String(value)} />
-        ))}
-      {Object.entries(submissionFallbackFields)
-        .filter(([name, value]) => !currentStepFieldNames.has(name) && value !== "" && (!draftFieldNames.has(name) || String(draftSnapshot[name]) === ""))
-        .map(([name, value]) => (
-          <input key={`fallback-${name}`} type="hidden" name={name} value={value} />
-        ))}
+        </SectionCard>
+      </div>
 
       {state.message ? (
         <p className={`rounded-2xl border px-4 py-3 text-sm ${state.success || state.localOnly ? "border-emerald-200 bg-emerald-50 text-emerald-700" : "border-rose-200 bg-rose-50 text-rose-700"}`}>
@@ -1232,23 +1086,16 @@ function PropertyForm({
       ) : null}
 
       <div className="sticky bottom-3 z-20 -mx-1 rounded-[1.6rem] border border-stone-200 bg-white/95 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0">
-        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
-          <button type="button" onClick={(event) => { const nextStep = Math.max(0, currentStep - 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === 0} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
-            Anterior
-          </button>
-          <button type="button" onClick={(event) => { const nextStep = Math.min(wizardSteps.length - 1, currentStep + 1); persistDraft(event.currentTarget.form!, nextStep); setCurrentStep(nextStep); }} disabled={currentStep === wizardSteps.length - 1} className="rounded-full border border-stone-300 px-5 py-3 text-sm font-medium text-stone-700 transition hover:bg-stone-100 disabled:opacity-50">
-            Siguiente
-          </button>
+        <div className="text-sm text-stone-500">
+          {mode === "create" ? "La galería se habilita después del primer guardado." : "Los cambios se guardan sobre la misma ficha."}
         </div>
         <div className="mt-2 grid gap-2 sm:mt-0 sm:flex sm:flex-wrap sm:gap-3">
           <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
             {isFormSaving || isFormPending ? "Guardando..." : mode === "create" ? "Guardar borrador" : "Guardar cambios"}
           </button>
-          {currentStep === 5 ? (
-            <button type="submit" name="intent" value="publish" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
-              {isFormSaving || isFormPending ? "Publicando..." : "Publicar propiedad"}
-            </button>
-          ) : null}
+          <button type="submit" name="intent" value="publish" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full border border-emerald-200 bg-emerald-50 px-5 py-3 text-sm font-medium text-emerald-700 transition hover:bg-emerald-100 disabled:opacity-60">
+            {isFormSaving || isFormPending ? "Publicando..." : "Publicar propiedad"}
+          </button>
           {property?.id && property.status === "active" ? (
             <a href={buildPublicPropertyUrl(property.slug)} target="_blank" rel="noopener noreferrer" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
               Ver pública
