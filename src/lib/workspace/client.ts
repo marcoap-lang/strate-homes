@@ -3,10 +3,32 @@ import { ACTIVE_WORKSPACE_STORAGE_KEY, type WorkspaceMembershipSummary } from "@
 
 function getWorkspaceMeta(workspaces: unknown) {
   if (Array.isArray(workspaces)) {
-    return workspaces[0] as { name?: string | null; slug?: string | null } | undefined;
+    return workspaces[0] as {
+      name?: string | null;
+      slug?: string | null;
+      brand_name?: string | null;
+      public_phone?: string | null;
+      public_whatsapp?: string | null;
+      public_email?: string | null;
+      public_claim?: string | null;
+      public_bio?: string | null;
+      public_logo_url?: string | null;
+      public_hero_url?: string | null;
+    } | undefined;
   }
 
-  return (workspaces as { name?: string | null; slug?: string | null } | null) ?? undefined;
+  return (workspaces as {
+    name?: string | null;
+    slug?: string | null;
+    brand_name?: string | null;
+    public_phone?: string | null;
+    public_whatsapp?: string | null;
+    public_email?: string | null;
+    public_claim?: string | null;
+    public_bio?: string | null;
+    public_logo_url?: string | null;
+    public_hero_url?: string | null;
+  } | null) ?? undefined;
 }
 
 export function getClientStoredWorkspaceId() {
@@ -36,7 +58,15 @@ export async function getClientWorkspaceMemberships(userId: string): Promise<Wor
         is_active,
         workspaces:workspace_id (
           name,
-          slug
+          slug,
+          brand_name,
+          public_phone,
+          public_whatsapp,
+          public_email,
+          public_claim,
+          public_bio,
+          public_logo_url,
+          public_hero_url
         )
       `,
     )
@@ -51,6 +81,14 @@ export async function getClientWorkspaceMemberships(userId: string): Promise<Wor
       workspaceId: membership.workspace_id,
       workspaceName: workspaceMeta?.name ?? null,
       workspaceSlug: workspaceMeta?.slug ?? null,
+      brandName: workspaceMeta?.brand_name ?? null,
+      publicPhone: workspaceMeta?.public_phone ?? null,
+      publicWhatsapp: workspaceMeta?.public_whatsapp ?? null,
+      publicEmail: workspaceMeta?.public_email ?? null,
+      publicClaim: workspaceMeta?.public_claim ?? null,
+      publicBio: workspaceMeta?.public_bio ?? null,
+      publicLogoUrl: workspaceMeta?.public_logo_url ?? null,
+      publicHeroUrl: workspaceMeta?.public_hero_url ?? null,
       role: membership.role ?? null,
     };
   });
@@ -66,6 +104,14 @@ export async function getClientActiveWorkspace(userId: string) {
     workspaceId: selectedMembership?.workspaceId ?? null,
     workspaceName: selectedMembership?.workspaceName ?? null,
     workspaceSlug: selectedMembership?.workspaceSlug ?? null,
+    brandName: selectedMembership?.brandName ?? null,
+    publicPhone: selectedMembership?.publicPhone ?? null,
+    publicWhatsapp: selectedMembership?.publicWhatsapp ?? null,
+    publicEmail: selectedMembership?.publicEmail ?? null,
+    publicClaim: selectedMembership?.publicClaim ?? null,
+    publicBio: selectedMembership?.publicBio ?? null,
+    publicLogoUrl: selectedMembership?.publicLogoUrl ?? null,
+    publicHeroUrl: selectedMembership?.publicHeroUrl ?? null,
     role: selectedMembership?.role ?? null,
     memberships,
   };

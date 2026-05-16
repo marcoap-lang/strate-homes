@@ -34,11 +34,19 @@ export function WorkspaceProvider({
   const [activeWorkspace, setActiveWorkspace] = useState<ActiveWorkspace | null>(initialWorkspace);
   const [memberships, setMemberships] = useState<WorkspaceMembershipSummary[]>(
     initialWorkspace?.workspaceId
-      ? [
+        ? [
           {
             workspaceId: initialWorkspace.workspaceId,
             workspaceName: initialWorkspace.workspaceName,
             workspaceSlug: initialWorkspace.workspaceSlug,
+            brandName: initialWorkspace.brandName,
+            publicPhone: initialWorkspace.publicPhone,
+            publicWhatsapp: initialWorkspace.publicWhatsapp,
+            publicEmail: initialWorkspace.publicEmail,
+            publicClaim: initialWorkspace.publicClaim,
+            publicBio: initialWorkspace.publicBio,
+            publicLogoUrl: initialWorkspace.publicLogoUrl,
+            publicHeroUrl: initialWorkspace.publicHeroUrl,
             role: initialWorkspace.role,
           },
         ]
@@ -70,6 +78,14 @@ export function WorkspaceProvider({
               workspaceId: workspace.workspaceId,
               workspaceName: workspace.workspaceName,
               workspaceSlug: workspace.workspaceSlug,
+              brandName: workspace.brandName,
+              publicPhone: workspace.publicPhone,
+              publicWhatsapp: workspace.publicWhatsapp,
+              publicEmail: workspace.publicEmail,
+              publicClaim: workspace.publicClaim,
+              publicBio: workspace.publicBio,
+              publicLogoUrl: workspace.publicLogoUrl,
+              publicHeroUrl: workspace.publicHeroUrl,
               role: workspace.role,
             }
           : null,
@@ -107,6 +123,14 @@ export function WorkspaceProvider({
                 workspaceId: selected.workspaceId,
                 workspaceName: selected.workspaceName,
                 workspaceSlug: selected.workspaceSlug,
+                brandName: selected.brandName,
+                publicPhone: selected.publicPhone,
+                publicWhatsapp: selected.publicWhatsapp,
+                publicEmail: selected.publicEmail,
+                publicClaim: selected.publicClaim,
+                publicBio: selected.publicBio,
+                publicLogoUrl: selected.publicLogoUrl,
+                publicHeroUrl: selected.publicHeroUrl,
                 role: selected.role,
               }
             : null,
