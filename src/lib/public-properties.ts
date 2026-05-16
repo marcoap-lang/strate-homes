@@ -132,6 +132,13 @@ function firstJoined<T>(value: T | T[] | null | undefined): T | null {
   return value ?? null;
 }
 
+function normalizeImageHint(value?: string | null) {
+  return (value ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
 const demoImageCatalog: Record<string, string> = {
   fachada: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=1600&q=80",
   portada: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=1600&q=80",
@@ -172,6 +179,77 @@ function extractWorkspaceContactAgent(record: PublicPropertyRecord) {
   );
 }
 
+function scoreImageForCover(image: { altText?: string | null; url?: string | null; sortOrder: number; isCover: boolean }) {
+  if (image.isCover) return 1000 - image.sortOrder;
+
+  const text = normalizeImageHint(`${image.altText ?? ""} ${image.url ?? ""}`);
+
+  const strongPositiveTokens = [
+    "portada",
+    "fachada",
+    "frente",
+    "exterior",
+    "sala",
+    "living",
+    "estancia",
+    "terraza",
+    "vista",
+    "roof",
+    "rooftop",
+    "alberca",
+    "pool",
+    "comedor",
+    "balcon",
+    "balcon",
+    "interior",
+  ];
+
+  const secondaryPositiveTokens = [
+    "cocina",
+    "kitchen",
+    "master",
+    "recamara principal",
+    "recamara",
+    "bedroom",
+    "patio",
+    "jardin",
+    "garden",
+    "amenidad",
+    "amenities",
+    "acceso",
+  ];
+
+  const negativeTokens = [
+    "bano",
+    "bath",
+    "bathroom",
+    "detalle",
+    "detail",
+    "closet",
+    "lavado",
+    "pasillo",
+    "hall",
+    "garage",
+    "cochera",
+  ];
+
+  let score = 100 - image.sortOrder;
+
+  strongPositiveTokens.forEach((token) => {
+    if (text.includes(token)) score += 40;
+  });
+
+  secondaryPositiveTokens.forEach((token) => {
+    if (text.includes(token)) score += 18;
+  });
+
+  negativeTokens.forEach((token) => {
+    if (text.includes(token)) score -= 26;
+  });
+
+  return score;
+}
+
 function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
   const images = (record.property_images ?? [])
     .slice()
@@ -187,7 +265,12 @@ function mapPublicProperty(record: PublicPropertyRecord): PublicProperty {
       sortOrder: image.sort_order,
     }));
 
-  const coverImage = images.find((image: { isCover: boolean }) => image.isCover) ?? images[0] ?? null;
+  const coverImage =
+    images.find((image: { isCover: boolean }) => image.isCover) ??
+    images
+      .slice()
+      .sort((a, b) => scoreImageForCover(b) - scoreImageForCover(a))[0] ??
+    null;
   const agent = firstJoined(record.agents);
   const collaborators = (record.property_agent_assignments ?? [])
     .map((assignment) => firstJoined(assignment.agents))
