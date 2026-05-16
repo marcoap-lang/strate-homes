@@ -50,8 +50,11 @@ export function SubscriptionForm({ workspaceId, subscription }: { workspaceId: s
   return (
     <form action={action} className="space-y-4">
       <input type="hidden" name="workspaceId" value={workspaceId} />
+      <div className="rounded-2xl border border-[#d7ab5b]/30 bg-[#fff8ec] px-4 py-3 text-sm leading-6 text-slate-700">
+        Define aquí el tipo de cuenta del cliente. Por ahora el cobro puede permanecer en $0; el plan solo controla la capacidad de asesores y usuarios internos.
+      </div>
       <div className="grid gap-3 md:grid-cols-2">
-        <Field label="Plan">
+        <Field label="Tipo de cuenta">
           <select name="plan" defaultValue={subscription.plan} className={inputClass}>
             <option value="solo">Solo asesor</option>
             <option value="small_agency">Inmobiliaria pequeña</option>

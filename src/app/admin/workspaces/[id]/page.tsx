@@ -60,7 +60,7 @@ export default async function PlatformWorkspacePage({
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-6">
           {[
             ["Salud", `${workspace.health_score}%`],
-            ["Plan", workspace.subscription?.plan ?? "solo"],
+            ["Tipo cuenta", workspace.subscription?.plan ?? "solo"],
             ["Cuenta", workspace.subscription?.status ?? "trial"],
             ["Usuarios", workspace.users_count],
             ["Publicadas", `${workspace.published_count}/${workspace.properties_count}`],
@@ -159,8 +159,8 @@ export default async function PlatformWorkspacePage({
 
           <aside className="space-y-5">
             <Card>
-              <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Billing manual</p>
-              <h2 className="mt-2 text-2xl font-semibold">Plan y estado</h2>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Tipo de cuenta</p>
+              <h2 className="mt-2 text-2xl font-semibold">Plan, estado y cobro</h2>
               <div className="mt-4"><SubscriptionForm workspaceId={workspace.id} subscription={workspace.subscription!} /></div>
             </Card>
 

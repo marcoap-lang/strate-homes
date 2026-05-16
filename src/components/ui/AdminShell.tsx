@@ -130,7 +130,7 @@ function getPanelLinkClasses(isActive: boolean) {
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
   const { user } = useSupabaseAuth();
-  const { activeWorkspace } = useActiveWorkspace();
+  const { activeWorkspace, memberships, setActiveWorkspaceId } = useActiveWorkspace();
   const pathname = usePathname();
 
   const activePrimaryItem = primaryNavItems.find((item) => item.match(pathname)) ?? primaryNavItems[0];
@@ -139,6 +139,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   const workspaceBrandLabel = activeWorkspace?.brandName ?? activeWorkspace?.workspaceName ?? activeWorkspace?.workspaceSlug ?? "Tu inmobiliaria";
   const workspaceSupportLabel = activeWorkspace?.publicClaim ?? activeWorkspace?.workspaceSlug ?? activeWorkspace?.workspaceId ?? "Configura la presencia pública de tu inmobiliaria";
+  const canSwitchWorkspace = memberships.length > 1;
 
   async function handleSignOut() {
     await supabase.auth.signOut();
@@ -162,6 +163,21 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             Salir
           </button>
         </div>
+
+        {canSwitchWorkspace ? (
+          <select
+            aria-label="Cambiar inmobiliaria activa"
+            value={activeWorkspace?.workspaceId ?? ""}
+            onChange={(event) => setActiveWorkspaceId(event.target.value)}
+            className="mt-3 w-full rounded-2xl border border-slate-200 bg-white px-3 py-2.5 text-sm font-medium text-slate-800 outline-none"
+          >
+            {memberships.map((membership) => (
+              <option key={membership.workspaceId ?? "none"} value={membership.workspaceId ?? ""}>
+                {membership.brandName ?? membership.workspaceName ?? membership.workspaceSlug ?? "Inmobiliaria"}
+              </option>
+            ))}
+          </select>
+        ) : null}
 
         <nav className="mt-3 grid grid-cols-6 gap-1.5">
           {primaryNavItems.map((item) => (
@@ -212,6 +228,22 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <p className="text-xs uppercase tracking-[0.24em] text-[#9b7b3a]">Operación</p>
               <p className="mt-2 text-sm leading-6 text-slate-700">Controla inventario, clientes, perfiles comerciales y sitio público desde un mismo lugar.</p>
             </div>
+            {canSwitchWorkspace ? (
+              <label className="mt-4 block space-y-2">
+                <span className="text-xs uppercase tracking-[0.22em] text-slate-400">Cambiar inmobiliaria</span>
+                <select
+                  value={activeWorkspace?.workspaceId ?? ""}
+                  onChange={(event) => setActiveWorkspaceId(event.target.value)}
+                  className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-800 outline-none"
+                >
+                  {memberships.map((membership) => (
+                    <option key={membership.workspaceId ?? "none"} value={membership.workspaceId ?? ""}>
+                      {membership.brandName ?? membership.workspaceName ?? membership.workspaceSlug ?? "Inmobiliaria"}
+                    </option>
+                  ))}
+                </select>
+              </label>
+            ) : null}
           </div>
 
           <nav className="mt-6 space-y-3">

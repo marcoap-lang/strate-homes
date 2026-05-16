@@ -7,11 +7,8 @@ export const commercialPlans: Record<CommercialPlanKey, {
   audience: string;
   highlights: string[];
   limits: {
-    activeProperties: number;
     agents: number;
     internalUsers: number;
-    tours: number;
-    monthlyLeads: number;
   };
 }> = {
   solo: {
@@ -21,11 +18,8 @@ export const commercialPlans: Record<CommercialPlanKey, {
     audience: "Asesor independiente o inmobiliaria muy pequeña.",
     highlights: ["Sitio público de marca", "Perfil comercial", "Inventario profesional", "Seguimiento básico"],
     limits: {
-      activeProperties: 50,
       agents: 1,
       internalUsers: 1,
-      tours: 20,
-      monthlyLeads: 150,
     },
   },
   small_agency: {
@@ -35,11 +29,8 @@ export const commercialPlans: Record<CommercialPlanKey, {
     audience: "Equipos de 2 a 8 asesores.",
     highlights: ["Varios asesores", "Propiedades por asesor", "Recorridos compartibles", "Control de interesados"],
     limits: {
-      activeProperties: 150,
       agents: 8,
       internalUsers: 6,
-      tours: 75,
-      monthlyLeads: 600,
     },
   },
   agency: {
@@ -49,11 +40,8 @@ export const commercialPlans: Record<CommercialPlanKey, {
     audience: "Inmobiliarias con operación y staff.",
     highlights: ["Mayor capacidad", "Equipo amplio", "Métricas comerciales", "Soporte prioritario"],
     limits: {
-      activeProperties: 500,
       agents: 30,
       internalUsers: 20,
-      tours: 250,
-      monthlyLeads: 2500,
     },
   },
 };

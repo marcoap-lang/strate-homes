@@ -36,18 +36,12 @@ export default async function SubscriptionPage() {
 
   const planKey = getPlanKey(access.subscription?.plan);
   const plan = commercialPlans[planKey];
-  const capacityItems = [
-    {
-      label: "Propiedades activas",
-      value: access.properties.filter((property) => property.status === "active").length,
-      limit: plan.limits.activeProperties,
-      helper: "Propiedades visibles para compradores.",
-    },
+  const teamCapacityItems = [
     {
       label: "Asesores",
       value: access.agents.length,
       limit: plan.limits.agents,
-      helper: "Perfiles comerciales activos.",
+      helper: "Perfiles comerciales que atienden clientes y propiedades.",
     },
     {
       label: "Usuarios internos",
@@ -55,18 +49,12 @@ export default async function SubscriptionPage() {
       limit: plan.limits.internalUsers,
       helper: "Personas con acceso operativo.",
     },
-    {
-      label: "Recorridos",
-      value: access.tours.length,
-      limit: plan.limits.tours,
-      helper: "Selecciones compartibles para clientes.",
-    },
-    {
-      label: "Interesados mensuales",
-      value: access.leads.length,
-      limit: plan.limits.monthlyLeads,
-      helper: "Referencia de capacidad comercial del mes.",
-    },
+  ];
+  const usageItems = [
+    ["Propiedades activas", access.properties.filter((property) => property.status === "active").length, "Inventario visible para compradores."],
+    ["Propiedades registradas", access.properties.length, "Inventario total dentro de la cuenta."],
+    ["Recorridos", access.tours.length, "Selecciones compartibles para clientes."],
+    ["Interesados registrados", access.leads.length, "Contactos recibidos y cargados por el equipo."],
   ];
 
   return (
@@ -84,8 +72,8 @@ export default async function SubscriptionPage() {
           </div>
         </section>
 
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {capacityItems.map((item) => (
+        <section className="grid gap-4 md:grid-cols-2">
+          {teamCapacityItems.map((item) => (
             <article key={item.label} className={`rounded-[1.7rem] border p-5 shadow-[0_16px_35px_rgba(20,33,61,0.05)] ${capacityClass(item.value, item.limit)}`}>
               <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
               <div className="mt-4 flex items-end justify-between gap-4">
@@ -99,6 +87,23 @@ export default async function SubscriptionPage() {
               {item.value > item.limit ? <p className="mt-3 rounded-2xl bg-amber-100 px-3 py-2 text-xs font-semibold text-amber-900">Esta cuenta supera la capacidad incluida.</p> : null}
             </article>
           ))}
+        </section>
+
+        <section className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Uso actual</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Inventario y actividad sin límite por plan.</h2>
+          <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
+            Strate Homes limita la capacidad por tamaño de equipo, no por cantidad de propiedades. La idea es que la inmobiliaria publique y trabaje su inventario con libertad.
+          </p>
+          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            {usageItems.map(([label, value, helper]) => (
+              <article key={label.toString()} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                <p className="mt-3 text-3xl font-semibold text-slate-950">{value}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-600">{helper}</p>
+              </article>
+            ))}
+          </div>
         </section>
 
         <section className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
@@ -123,11 +128,10 @@ export default async function SubscriptionPage() {
                   <p className="mt-3 text-3xl font-semibold text-slate-950">{formatPrice(option.monthlyPrice)}</p>
                   <p className="mt-2 text-sm leading-6 text-slate-600">{option.description}</p>
                   <div className="mt-4 grid gap-2 text-sm text-slate-700">
-                    <p>{option.limits.activeProperties} propiedades activas</p>
+                    <p>Inventario sin límite operativo</p>
                     <p>{option.limits.agents} asesores</p>
                     <p>{option.limits.internalUsers} usuarios internos</p>
-                    <p>{option.limits.tours} recorridos</p>
-                    <p>{option.limits.monthlyLeads} interesados al mes</p>
+                    <p>Recorridos e interesados sin bloqueo inicial</p>
                   </div>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {option.highlights.map((highlight) => (
