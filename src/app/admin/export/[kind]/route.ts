@@ -21,12 +21,12 @@ export async function GET(
   { params }: { params: Promise<{ kind: string }> },
 ) {
   const { kind } = await params;
-  if (!["workspaces", "activity", "leads"].includes(kind)) {
+  if (!["workspaces", "activity", "leads", "conversions"].includes(kind)) {
     return NextResponse.json({ error: "Unsupported export." }, { status: 404 });
   }
 
   try {
-    const rows = await getPlatformCsvRows(kind as "workspaces" | "activity" | "leads");
+    const rows = await getPlatformCsvRows(kind as "workspaces" | "activity" | "leads" | "conversions");
     const csv = toCsv(rows);
     return new Response(csv, {
       headers: {

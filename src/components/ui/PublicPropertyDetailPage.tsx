@@ -13,6 +13,34 @@ function formatOperation(operationType: string) {
   return "Disponible";
 }
 
+function buildConversionUrl({
+  workspaceId,
+  propertyId,
+  agentId,
+  eventType,
+  path,
+  target,
+}: {
+  workspaceId?: string | null;
+  propertyId?: string | null;
+  agentId?: string | null;
+  eventType: string;
+  path: string;
+  target?: string | null;
+}) {
+  if (!workspaceId) return target ?? "#";
+  const params = new URLSearchParams({
+    workspaceId,
+    eventType,
+    path,
+    source: "public_property",
+  });
+  if (propertyId) params.set("propertyId", propertyId);
+  if (agentId) params.set("agentId", agentId);
+  if (target) params.set("target", target);
+  return `/api/public-conversions?${params.toString()}`;
+}
+
 export function PublicPropertyDetailPage({
   property,
   similarProperties,
@@ -63,6 +91,16 @@ export function PublicPropertyDetailPage({
   });
   const whatsappNumber = (contactEntity?.whatsapp ?? contactEntity?.phone ?? "").replace(/\D/g, "");
   const whatsappUrl = whatsappNumber ? `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(whatsappMessage)}` : null;
+  const trackedWhatsAppUrl = whatsappUrl
+    ? buildConversionUrl({
+        workspaceId: property.workspaceId,
+        propertyId: property.id,
+        agentId: contactEntity?.id ?? null,
+        eventType: "whatsapp_click",
+        path: `${propertyBasePath}/${property.slug}`,
+        target: whatsappUrl,
+      })
+    : null;
   const highlights = [
     {
       label: "Ubicación",
@@ -111,8 +149,8 @@ export function PublicPropertyDetailPage({
               <p className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">{priceLabel}</p>
               {specsInline ? <p className="mt-5 text-base text-[#efe2d1]">{specsInline}</p> : null}
               <div className="mt-8 flex flex-wrap gap-4">
-                {whatsappUrl ? (
-                  <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] shadow-[0_10px_30px_rgba(208,163,91,0.30)] transition hover:bg-[#dfb066]">
+                {trackedWhatsAppUrl ? (
+                  <a href={trackedWhatsAppUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] shadow-[0_10px_30px_rgba(208,163,91,0.30)] transition hover:bg-[#dfb066]">
                     Contactar por WhatsApp
                   </a>
                 ) : (
@@ -260,8 +298,8 @@ export function PublicPropertyDetailPage({
                   </div>
                 ) : null}
                 <div className="mt-8 flex justify-center">
-                  {whatsappUrl ? (
-                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#17120e] px-6 py-3 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
+                  {trackedWhatsAppUrl ? (
+                    <a href={trackedWhatsAppUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#17120e] px-6 py-3 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
                       Contactar por WhatsApp
                     </a>
                   ) : (
@@ -279,8 +317,8 @@ export function PublicPropertyDetailPage({
                 </p>
                 <p className="mt-4 text-sm text-slate-500">{fallbackContact.whatsapp ?? fallbackContact.phone}</p>
                 <div className="mt-8 flex justify-center">
-                  {whatsappUrl ? (
-                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
+                  {trackedWhatsAppUrl ? (
+                    <a href={trackedWhatsAppUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
                       Contactar por WhatsApp
                     </a>
                   ) : null}
@@ -332,8 +370,8 @@ export function PublicPropertyDetailPage({
                 <p className="mt-3 font-serif text-2xl font-semibold text-[#17120e]">¿Prefieres una respuesta inmediata?</p>
                 <p className="mt-2 text-sm leading-7 text-[#625547]">Contáctanos por WhatsApp o, si prefieres, deja tus datos en el bloque de solicitar información.</p>
               </div>
-              {whatsappUrl ? (
-                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] transition hover:bg-[#dfb066]">Contactar por WhatsApp</a>
+              {trackedWhatsAppUrl ? (
+                <a href={trackedWhatsAppUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] transition hover:bg-[#dfb066]">Contactar por WhatsApp</a>
               ) : (
                 <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">Sin contacto disponible por ahora</span>
               )}
@@ -342,10 +380,10 @@ export function PublicPropertyDetailPage({
           <PublicLeadCaptureForm propertyId={property.id} workspaceId={property.workspaceId ?? ""} />
         </section>
 
-        <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} />
+        <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={trackedWhatsAppUrl ?? undefined} />
         <PublicLegalDisclaimer />
       </div>
-      <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={whatsappUrl ?? undefined} sticky />
+      <PublicShareActions propertyUrl={propertyUrl} whatsappUrl={trackedWhatsAppUrl ?? undefined} sticky />
     </main>
   );
 }

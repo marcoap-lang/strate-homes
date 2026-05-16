@@ -159,7 +159,10 @@ export type PlatformAdminState =
         recentEvents: number;
         openFollowups: number;
         staleAccounts: number;
+        conversions7d: number;
+        whatsappClicks7d: number;
       };
+      salesPipeline: Record<PlatformCommercialStatus, number>;
       workspaces: PlatformWorkspaceRow[];
       activity: PlatformActivityEvent[];
       announcements: PlatformAnnouncement[];
@@ -514,14 +517,21 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
   if (searchParams.alert === "no_activity") workspaceRows = workspaceRows.filter((workspace) => !workspace.last_activity_at || getDateHoursAgo(workspace.last_activity_at) > 24 * 14);
 
   const recentBoundary = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [users, properties, publishedProperties, leads, recentEvents, openFollowups] = await Promise.all([
+  const [users, properties, publishedProperties, leads, recentEvents, openFollowups, conversions7d, whatsappClicks7d] = await Promise.all([
     getExactCount(supabase, "profiles"),
     getExactCount(supabase, "properties"),
     getExactCount(supabase, "properties", [{ column: "status", value: "active" }]),
     getExactCount(supabase, "leads"),
     getExactCount(supabase, "activity_events", [{ column: "created_at", value: recentBoundary, operator: "gte" }]),
     getExactCount(supabase, "workspace_followups", [{ column: "status", value: "open" }]),
+    getExactCount(supabase, "public_conversion_events", [{ column: "created_at", value: recentBoundary, operator: "gte" }]),
+    getExactCount(supabase, "public_conversion_events", [{ column: "created_at", value: recentBoundary, operator: "gte" }, { column: "event_type", value: "whatsapp_click" }]),
   ]);
+  const salesPipeline = workspaceRows.reduce<Record<PlatformCommercialStatus, number>>((acc, workspace) => {
+    const status = workspace.subscription?.commercial_status ?? "prospect";
+    acc[status] = (acc[status] ?? 0) + 1;
+    return acc;
+  }, { prospect: 0, demo: 0, customer: 0, risk: 0, churn: 0 });
 
   return {
     kind: "ready",
@@ -535,7 +545,10 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
       recentEvents,
       openFollowups,
       staleAccounts: workspaceRows.filter((workspace) => !workspace.last_activity_at || getDateHoursAgo(workspace.last_activity_at) > 24 * 14).length,
+      conversions7d,
+      whatsappClicks7d,
     },
+    salesPipeline,
     workspaces: workspaceRows,
     activity: activity.slice(0, 12),
     announcements: (announcements ?? []) as PlatformAnnouncement[],
@@ -695,7 +708,7 @@ export async function getPlatformActivityState(filters: { workspaceId?: string |
   };
 }
 
-export async function getPlatformCsvRows(kind: "workspaces" | "activity" | "leads") {
+export async function getPlatformCsvRows(kind: "workspaces" | "activity" | "leads" | "conversions") {
   const context = await assertPlatformAdmin();
   const { supabase } = context;
 
@@ -729,6 +742,28 @@ export async function getPlatformCsvRows(kind: "workspaces" | "activity" | "lead
         email: lead.email ?? "",
         status: lead.status,
         source_type: lead.source_type ?? "",
+      };
+    });
+  }
+
+  if (kind === "conversions") {
+    const { data } = await supabase
+      .from("public_conversion_events")
+      .select("created_at, workspace_id, event_type, path, source, workspaces:workspace_id(name, slug), properties:property_id(title)")
+      .order("created_at", { ascending: false })
+      .limit(1000);
+
+    return (data ?? []).map((event) => {
+      const workspace = firstJoined(event.workspaces as { name?: string | null; slug?: string | null } | Array<{ name?: string | null; slug?: string | null }> | null | undefined);
+      const property = firstJoined(event.properties as { title?: string | null } | Array<{ title?: string | null }> | null | undefined);
+      return {
+        created_at: event.created_at,
+        workspace: workspace?.name ?? "",
+        slug: workspace?.slug ?? "",
+        event_type: event.event_type,
+        property: property?.title ?? "",
+        path: event.path ?? "",
+        source: event.source ?? "",
       };
     });
   }

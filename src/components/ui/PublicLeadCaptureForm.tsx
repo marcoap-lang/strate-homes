@@ -1,18 +1,22 @@
 "use client";
 
 import { useActionState } from "react";
+import { usePathname } from "next/navigation";
 import { captureLeadFromPropertyAction, type LeadCaptureState } from "@/app/admin/actions";
 
 const initialState: LeadCaptureState = { success: false, message: "" };
 
 export function PublicLeadCaptureForm({ propertyId, workspaceId }: { propertyId: string; workspaceId: string }) {
   const [state, action, pending] = useActionState(captureLeadFromPropertyAction, initialState);
+  const pathname = usePathname();
 
   return (
     <form action={action} className="space-y-4 rounded-[2rem] bg-white p-6 shadow-sm">
       <input type="hidden" name="propertyId" value={propertyId} />
       <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="sourceType" value="property_form" />
+      <input type="hidden" name="sourceDetail" value="public_property_detail" />
+      <input type="hidden" name="landingPath" value={pathname} />
 
       <div>
         <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Solicitar información</p>

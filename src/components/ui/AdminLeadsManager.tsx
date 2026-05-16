@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { createPropertyTourAction, updateLeadStateAction, type LeadUpdateState, type PropertyTourCreateState } from "@/app/admin/actions";
 import type { LeadRecord } from "@/lib/admin-access";
 import type { PropertyRecord } from "@/lib/admin-types";
+import { defaultWhatsAppTemplates, fillMessageTemplate } from "@/lib/commercial";
 import { buildPublicTourUrl } from "@/lib/public-links";
 
 const initialState: LeadUpdateState = { success: false, message: "" };
@@ -49,7 +50,20 @@ function getSourceLabel(value?: string | null) {
   if (value === "manual") return "Carga manual";
   if (value === "tour") return "Recorrido";
   if (value === "whatsapp") return "WhatsApp";
+  if (value === "demo_request") return "Solicitud de demo";
   return "Origen pendiente";
+}
+
+function getStatusLabel(value: string) {
+  return leadStatuses.find((status) => status.value === value)?.label ?? value;
+}
+
+function getStatusTone(value: string) {
+  if (value === "closed") return "border-emerald-200 bg-emerald-50 text-emerald-700";
+  if (value === "lost") return "border-slate-200 bg-slate-100 text-slate-500";
+  if (value === "negotiation" || value === "visited") return "border-amber-200 bg-amber-50 text-amber-800";
+  if (value === "new") return "border-sky-200 bg-sky-50 text-sky-700";
+  return "border-slate-200 bg-slate-50 text-slate-700";
 }
 
 function CreateTourBox({ lead, properties, workspaceSlug }: { lead: LeadRecord; properties: PropertyRecord[]; workspaceSlug?: string | null }) {
@@ -109,6 +123,12 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
   const alert = getLeadAlert(lead);
   const whatsappUrl = formatWhatsAppUrl(lead.phone, `Hola ${lead.full_name}, te contacto por tu interés${lead.property_title ? ` en ${lead.property_title}` : ""}.`);
   const openTasks = (lead.tasks ?? []).filter((task) => task.status === "open");
+  const templateValues = {
+    nombre: lead.full_name,
+    asesor: lead.assigned_agent_name,
+    propiedad: lead.property_title,
+    link: "",
+  };
 
   return (
     <div className="rounded-[1.35rem] border border-slate-200 bg-white p-4 shadow-sm shadow-slate-200/30 sm:rounded-[1.5rem] sm:p-5">
@@ -124,7 +144,7 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
               WhatsApp
             </a>
           ) : null}
-          <span className="rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs text-slate-700">{lead.status}</span>
+          <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${getStatusTone(lead.status)}`}>{getStatusLabel(lead.status)}</span>
         </div>
       </div>
 
@@ -144,6 +164,20 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
       {lead.message ? <p className="mt-4 text-sm leading-7 text-slate-600"><span className="font-medium text-slate-900">Mensaje inicial:</span> {lead.message}</p> : null}
 
       <CreateTourBox lead={lead} properties={properties} workspaceSlug={workspaceSlug} />
+
+      <div className="mt-4 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-700">Templates de WhatsApp</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          {defaultWhatsAppTemplates.slice(0, 4).map((template) => {
+            const url = formatWhatsAppUrl(lead.phone, fillMessageTemplate(template.body, templateValues));
+            return url ? (
+              <a key={template.key} href={url} target="_blank" rel="noreferrer" className="rounded-full border border-emerald-200 bg-white px-3 py-2 text-xs font-semibold text-emerald-800 transition hover:bg-emerald-100">
+                {template.title}
+              </a>
+            ) : null;
+          })}
+        </div>
+      </div>
 
       <form action={action} className="mt-5 space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
         <input type="hidden" name="leadId" value={lead.id} />
@@ -239,6 +273,15 @@ function LeadCard({ lead, properties, agents, workspaceSlug }: { lead: LeadRecor
 export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: { leads: LeadRecord[]; properties: PropertyRecord[]; agents: Array<{ id: string; display_name: string; whatsapp?: string | null }>; workspaceSlug?: string | null }) {
   const openLeads = leads.filter((lead) => !["closed", "lost"].includes(lead.status));
   const overdueAlerts = leads.filter((lead) => getLeadAlert(lead)).length;
+  const byStatus = leadStatuses.map((status) => ({
+    ...status,
+    leads: leads.filter((lead) => lead.status === status.value),
+  }));
+  const sourceCounts = leads.reduce<Record<string, number>>((acc, lead) => {
+    const label = getSourceLabel(lead.source_type);
+    acc[label] = (acc[label] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="space-y-6">
@@ -260,10 +303,40 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
             <p className="mt-2 text-2xl font-semibold text-slate-950">{leads.filter((lead) => lead.status === "closed").length}</p>
           </div>
         </div>
+        <div className="mt-5 flex flex-wrap gap-2">
+          {Object.entries(sourceCounts).map(([source, count]) => (
+            <span key={source} className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-600">
+              {source}: {count}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div className="overflow-x-auto rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem]">
+        <div className="grid min-w-[980px] grid-cols-7 gap-3">
+          {byStatus.map((column) => (
+            <article key={column.value} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{column.label}</p>
+                <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusTone(column.value)}`}>{column.leads.length}</span>
+              </div>
+              <div className="mt-3 space-y-2">
+                {column.leads.slice(0, 4).map((lead) => (
+                  <a key={lead.id} href={`#lead-${lead.id}`} className="block rounded-xl border border-slate-100 bg-white px-3 py-3 text-sm shadow-sm transition hover:border-slate-300">
+                    <span className="block font-semibold text-slate-950">{lead.full_name}</span>
+                    <span className="mt-1 block text-xs text-slate-500">{lead.property_title ?? getSourceLabel(lead.source_type)}</span>
+                    {getLeadAlert(lead) ? <span className="mt-2 inline-flex rounded-full bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">Alerta</span> : null}
+                  </a>
+                ))}
+                {column.leads.length > 4 ? <p className="text-xs text-slate-400">+{column.leads.length - 4} más</p> : null}
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4">
-        {leads.length ? leads.map((lead) => <LeadCard key={`${lead.id}-${lead.created_at}`} lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} />) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
+        {leads.length ? leads.map((lead) => <div id={`lead-${lead.id}`} key={`${lead.id}-${lead.created_at}`}><LeadCard lead={lead} properties={properties} agents={agents} workspaceSlug={workspaceSlug} /></div>) : <div className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Todavía no hay leads recibidos. Cuando alguien escriba desde una propiedad, aparecerá aquí con seguimiento accionable.</div>}
       </div>
     </div>
   );

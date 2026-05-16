@@ -33,6 +33,17 @@ function healthClass(score: number) {
   return "border-rose-200 bg-rose-50 text-rose-700";
 }
 
+function commercialStatusLabel(value: string) {
+  const labels: Record<string, string> = {
+    prospect: "Prospectos",
+    demo: "Demos",
+    customer: "Clientes",
+    risk: "En riesgo",
+    churn: "Churn",
+  };
+  return labels[value] ?? value;
+}
+
 function Forbidden({ email }: { email: string | null }) {
   return (
     <main className="min-h-screen bg-slate-950 px-4 py-12 text-white">
@@ -89,6 +100,7 @@ export default async function AdminPage({
             <div className="flex flex-wrap gap-2">
               <Link href="/admin/activity" className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15">Actividad</Link>
               <Link href="/admin/export/workspaces" className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15">CSV cuentas</Link>
+              <Link href="/admin/export/conversions" className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15">CSV conversión</Link>
               <Link href="/app" className="rounded-full border border-white/15 bg-white/10 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/15">Abrir app cliente</Link>
             </div>
           </div>
@@ -104,10 +116,21 @@ export default async function AdminPage({
             { label: "Leads", value: state.totals.leads },
             { label: "Followups", value: state.totals.openFollowups },
             { label: "Sin actividad", value: state.totals.staleAccounts },
+            { label: "Conversión 7d", value: state.totals.conversions7d },
+            { label: "WhatsApp 7d", value: state.totals.whatsappClicks7d },
           ].map((item) => (
             <article key={item.label} className="rounded-[1.6rem] border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
               <p className="text-xs uppercase tracking-[0.22em] text-white/42">{item.label}</p>
               <p className="mt-4 text-3xl font-semibold">{item.value}</p>
+            </article>
+          ))}
+        </section>
+
+        <section className="grid gap-4 lg:grid-cols-5">
+          {Object.entries(state.salesPipeline).map(([status, count]) => (
+            <article key={status} className="rounded-[1.6rem] border border-white/10 bg-white/[0.07] p-5 backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.22em] text-[#d7ab5b]">{commercialStatusLabel(status)}</p>
+              <p className="mt-4 text-3xl font-semibold">{count}</p>
             </article>
           ))}
         </section>

@@ -54,6 +54,8 @@ type JoinedLeadRecord = {
   internal_note?: string | null;
   status?: string;
   source_type?: string | null;
+  source_detail?: string | null;
+  landing_path?: string | null;
   assigned_agent_id?: string | null;
   next_follow_up_at?: string | null;
   last_contacted_at?: string | null;
@@ -116,6 +118,17 @@ export type AdminAccessState =
         publicLogoUrl: string | null | undefined;
         publicHeroUrl: string | null | undefined;
       };
+      subscription: {
+        plan: string;
+        status: string;
+        trial_ends_at: string | null;
+        current_period_ends_at: string | null;
+      } | null;
+      conversionSummary: {
+        events7d: number;
+        whatsappClicks7d: number;
+        leadForms7d: number;
+      };
       properties: PropertyRecord[];
       agents: AgentOption[];
       teamMembers: TeamMemberRecord[];
@@ -168,6 +181,8 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     { data: teamMembers, error: teamError },
     { data: leads, error: leadsError },
     { data: tours, error: toursError },
+    { data: subscription },
+    { data: conversionEvents },
   ] = await Promise.all([
     supabase
       .from("properties")
@@ -355,6 +370,16 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       )
       .eq("workspace_id", activeWorkspace.workspaceId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("workspace_subscriptions")
+      .select("plan, status, trial_ends_at, current_period_ends_at")
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .maybeSingle(),
+    supabase
+      .from("public_conversion_events")
+      .select("event_type, created_at")
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
   ]);
 
   if (propertiesError) throw propertiesError;
@@ -558,6 +583,19 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       publicBio: activeWorkspace.publicBio,
       publicLogoUrl: activeWorkspace.publicLogoUrl,
       publicHeroUrl: activeWorkspace.publicHeroUrl,
+    },
+    subscription: subscription
+      ? {
+          plan: subscription.plan,
+          status: subscription.status,
+          trial_ends_at: subscription.trial_ends_at ?? null,
+          current_period_ends_at: subscription.current_period_ends_at ?? null,
+        }
+      : null,
+    conversionSummary: {
+      events7d: conversionEvents?.length ?? 0,
+      whatsappClicks7d: (conversionEvents ?? []).filter((event) => event.event_type === "whatsapp_click").length,
+      leadForms7d: (conversionEvents ?? []).filter((event) => event.event_type === "lead_form_submit").length,
     },
     properties: normalizedProperties,
     agents: agents ?? [],

@@ -4,6 +4,7 @@ import { AdminAccessClient } from "@/components/ui/AdminAccessClient";
 import { AdminPublicBrandingManager } from "@/components/ui/AdminPublicBrandingManager";
 import { AdminShell } from "@/components/ui/AdminShell";
 import { getAdminAccessState, type AdminAccessState } from "@/lib/admin-access";
+import { commercialPlans, getPlanLabel, type CommercialPlanKey } from "@/lib/commercial";
 
 type ReadyAccess = Extract<AdminAccessState, { kind: "ready" }>;
 type DashboardProperty = ReadyAccess["properties"][number];
@@ -72,6 +73,8 @@ export default async function AppPage() {
             { label: "Publicar sitio", done: access.properties.some((property) => property.status === "active"), href: "/app/public/properties" },
           ];
           const onboardingProgress = (onboardingItems.filter((item) => item.done).length / onboardingItems.length) * 100;
+          const currentPlanKey = access.subscription?.plan === "small_agency" || access.subscription?.plan === "agency" ? access.subscription.plan : "solo";
+          const currentPlan = commercialPlans[currentPlanKey as CommercialPlanKey];
           const publicationScores = access.properties.map(getPropertyPublicationScore);
           const averagePublicationScore = publicationScores.length
             ? publicationScores.reduce((total, item) => total + item.score, 0) / publicationScores.length
@@ -119,6 +122,9 @@ export default async function AppPage() {
                       </Link>
                     ))}
                   </div>
+                  <Link href="/app/onboarding" className="mt-4 inline-flex w-full justify-center rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                    Abrir guía completa
+                  </Link>
                 </article>
               </section>
 
@@ -127,7 +133,7 @@ export default async function AppPage() {
                   { label: "Inventario activo", value: access.properties.filter((property) => property.status === "active").length, detail: `${access.properties.length} propiedades registradas` },
                   { label: "Salud de publicación", value: formatPercent(averagePublicationScore), detail: `${incompleteProperties.length} fichas por pulir` },
                   { label: "Leads con alerta", value: leadAlerts, detail: "Sin respuesta, seguimiento o movimiento" },
-                  { label: "Alertas de equipo", value: agentAlerts + activePropertiesWithoutAgent, detail: "Asesores sin WhatsApp o propiedades sin responsable" },
+                  { label: "Conversión 7 días", value: access.conversionSummary.events7d, detail: `${access.conversionSummary.whatsappClicks7d} clicks WhatsApp · ${access.conversionSummary.leadForms7d} formularios` },
                 ].map((item) => (
                   <article key={item.label} className="rounded-[1.65rem] border border-[color:var(--admin-line)] bg-white p-5 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
                     <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{item.label}</p>
@@ -135,6 +141,44 @@ export default async function AppPage() {
                     <p className="mt-2 text-sm leading-6 text-slate-500">{item.detail}</p>
                   </article>
                 ))}
+              </section>
+
+              <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
+                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Plan actual</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">{getPlanLabel(access.subscription?.plan)}</h3>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{currentPlan.description}</p>
+                  <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                    {[
+                      ["Propiedades activas", `${access.properties.filter((property) => property.status === "active").length}/${currentPlan.limits.activeProperties}`],
+                      ["Asesores", `${access.agents.length}/${currentPlan.limits.agents}`],
+                      ["Usuarios internos", `${access.teamMembers.length}/${currentPlan.limits.internalUsers}`],
+                      ["Tours", `${access.tours.length}/${currentPlan.limits.tours}`],
+                    ].map(([label, value]) => (
+                      <div key={label} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{label}</p>
+                        <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </article>
+
+                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-[#fff8ec] p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
+                  <p className="text-xs uppercase tracking-[0.24em] text-[#9b6f21]">Acciones recomendadas</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">Qué hacer para vender mejor esta semana</h3>
+                  <div className="mt-5 grid gap-3 md:grid-cols-2">
+                    {[
+                      { label: incompleteProperties.length ? "Completar fichas incompletas" : "Mantener inventario actualizado", href: "/app/properties" },
+                      { label: leadAlerts ? "Responder leads con alerta" : "Revisar pipeline comercial", href: "/app/leads" },
+                      { label: agentAlerts + activePropertiesWithoutAgent ? "Corregir responsables y WhatsApp" : "Compartir perfiles de asesores", href: "/app/team" },
+                      { label: "Ver sitio público como cliente", href: access.activeWorkspace.workspaceSlug ? `/w/${access.activeWorkspace.workspaceSlug}` : "/properties" },
+                    ].map((action) => (
+                      <Link key={action.label} href={action.href} className="rounded-2xl border border-amber-100 bg-white px-4 py-4 text-sm font-semibold text-slate-800 transition hover:border-[#d7ab5b]">
+                        {action.label}
+                      </Link>
+                    ))}
+                  </div>
+                </article>
               </section>
 
               <section className="grid gap-5 xl:grid-cols-[1.05fr_0.95fr]">

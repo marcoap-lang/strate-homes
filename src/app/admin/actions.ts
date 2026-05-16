@@ -132,6 +132,38 @@ function normalizeNullable(value: FormDataEntryValue | null) {
   return text ? text : null;
 }
 
+async function recordPublicConversionEvent({
+  supabase,
+  workspaceId,
+  propertyId,
+  agentId = null,
+  eventType,
+  path,
+  source,
+  metadata = {},
+}: {
+  supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
+  workspaceId: string;
+  propertyId?: string | null;
+  agentId?: string | null;
+  eventType: "property_view" | "whatsapp_click" | "lead_form_submit" | "advisor_click" | "demo_request";
+  path?: string | null;
+  source?: string | null;
+  metadata?: Record<string, unknown>;
+}) {
+  const { error } = await supabase.from("public_conversion_events").insert({
+    workspace_id: workspaceId,
+    property_id: propertyId ?? null,
+    agent_id: agentId,
+    event_type: eventType,
+    path: path ?? null,
+    source: source ?? null,
+    metadata,
+  });
+
+  if (error) console.warn("public_conversion_events insert skipped", error.message);
+}
+
 function normalizeNumber(value: FormDataEntryValue | null) {
   const text = value?.toString().trim();
   if (!text) return null;
@@ -574,6 +606,9 @@ export async function captureLeadFromPropertyAction(
     const workspaceId = formData.get("workspaceId")?.toString();
     const fullName = formData.get("fullName")?.toString().trim() ?? "";
     const phone = formData.get("phone")?.toString().trim() ?? "";
+    const sourceType = normalizeNullable(formData.get("sourceType")) ?? "property_form";
+    const sourceDetail = normalizeNullable(formData.get("sourceDetail"));
+    const landingPath = normalizeNullable(formData.get("landingPath"));
 
     if (!propertyId || !workspaceId) {
       return { success: false, message: "No pudimos relacionar tu mensaje con la propiedad." };
@@ -591,7 +626,11 @@ export async function captureLeadFromPropertyAction(
         phone,
         email: normalizeNullable(formData.get("email")),
         message: normalizeNullable(formData.get("message")),
-        source_type: normalizeNullable(formData.get("sourceType")) ?? "property_form",
+        source_type: sourceType,
+        source_detail: sourceDetail,
+        landing_path: landingPath,
+        utm_source: normalizeNullable(formData.get("utmSource")),
+        utm_campaign: normalizeNullable(formData.get("utmCampaign")),
         status: "new",
       })
       .select("id")
@@ -618,7 +657,17 @@ export async function captureLeadFromPropertyAction(
       eventType: "lead_received",
       entityType: "lead",
       entityId: lead.id,
-      metadata: { source_type: normalizeNullable(formData.get("sourceType")) ?? "property_form", property_id: propertyId },
+      metadata: { source_type: sourceType, source_detail: sourceDetail, property_id: propertyId },
+    });
+
+    await recordPublicConversionEvent({
+      supabase,
+      workspaceId,
+      propertyId,
+      eventType: "lead_form_submit",
+      path: landingPath,
+      source: sourceType,
+      metadata: { lead_id: lead.id, source_detail: sourceDetail },
     });
 
     return { success: true, message: "Gracias. Ya recibimos tus datos y te contactaremos pronto." };
