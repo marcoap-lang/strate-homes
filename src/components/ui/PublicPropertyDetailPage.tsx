@@ -80,7 +80,7 @@ export function PublicPropertyDetailPage({
   ];
 
   return (
-    <main className="min-h-screen bg-[#f7fbff] px-6 pb-28 pt-10 text-slate-950 md:pb-10 lg:px-8">
+    <main className="min-h-screen bg-[#f4efe8] px-6 pb-28 pt-10 text-slate-950 md:pb-10 lg:px-8">
       <PublicBrandHeader
         brandName={property.workspaceBrandName ?? property.workspaceName ?? "Strate Homes"}
         logoUrl={property.workspaceLogoUrl}
@@ -88,29 +88,29 @@ export function PublicPropertyDetailPage({
         propertiesHref={propertyBasePath}
       />
       <div className="mx-auto max-w-7xl space-y-16 pt-10">
-        <nav className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
-          <Link href={homePath} className="transition hover:text-slate-900">Inicio</Link>
+        <nav className="flex flex-wrap items-center gap-3 text-sm text-[#7c6b59]">
+          <Link href={homePath} className="transition hover:text-[#17120e]">Inicio</Link>
           <span>•</span>
-          <Link href={propertyBasePath} className="transition hover:text-slate-900">Propiedades</Link>
+          <Link href={propertyBasePath} className="transition hover:text-[#17120e]">Propiedades</Link>
           <span>•</span>
-          <span className="text-slate-900">{property.title}</span>
+          <span className="text-[#17120e]">{property.title}</span>
         </nav>
 
-        <section className="overflow-hidden rounded-[2.6rem] bg-white shadow-[0_30px_90px_rgba(15,23,42,0.08)]">
+        <section className="overflow-hidden rounded-[2.8rem] bg-[#16110d] shadow-[0_30px_90px_rgba(15,23,42,0.12)]">
           <div className="relative min-h-[32rem] lg:min-h-[48rem]">
             {cover?.url ? <Image src={cover.url} alt={cover.altText ?? property.title} fill className="object-cover object-center" unoptimized /> : null}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/78 via-slate-950/38 to-transparent" />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(18,15,12,0.88)_0%,rgba(18,15,12,0.52)_42%,rgba(18,15,12,0.22)_100%)]" />
             <div className="absolute inset-x-0 bottom-0 px-5 pb-8 pt-24 text-white sm:px-10 sm:pb-10 lg:max-w-[52rem]">
-              <span className="inline-flex rounded-full bg-[#d7ab5b] px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-white shadow-sm">
+              <span className="inline-flex rounded-full bg-[#d0a35b] px-4 py-2 text-xs font-medium uppercase tracking-[0.22em] text-[#1b1713] shadow-[0_10px_24px_rgba(208,163,91,0.28)]">
                 {formatOperation(property.operationType)}
               </span>
-              <h1 className="mt-6 text-4xl font-semibold leading-[1.04] tracking-tight sm:text-6xl lg:text-[5.2rem]">{property.title}</h1>
-              <p className="mt-5 max-w-2xl text-base leading-8 text-white/85 sm:text-lg">{locationText}</p>
+              <h1 className="mt-6 font-serif text-4xl font-semibold leading-[0.98] tracking-[-0.05em] text-[#fff8ef] sm:text-6xl lg:text-[5.2rem]">{property.title}</h1>
+              <p className="mt-5 max-w-2xl text-base leading-8 text-[#efe2d1] sm:text-lg">{locationText}</p>
               <p className="mt-6 text-4xl font-semibold tracking-tight sm:text-5xl">{priceLabel}</p>
-              {specsInline ? <p className="mt-5 text-base text-white/85">{specsInline}</p> : null}
+              {specsInline ? <p className="mt-5 text-base text-[#efe2d1]">{specsInline}</p> : null}
               <div className="mt-8 flex flex-wrap gap-4">
                 {whatsappUrl ? (
-                  <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white shadow-[0_10px_30px_rgba(215,171,91,0.3)] transition hover:bg-[#c99a46]">
+                  <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] shadow-[0_10px_30px_rgba(208,163,91,0.30)] transition hover:bg-[#dfb066]">
                     Contactar por WhatsApp
                   </a>
                 ) : (
@@ -123,11 +123,11 @@ export function PublicPropertyDetailPage({
           </div>
         </section>
 
-        <section className="rounded-[2.2rem] border border-slate-200/80 bg-white/82 p-5 shadow-[0_24px_70px_rgba(15,23,42,0.06)] backdrop-blur sm:p-7">
+        <section className="rounded-[2.2rem] border border-[#e4d8c8] bg-[#fbf6ef] p-5 shadow-[0_24px_70px_rgba(15,23,42,0.06)] sm:p-7">
           <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-              <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Por qué destaca</p>
-              <h2 className="mt-3 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Lectura rápida para decidir mejor</h2>
+              <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Por qué destaca</p>
+              <h2 className="mt-3 font-serif text-3xl font-semibold tracking-[-0.04em] text-[#17120e] sm:text-4xl">Lectura rápida para decidir mejor</h2>
             </div>
             <span className="w-fit rounded-full border border-[#d7ab5b]/30 bg-[#fff8ec] px-4 py-2 text-xs font-medium uppercase tracking-[0.18em] text-[#9b6f21]">
               Ficha inteligente
@@ -136,10 +136,10 @@ export function PublicPropertyDetailPage({
 
           <div className="mt-7 grid gap-4 md:grid-cols-3">
             {highlights.map((highlight) => (
-              <article key={highlight.label} className="rounded-[1.6rem] border border-slate-100 bg-slate-50/70 p-5">
-                <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-slate-400">{highlight.label}</p>
-                <h3 className="mt-3 text-xl font-semibold leading-snug text-slate-950">{highlight.value}</h3>
-                <p className="mt-3 text-sm leading-6 text-slate-600">{highlight.description}</p>
+              <article key={highlight.label} className="rounded-[1.6rem] border border-[#eadfce] bg-[#fffaf3] p-5">
+                <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-[#8a6a43]">{highlight.label}</p>
+                <h3 className="mt-3 text-xl font-semibold leading-snug text-[#17120e]">{highlight.value}</h3>
+                <p className="mt-3 text-sm leading-6 text-[#625547]">{highlight.description}</p>
               </article>
             ))}
           </div>
@@ -186,22 +186,22 @@ export function PublicPropertyDetailPage({
 
         <section className="grid gap-14 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Sobre la propiedad</p>
-            <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">Vive una propiedad con mejor ubicación, amplitud y proyección</h2>
-            <p className="mt-6 text-base leading-9 text-slate-700">
+            <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Sobre la propiedad</p>
+            <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-[#17120e] sm:text-4xl">Vive una propiedad con mejor ubicación, amplitud y proyección</h2>
+            <p className="mt-6 text-base leading-9 text-[#53473a]">
               {property.description ?? "Una propiedad pensada para quien busca ubicación, amplitud y una vida más cómoda en una zona con buen valor residencial."}
             </p>
-            {specsInline ? <p className="mt-8 text-lg text-slate-600">{specsInline}</p> : null}
+            {specsInline ? <p className="mt-8 text-lg text-[#625547]">{specsInline}</p> : null}
           </div>
 
-          <aside className="rounded-[2.2rem] bg-white p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-slate-500">{isContextualAdvisor ? "Tu asesor" : "Responsable comercial"}</p>
+          <aside className="rounded-[2.2rem] border border-[#e4d8c8] bg-[#fbf6ef] p-8 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
+            <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">{isContextualAdvisor ? "Tu asesor" : "Responsable comercial"}</p>
             {displayedAdvisor ? (
               <div className="mt-6 text-center">
                 <div className="relative mx-auto flex h-24 w-24 items-center justify-center overflow-hidden rounded-full bg-sky-50 text-3xl font-semibold text-slate-700 sm:h-28 sm:w-28">
                   {displayedAdvisor.avatarUrl ? <Image src={displayedAdvisor.avatarUrl} alt={displayedAdvisor.displayName} fill className="object-cover" unoptimized sizes="112px" /> : displayedAdvisor.displayName.slice(0, 1).toUpperCase()}
                 </div>
-                <p className="mt-6 text-3xl font-semibold text-slate-950">{displayedAdvisor.displayName}</p>
+                <p className="mt-6 font-serif text-3xl font-semibold text-[#17120e]">{displayedAdvisor.displayName}</p>
                 {effectiveWorkspaceSlug && displayedAdvisor.slug ? (
                   <Link href={buildWorkspaceAgentPath(effectiveWorkspaceSlug, displayedAdvisor.slug)} className="mt-3 inline-flex text-sm text-slate-600 transition hover:text-slate-950">
                     Ver perfil del asesor
@@ -229,7 +229,7 @@ export function PublicPropertyDetailPage({
                 ) : null}
                 <div className="mt-8 flex justify-center">
                   {whatsappUrl ? (
-                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full border border-[#d7ab5b]/40 bg-white px-6 py-3 text-sm font-medium text-slate-900 transition hover:bg-[#fff8ec]">
+                    <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex rounded-full bg-[#17120e] px-6 py-3 text-sm font-medium text-[#f8efe3] transition hover:bg-[#2b211b]">
                       Contactar por WhatsApp
                     </a>
                   ) : (
@@ -293,15 +293,15 @@ export function PublicPropertyDetailPage({
         ) : null}
 
         <section className="grid gap-6 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[2rem] bg-white px-8 py-8 shadow-sm">
+          <div className="rounded-[2rem] border border-[#e4d8c8] bg-[#fbf6ef] px-8 py-8 shadow-sm">
             <div className="flex flex-col gap-5">
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Contacto directo</p>
-                <p className="mt-3 text-2xl font-semibold text-slate-950">¿Prefieres una respuesta inmediata?</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">Contáctanos por WhatsApp o, si prefieres, deja tus datos en el bloque de solicitar información.</p>
+                <p className="text-xs uppercase tracking-[0.28em] text-[#8a6a43]">Contacto directo</p>
+                <p className="mt-3 font-serif text-2xl font-semibold text-[#17120e]">¿Prefieres una respuesta inmediata?</p>
+                <p className="mt-2 text-sm leading-7 text-[#625547]">Contáctanos por WhatsApp o, si prefieres, deja tus datos en el bloque de solicitar información.</p>
               </div>
               {whatsappUrl ? (
-                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d7ab5b] px-6 py-4 text-sm font-medium text-white transition hover:bg-[#c99a46]">Contactar por WhatsApp</a>
+                <a href={whatsappUrl} target="_blank" rel="noreferrer" className="inline-flex w-fit rounded-full bg-[#d0a35b] px-6 py-4 text-sm font-medium text-[#1b1713] transition hover:bg-[#dfb066]">Contactar por WhatsApp</a>
               ) : (
                 <span className="inline-flex w-fit rounded-full border border-slate-200 bg-slate-50 px-6 py-4 text-sm font-medium text-slate-600">Sin contacto disponible por ahora</span>
               )}

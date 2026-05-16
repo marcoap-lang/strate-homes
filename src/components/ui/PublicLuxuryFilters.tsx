@@ -66,11 +66,11 @@ export function PublicLuxuryFilters({
 }) {
   return (
     <section className={compact ? "pt-4" : "pt-8"}>
-      <div className="rounded-[2.15rem] bg-[linear-gradient(180deg,#fffdfa_0%,#f7f1e7_100%)] px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] ring-1 ring-[#eadcc8] sm:px-5 sm:py-5">
+      <div className="rounded-[2.15rem] bg-[linear-gradient(180deg,#fffdfa_0%,#f7f1e7_100%)] px-4 py-4 shadow-[0_18px_50px_rgba(15,23,42,0.10)] ring-1 ring-[#e2d1b8] sm:px-5 sm:py-5">
         <div className="flex flex-col gap-4">
           {filterGroups.map((group) => (
             <div key={group.key} className="grid gap-3 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-start">
-              <span className="pt-1 text-[11px] uppercase tracking-[0.28em] text-[#8d7960]">{group.label}</span>
+              <span className="pt-1 text-[11px] font-medium uppercase tracking-[0.28em] text-[#7f6749]">{group.label}</span>
               <div className="flex flex-wrap gap-2">
                 {group.options.map((option) => {
                   const active = current[group.key] === option.value;
@@ -79,10 +79,10 @@ export function PublicLuxuryFilters({
                     <Link
                       key={`${group.key}-${option.value}`}
                       href={buildHref(basePath, current, group.key, option.value)}
-                      className={`rounded-full border px-4 py-2.5 text-sm font-medium transition ${
+                      className={`rounded-full border px-4 py-2.5 text-sm font-semibold transition ${
                         active
-                          ? "border-[#d0a35b] bg-[#d0a35b] text-[#1a1510] shadow-[0_10px_24px_rgba(208,163,91,0.26)]"
-                          : "border-[#eadfce] bg-white text-[#4d4034] hover:border-[#d8bc90] hover:bg-[#f9f2e8] hover:text-[#1d1813]"
+                          ? "border-[#d6b27a] bg-[#1b1611] text-[#f7e7c8] shadow-[0_12px_26px_rgba(27,22,17,0.20)]"
+                          : "border-[#d8c3a1] bg-[#fffaf3] text-[#2f251c] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)] hover:border-[#cda66d] hover:bg-[#fbf1e2] hover:text-[#17120d]"
                       }`}
                     >
                       {option.label}
@@ -95,7 +95,7 @@ export function PublicLuxuryFilters({
           <div className="flex justify-end pt-1">
             <Link
               href={basePath}
-              className="rounded-full border border-[#d7c7b1] bg-white px-4 py-2.5 text-sm font-medium text-[#5c4b3d] transition hover:border-[#cdae7f] hover:bg-[#fbf3e8] hover:text-[#1d1813]"
+              className="rounded-full border border-[#d1b892] bg-[#fff8ee] px-4 py-2.5 text-sm font-semibold text-[#3f3227] transition hover:border-[#be9660] hover:bg-[#f6ead8] hover:text-[#17120d]"
             >
               Limpiar filtros
             </Link>
