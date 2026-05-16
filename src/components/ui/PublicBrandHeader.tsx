@@ -22,13 +22,13 @@ export function PublicBrandHeader({
           <div className="relative flex items-center justify-between gap-3">
             <Link href={homeHref} className="flex min-w-0 flex-1 items-center gap-3">
               {logoUrl ? (
-                <div className="rounded-[1.05rem] border border-white/8 bg-white/[0.025] px-2.5 py-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] sm:px-3 sm:py-2.5">
+                <div className="rounded-[1.05rem] border border-[#e6d3b0]/26 bg-[linear-gradient(180deg,rgba(250,244,235,0.94),rgba(236,222,198,0.78))] px-2 py-1.5 shadow-[0_16px_34px_rgba(0,0,0,0.18),inset_0_1px_0_rgba(255,255,255,0.48)] sm:px-2.5 sm:py-2">
                   <Image
                     src={logoUrl}
                     alt={brandName}
                     width={420}
                     height={150}
-                    className="h-auto max-h-[2.9rem] w-auto max-w-[8.8rem] object-contain drop-shadow-[0_18px_32px_rgba(0,0,0,0.28)] sm:max-h-[3.7rem] sm:max-w-[13.5rem] lg:max-h-[4.25rem] lg:max-w-[16.75rem]"
+                    className="h-auto max-h-[3.1rem] w-auto max-w-[9.6rem] object-contain object-left drop-shadow-[0_10px_18px_rgba(15,23,42,0.18)] sm:max-h-[3.9rem] sm:max-w-[14.25rem] lg:max-h-[4.5rem] lg:max-w-[17.5rem]"
                     unoptimized
                   />
                 </div>
