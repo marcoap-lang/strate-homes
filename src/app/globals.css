@@ -39,3 +39,103 @@ a {
   color: inherit;
   text-decoration: none;
 }
+
+@keyframes cinematicFloat {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -10px, 0);
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes kenBurnsSlow {
+  0% {
+    transform: scale(1.04) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.12) translate3d(-1.5%, -1%, 0);
+  }
+  100% {
+    transform: scale(1.06) translate3d(1%, 1.5%, 0);
+  }
+}
+
+@keyframes lightSweep {
+  0% {
+    transform: translateX(-12%) translateY(0);
+    opacity: 0.35;
+  }
+  50% {
+    transform: translateX(8%) translateY(-2%);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translateX(-6%) translateY(2%);
+    opacity: 0.4;
+  }
+}
+
+.public-glass {
+  backdrop-filter: blur(18px);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(255, 255, 255, 0.68));
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+}
+
+.public-cinematic-frame {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 38%),
+    linear-gradient(145deg, rgba(15, 23, 42, 0.08), rgba(15, 23, 42, 0));
+}
+
+.public-cinematic-frame::before {
+  content: "";
+  position: absolute;
+  inset: -8%;
+  background:
+    linear-gradient(120deg, rgba(255, 255, 255, 0.22), transparent 26%, transparent 72%, rgba(255, 255, 255, 0.12)),
+    radial-gradient(circle at top right, rgba(255, 230, 182, 0.42), transparent 32%);
+  mix-blend-mode: screen;
+  animation: lightSweep 14s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.public-cinematic-image {
+  animation: kenBurnsSlow 18s ease-in-out infinite alternate;
+  transform-origin: center;
+  will-change: transform;
+}
+
+.public-float {
+  animation: cinematicFloat 8s ease-in-out infinite;
+}
+
+.public-noise {
+  position: relative;
+}
+
+.public-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  opacity: 0.12;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.35) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.25) 1px, transparent 1px);
+  background-size: 18px 18px;
+  mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.65), transparent 85%);
+}
+
+.public-editorial-surface {
+  background:
+    radial-gradient(circle at top left, rgba(255, 245, 226, 0.86), transparent 26%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(244, 248, 252, 0.96));
+}

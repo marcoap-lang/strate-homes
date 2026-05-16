@@ -48,7 +48,7 @@ export default async function WorkspaceAgentPage({
   return (
     <main className="min-h-screen bg-[radial-gradient(circle_at_top,#fff8ec_0%,#f7fbff_35%,#eef5fb_100%)] px-6 py-10 text-slate-950 lg:px-8">
       <PublicBrandHeader brandName={agent.workspace.brandName ?? agent.workspace.name} logoUrl={agent.workspace.publicLogoUrl} homeHref={`/w/${workspaceSlug}`} propertiesHref={`/w/${workspaceSlug}/properties`} />
-      <div className="mx-auto max-w-7xl space-y-20">
+      <div className="public-noise mx-auto max-w-7xl space-y-20">
         <nav className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
           <Link href={`/w/${workspaceSlug}`} className="transition hover:text-slate-900">Inicio</Link>
           <span>•</span>
@@ -58,26 +58,30 @@ export default async function WorkspaceAgentPage({
         </nav>
 
         <section className="grid gap-14 lg:grid-cols-[0.88fr_1.12fr] lg:items-center">
-          <div className="relative min-h-[36rem] overflow-hidden rounded-[2.8rem] bg-gradient-to-br from-sky-100 via-white to-slate-100 shadow-[0_28px_80px_rgba(15,23,42,0.10)]">
-            {agent.avatarUrl ? <Image src={agent.avatarUrl} alt={agent.displayName} fill className="object-cover" unoptimized /> : <div className="flex h-full items-center justify-center text-7xl font-semibold text-slate-300">{agent.displayName.slice(0,1).toUpperCase()}</div>}
+          <div className="public-cinematic-frame relative min-h-[38rem] overflow-hidden rounded-[3rem] bg-gradient-to-br from-sky-100 via-white to-slate-100 shadow-[0_34px_100px_rgba(15,23,42,0.16)]">
+            {agent.avatarUrl ? <Image src={agent.avatarUrl} alt={agent.displayName} fill className="public-cinematic-image object-cover" unoptimized /> : <div className="flex h-full items-center justify-center text-7xl font-semibold text-slate-300">{agent.displayName.slice(0,1).toUpperCase()}</div>}
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(15,23,42,0.04)_0%,rgba(15,23,42,0.16)_52%,rgba(15,23,42,0.42)_100%)]" />
+            <div className="absolute bottom-7 left-7 z-[3]">
+              <span className="public-glass rounded-full px-4 py-2 text-[11px] uppercase tracking-[0.26em] text-slate-700">Perfil activo</span>
+            </div>
           </div>
           <div className="rounded-[2.2rem] bg-white/75 p-2 lg:p-4">
             <p className="text-sm uppercase tracking-[0.3em] text-slate-500">Perfil comercial</p>
-            <h1 className="mt-4 text-5xl font-semibold leading-[0.94] tracking-tight text-slate-950 sm:text-6xl lg:text-[4.8rem]">{agent.displayName}</h1>
+            <h1 className="mt-4 font-serif text-5xl font-semibold leading-[0.94] tracking-[-0.05em] text-slate-950 sm:text-6xl lg:text-[4.95rem]">{agent.displayName}</h1>
             {agent.title ? <p className="mt-4 text-sm uppercase tracking-[0.25em] text-slate-500">{agent.title}</p> : null}
             <p className="mt-7 max-w-2xl text-base leading-8 text-slate-600">
               {agent.bio ?? `Te ayudo a encontrar la propiedad ideal con atención cercana, información clara y acompañamiento durante cada paso.`}
             </p>
             <div className="mt-8 grid gap-3 sm:grid-cols-3">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
+              <div className="public-glass rounded-[1.5rem] px-4 py-4">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Propiedades activas</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{agent.properties.length}</p>
               </div>
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
+              <div className="public-glass rounded-[1.5rem] px-4 py-4">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Responsable principal</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{primaryProperties.length}</p>
               </div>
-              <div className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4 shadow-[0_16px_35px_rgba(15,23,42,0.05)]">
+              <div className="public-glass rounded-[1.5rem] px-4 py-4">
                 <p className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Como colaborador</p>
                 <p className="mt-3 text-3xl font-semibold tracking-tight text-slate-950">{collaboratorProperties.length}</p>
               </div>
@@ -100,7 +104,7 @@ export default async function WorkspaceAgentPage({
               {agent.whatsapp ?? agent.phone ? <span>{agent.whatsapp ?? agent.phone}</span> : null}
               {agent.email ? <span>{agent.email}</span> : null}
             </div>
-            <div className="mt-8 rounded-[1.7rem] border border-slate-200 bg-white px-5 py-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
+            <div className="public-editorial-surface mt-8 rounded-[1.9rem] border border-slate-200 px-5 py-5 shadow-[0_18px_40px_rgba(15,23,42,0.05)]">
               <p className="text-xs uppercase tracking-[0.24em] text-slate-500">Forma de trabajo</p>
               <p className="mt-3 text-sm leading-7 text-slate-600">
                 Si una propiedad aparece aquí, este asesor participa directamente en su atención. Algunas las lidera como responsable principal y en otras colabora con el equipo comercial de la inmobiliaria.
@@ -110,10 +114,10 @@ export default async function WorkspaceAgentPage({
         </section>
 
         {featuredProperty ? (
-          <section className="grid gap-8 rounded-[2.4rem] border border-slate-200 bg-white p-6 shadow-[0_24px_60px_rgba(15,23,42,0.06)] lg:grid-cols-[0.92fr_1.08fr] lg:p-8">
+          <section className="public-editorial-surface grid gap-8 rounded-[2.6rem] border border-slate-200 p-6 shadow-[0_24px_60px_rgba(15,23,42,0.06)] lg:grid-cols-[0.92fr_1.08fr] lg:p-8">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Propiedad destacada con este asesor</p>
-              <h2 className="mt-4 text-3xl font-semibold tracking-tight text-slate-950 sm:text-4xl">{featuredProperty.title}</h2>
+              <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-slate-950 sm:text-4xl">{featuredProperty.title}</h2>
               <p className="mt-4 text-sm leading-7 text-slate-600">{featuredProperty.locationLabel}</p>
               <p className="mt-5 text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(featuredProperty.currencyCode, featuredProperty.priceAmount)}</p>
               <div className="mt-5 flex flex-wrap gap-2 text-xs uppercase tracking-[0.2em] text-slate-500">
@@ -131,8 +135,8 @@ export default async function WorkspaceAgentPage({
                 </Link>
               </div>
             </div>
-            <div className="relative min-h-[20rem] overflow-hidden rounded-[2rem] bg-slate-100">
-              {featuredProperty.coverImageUrl ? <Image src={featuredProperty.coverImageUrl} alt={featuredProperty.title} fill className="object-cover" unoptimized /> : null}
+            <div className="public-cinematic-frame relative min-h-[20rem] overflow-hidden rounded-[2.2rem] bg-slate-100">
+              {featuredProperty.coverImageUrl ? <Image src={featuredProperty.coverImageUrl} alt={featuredProperty.title} fill className="public-cinematic-image object-cover" unoptimized /> : null}
             </div>
           </section>
         ) : null}
@@ -141,7 +145,7 @@ export default async function WorkspaceAgentPage({
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Inventario atendido</p>
-              <h2 className="mt-4 text-3xl font-semibold text-slate-950">Propiedades que atiende este asesor</h2>
+              <h2 className="mt-4 font-serif text-3xl font-semibold tracking-[-0.04em] text-slate-950">Propiedades que atiende este asesor</h2>
             </div>
             <Link href={`/w/${workspaceSlug}/properties`} className="text-sm text-slate-600 transition hover:text-slate-950">Ver más propiedades</Link>
           </div>
@@ -149,8 +153,8 @@ export default async function WorkspaceAgentPage({
           <div className="grid gap-8 md:grid-cols-2 xl:grid-cols-3">
             {agent.properties.length ? agent.properties.map((property) => (
               <article key={property.id} className="overflow-hidden rounded-[2.2rem] bg-white shadow-[0_24px_70px_rgba(15,23,42,0.08)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_30px_90px_rgba(15,23,42,0.14)]">
-                <div className="relative h-56 bg-gradient-to-br from-zinc-200 to-zinc-100">
-                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="object-cover" unoptimized /> : null}
+                <div className="public-cinematic-frame relative h-56 bg-gradient-to-br from-zinc-200 to-zinc-100">
+                  {property.coverImageUrl ? <Image src={property.coverImageUrl} alt={property.title} fill className="public-cinematic-image object-cover" unoptimized /> : null}
                 </div>
                 <div className="p-5">
                   <div className="flex flex-wrap gap-2 text-xs uppercase tracking-[0.18em] text-slate-500">
@@ -158,7 +162,7 @@ export default async function WorkspaceAgentPage({
                       {property.agent?.id === agent.id ? "Responsable principal" : "Colaborador"}
                     </span>
                   </div>
-                  <h3 className="text-[1.9rem] font-semibold leading-tight text-slate-950">{property.title}</h3>
+                  <h3 className="font-serif text-[1.9rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950">{property.title}</h3>
                   <p className="mt-2 text-sm leading-7 text-slate-600">{property.locationLabel}</p>
                   <p className="mt-4 text-2xl font-semibold tracking-tight text-slate-950">{formatPriceLabel(property.currencyCode, property.priceAmount)}</p>
                   <Link href={`/w/${workspaceSlug}/properties/${property.slug}?advisor=${agent.slug}`} className="mt-5 inline-flex rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-medium text-slate-900 transition hover:bg-slate-50">
