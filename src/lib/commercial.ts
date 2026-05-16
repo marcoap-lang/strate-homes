@@ -3,6 +3,9 @@ export type CommercialPlanKey = "solo" | "small_agency" | "agency";
 export const commercialPlans: Record<CommercialPlanKey, {
   label: string;
   description: string;
+  monthlyPrice: number;
+  audience: string;
+  highlights: string[];
   limits: {
     activeProperties: number;
     agents: number;
@@ -14,34 +17,43 @@ export const commercialPlans: Record<CommercialPlanKey, {
   solo: {
     label: "Solo Asesor",
     description: "Para un asesor o vendedor independiente con marca propia.",
+    monthlyPrice: 0,
+    audience: "Asesor independiente o inmobiliaria muy pequeña.",
+    highlights: ["Sitio público de marca", "Perfil comercial", "Inventario profesional", "Seguimiento básico"],
     limits: {
-      activeProperties: 15,
+      activeProperties: 50,
       agents: 1,
       internalUsers: 1,
-      tours: 10,
-      monthlyLeads: 80,
+      tours: 20,
+      monthlyLeads: 150,
     },
   },
   small_agency: {
     label: "Inmobiliaria Pequeña",
     description: "Para equipos comerciales que necesitan inventario, asesores y seguimiento.",
+    monthlyPrice: 0,
+    audience: "Equipos de 2 a 8 asesores.",
+    highlights: ["Varios asesores", "Propiedades por asesor", "Recorridos compartibles", "Control de interesados"],
     limits: {
-      activeProperties: 60,
+      activeProperties: 150,
       agents: 8,
       internalUsers: 6,
-      tours: 40,
-      monthlyLeads: 300,
+      tours: 75,
+      monthlyLeads: 600,
     },
   },
   agency: {
     label: "Agencia",
     description: "Para inmobiliarias con más inventario, operación y soporte comercial.",
+    monthlyPrice: 0,
+    audience: "Inmobiliarias con operación y staff.",
+    highlights: ["Mayor capacidad", "Equipo amplio", "Métricas comerciales", "Soporte prioritario"],
     limits: {
-      activeProperties: 200,
-      agents: 25,
-      internalUsers: 18,
-      tours: 140,
-      monthlyLeads: 1200,
+      activeProperties: 500,
+      agents: 30,
+      internalUsers: 20,
+      tours: 250,
+      monthlyLeads: 2500,
     },
   },
 };

@@ -4,6 +4,8 @@ import { AdminShell } from "@/components/ui/AdminShell";
 import { getAdminAccessState } from "@/lib/admin-access";
 import { commercialPlans, getPlanLabel, type CommercialPlanKey } from "@/lib/commercial";
 
+const planOrder: CommercialPlanKey[] = ["solo", "small_agency", "agency"];
+
 function getPlanKey(plan?: string | null): CommercialPlanKey {
   if (plan === "small_agency" || plan === "agency") return plan;
   return "solo";
@@ -13,6 +15,10 @@ function capacityClass(value: number, limit: number) {
   if (value > limit) return "border-amber-200 bg-amber-50";
   if (value >= limit * 0.85) return "border-[#d7ab5b]/40 bg-[#fff8ec]";
   return "border-slate-100 bg-slate-50";
+}
+
+function formatPrice(value: number) {
+  return value === 0 ? "$0 MXN" : `$${value.toLocaleString("es-MX")} MXN`;
 }
 
 export default async function SubscriptionPage() {
@@ -71,6 +77,7 @@ export default async function SubscriptionPage() {
           <h1 className="mt-4 text-4xl font-semibold tracking-tight">{getPlanLabel(access.subscription?.plan)}</h1>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-white/68">{plan.description}</p>
           <div className="mt-6 flex flex-wrap gap-2 text-xs font-semibold">
+            <span className="rounded-full border border-[#d7ab5b]/35 bg-[#d7ab5b]/15 px-3 py-2 text-[#f6d79c]">Cobro actual: {formatPrice(plan.monthlyPrice)}</span>
             <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2">Cuenta: {access.subscription?.status ?? "trial"}</span>
             {access.subscription?.trial_ends_at ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2">Trial hasta {new Date(access.subscription.trial_ends_at).toLocaleDateString("es-MX")}</span> : null}
             {access.subscription?.current_period_ends_at ? <span className="rounded-full border border-white/15 bg-white/10 px-3 py-2">Periodo hasta {new Date(access.subscription.current_period_ends_at).toLocaleDateString("es-MX")}</span> : null}
@@ -95,11 +102,44 @@ export default async function SubscriptionPage() {
         </section>
 
         <section className="rounded-[1.8rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
-          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Cambios de plan</p>
-          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Para ajustar capacidad, contacta a Strate.</h2>
+          <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Planes disponibles</p>
+          <h2 className="mt-2 text-2xl font-semibold text-slate-950">Opciones para crecer cuando la operación lo pida.</h2>
           <p className="mt-3 max-w-3xl text-sm leading-7 text-slate-600">
-            La suscripción se administra de forma acompañada por ahora. Si la inmobiliaria ya superó asesores, propiedades o usuarios incluidos, conviene revisar el paquete antes de seguir creciendo.
+            De momento el cobro queda simbólico en $0 mientras se valida el producto con las primeras inmobiliarias. Más adelante se podrá activar precio real por plan desde Strate.
           </p>
+          <div className="mt-6 grid gap-4 lg:grid-cols-3">
+            {planOrder.map((key) => {
+              const option = commercialPlans[key];
+              const isCurrent = key === planKey;
+              return (
+                <article key={key} className={`rounded-[1.7rem] border p-5 ${isCurrent ? "border-[#d7ab5b] bg-[#fff8ec]" : "border-slate-100 bg-slate-50"}`}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{option.audience}</p>
+                      <h3 className="mt-2 text-2xl font-semibold text-slate-950">{option.label}</h3>
+                    </div>
+                    {isCurrent ? <span className="rounded-full bg-slate-950 px-3 py-1 text-xs font-semibold text-white">Actual</span> : null}
+                  </div>
+                  <p className="mt-3 text-3xl font-semibold text-slate-950">{formatPrice(option.monthlyPrice)}</p>
+                  <p className="mt-2 text-sm leading-6 text-slate-600">{option.description}</p>
+                  <div className="mt-4 grid gap-2 text-sm text-slate-700">
+                    <p>{option.limits.activeProperties} propiedades activas</p>
+                    <p>{option.limits.agents} asesores</p>
+                    <p>{option.limits.internalUsers} usuarios internos</p>
+                    <p>{option.limits.tours} recorridos</p>
+                    <p>{option.limits.monthlyLeads} interesados al mes</p>
+                  </div>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    {option.highlights.map((highlight) => (
+                      <span key={highlight} className="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600">
+                        {highlight}
+                      </span>
+                    ))}
+                  </div>
+                </article>
+              );
+            })}
+          </div>
         </section>
       </div>
     </AdminShell>
