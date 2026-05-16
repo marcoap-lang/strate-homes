@@ -153,14 +153,32 @@ export default async function AppPage() {
                   <p className="mt-2 text-sm leading-6 text-slate-600">{currentPlan.description}</p>
                   <div className="mt-5 grid gap-3 sm:grid-cols-2">
                     {[
-                      ["Propiedades activas", `${access.properties.filter((property) => property.status === "active").length}/${currentPlan.limits.activeProperties}`],
-                      ["Asesores", `${access.agents.length}/${currentPlan.limits.agents}`],
-                      ["Usuarios internos", `${access.teamMembers.length}/${currentPlan.limits.internalUsers}`],
-                      ["Tours", `${access.tours.length}/${currentPlan.limits.tours}`],
-                    ].map(([label, value]) => (
-                      <div key={label} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
-                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{label}</p>
-                        <p className="mt-2 text-xl font-semibold text-slate-950">{value}</p>
+                      {
+                        label: "Propiedades activas",
+                        value: access.properties.filter((property) => property.status === "active").length,
+                        limit: currentPlan.limits.activeProperties,
+                      },
+                      {
+                        label: "Asesores",
+                        value: access.agents.length,
+                        limit: currentPlan.limits.agents,
+                      },
+                      {
+                        label: "Usuarios internos",
+                        value: access.teamMembers.length,
+                        limit: currentPlan.limits.internalUsers,
+                      },
+                      {
+                        label: "Tours",
+                        value: access.tours.length,
+                        limit: currentPlan.limits.tours,
+                      },
+                    ].map((item) => (
+                      <div key={item.label} className={`rounded-2xl border px-4 py-3 ${item.value > item.limit ? "border-amber-200 bg-amber-50" : "border-slate-100 bg-slate-50"}`}>
+                        <p className="text-xs uppercase tracking-[0.18em] text-slate-400">{item.label}</p>
+                        <p className="mt-2 text-2xl font-semibold text-slate-950">{item.value}</p>
+                        <p className="mt-1 text-xs text-slate-500">Límite del plan: {item.limit}</p>
+                        {item.value > item.limit ? <p className="mt-2 text-xs font-semibold text-amber-800">Revisar plan o capacidad</p> : null}
                       </div>
                     ))}
                   </div>
