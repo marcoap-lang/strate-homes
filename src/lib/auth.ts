@@ -15,6 +15,18 @@ export function getAuthRedirectUrl(nextPath = "/app") {
   return typeof window !== "undefined" ? `${window.location.origin}${safeNextPath}` : undefined;
 }
 
+export function getLoginRedirectUrl(nextPath = "/app") {
+  const safeNextPath = getSafeAuthNextPath(nextPath);
+  const encodedNextPath = encodeURIComponent(safeNextPath);
+  const explicitUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
+
+  if (explicitUrl) {
+    return `${explicitUrl.replace(/\/$/, "")}/login?next=${encodedNextPath}&recovery=1`;
+  }
+
+  return typeof window !== "undefined" ? `${window.location.origin}/login?next=${encodedNextPath}&recovery=1` : undefined;
+}
+
 export function getReadableAuthError(message: string) {
   const normalized = message.toLowerCase();
 

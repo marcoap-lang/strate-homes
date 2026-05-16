@@ -4,11 +4,12 @@ import { getSafeAuthNextPath } from "@/lib/auth";
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ next?: string }>;
+  searchParams?: Promise<{ next?: string; recovery?: string }>;
 }) {
   const params = await searchParams;
   const nextPath = getSafeAuthNextPath(params?.next);
   const isPlatformAdminLogin = nextPath === "/admin";
+  const isRecovery = params?.recovery === "1";
 
   return (
     <main className={`min-h-screen px-4 py-8 text-slate-950 sm:px-6 lg:px-8 ${isPlatformAdminLogin ? "bg-[radial-gradient(circle_at_top_left,#2f251b_0%,#101723_42%,#060a12_100%)]" : "bg-[linear-gradient(180deg,#f8fafc_0%,#eef6ff_100%)]"}`}>
@@ -25,7 +26,7 @@ export default async function LoginPage({
           </p>
         </div>
 
-        <AdminAccessClient postAuthRedirectPath={nextPath} allowRegistration={!isPlatformAdminLogin} />
+        <AdminAccessClient postAuthRedirectPath={nextPath} allowRegistration={!isPlatformAdminLogin} isRecovery={isRecovery} />
       </div>
     </main>
   );
