@@ -818,6 +818,95 @@ function PropertyForm({
           </div>
         </SectionCard>
 
+        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
+          <SectionCard className="border-amber-200 bg-amber-50/40">
+            <p className="text-sm font-semibold text-stone-900">Fotos y portada</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">La foto principal define cómo se ve la propiedad en el listado, la home pública y la ficha. Por eso esta decisión debe tomarse antes de terminar la captura.</p>
+            {mode === "edit" && property ? (
+              <div className="mt-5 space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm">
+                    <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos disponibles</p>
+                    <p className="mt-3 text-2xl font-semibold text-stone-950">{property.property_images.length}</p>
+                  </div>
+                  <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm">
+                    <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Portada</p>
+                    <p className="mt-3 text-2xl font-semibold text-stone-950">{property.property_images.some((image) => image.is_cover) ? "Lista" : "Pendiente"}</p>
+                  </div>
+                  <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm">
+                    <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Lectura pública</p>
+                    <p className="mt-3 text-sm font-medium leading-6 text-stone-700">La portada manda en tarjetas, home y ficha.</p>
+                  </div>
+                </div>
+
+                {property.property_images.length ? (
+                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    {property.property_images
+                      .slice()
+                      .sort((a, b) => a.sort_order - b.sort_order)
+                      .map((image, index) => (
+                        <div key={image.id} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
+                          <div className="relative aspect-[4/3] bg-stone-100">
+                            <Image src={formatImagePublicUrl(image.storage_path)} alt={image.alt_text ?? `Foto ${index + 1}`} fill className="object-cover" unoptimized />
+                            {image.is_cover ? <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada actual</span> : null}
+                          </div>
+                          <div className="p-4 text-sm text-stone-600">
+                            <p className="font-medium text-stone-900">{image.alt_text ?? `Foto ${index + 1}`}</p>
+                            <p className="mt-1 text-xs text-stone-500">Orden visual: {index + 1}</p>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-stone-300 bg-white px-4 py-5 text-sm text-stone-600">
+                    Aún no hay fotos. Guarda la propiedad y enseguida entra al bloque de galería para subirlas y definir portada.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-5 space-y-4">
+                <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm leading-6 text-stone-600">
+                  Primero guarda esta propiedad para habilitar la galería. En cuanto exista la ficha, el siguiente paso recomendado es subir fotos y marcar la portada antes de seguir afinando texto o publicación.
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {suggestedPhotoShots.map((shot, index) => (
+                    <div key={shot} className="rounded-2xl border border-stone-200 bg-white px-4 py-4 text-sm text-stone-700">
+                      <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Toma {index + 1}</p>
+                      <p className="mt-2 font-medium text-stone-950">{shot}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-4 text-sm leading-6 text-amber-900/80">
+                  Recomendación editorial: la portada no suele ser baño o detalle cerrado. Mejor empieza por fachada, sala, terraza o la vista más fuerte de la propiedad.
+                </div>
+              </div>
+            )}
+          </SectionCard>
+
+          <SectionCard>
+            <p className="text-sm font-semibold text-stone-900">Checklist visual mínimo</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Referencia rápida para detectar qué material falta antes de publicar o compartir.</p>
+            <div className="mt-4 space-y-3">
+              {getPhotoCoverageFromDraft(
+                (property?.property_images ?? []).map((image) => ({
+                  storage_path: image.storage_path,
+                  alt_text: image.alt_text ?? "",
+                })),
+              ).checks.map((item) => (
+                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+                  <span className="text-stone-800">{item.label}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+                    {item.covered ? "Lista" : "Falta"}
+                  </span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
+              {mode === "edit" && property ? "Después del primer guardado, usa el módulo de galería para subir fotos, ordenar y elegir portada manualmente." : "La galería se activa después del primer guardado para que la propiedad ya exista y las fotos queden ligadas a su ficha real."}
+            </div>
+          </SectionCard>
+        </div>
+
         <SectionCard>
           <p className="text-sm font-semibold text-stone-900">Ubicación</p>
           <p className="mt-2 text-sm leading-6 text-stone-600">Captura la referencia corta que verá el cliente y el detalle interno que ayuda a operar.</p>
@@ -932,72 +1021,6 @@ function PropertyForm({
           </div>
         </SectionCard>
 
-        <div className="grid gap-5 lg:grid-cols-[1.05fr_0.95fr]">
-          <SectionCard>
-            <p className="text-sm font-semibold text-stone-900">Fotos de la propiedad</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">La captura ya no depende de un paso separado. Aquí solo revisas el material visual disponible.</p>
-            {mode === "edit" && property ? (
-              <div className="mt-5 space-y-4">
-                <div className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
-                  <span className="text-stone-700">Fotos disponibles</span>
-                  <span className="font-semibold text-stone-950">{property.property_images.length}</span>
-                </div>
-
-                {property.property_images.length ? (
-                  <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                    {property.property_images
-                      .slice()
-                      .sort((a, b) => a.sort_order - b.sort_order)
-                      .map((image, index) => (
-                        <div key={image.id} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
-                          <div className="relative aspect-[4/3] bg-stone-100">
-                            <Image src={formatImagePublicUrl(image.storage_path)} alt={image.alt_text ?? `Foto ${index + 1}`} fill className="object-cover" unoptimized />
-                            {image.is_cover ? <span className="absolute left-3 top-3 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-white">Portada</span> : null}
-                          </div>
-                          <div className="p-4 text-sm text-stone-600">
-                            <p className="font-medium text-stone-900">{image.alt_text ?? `Foto ${index + 1}`}</p>
-                            <p className="mt-1 text-xs text-stone-500">Orden visual: {index + 1}</p>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                ) : (
-                  <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500">
-                    Todavía no hay fotos cargadas para esta propiedad.
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-600">
-                Primero guarda la propiedad para habilitar la galería. Después podrás volver aquí y cargar fotos sin cambiar de flujo.
-              </div>
-            )}
-          </SectionCard>
-
-          <SectionCard>
-            <p className="text-sm font-semibold text-stone-900">Checklist visual mínimo</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Referencia rápida para detectar qué material falta antes de publicar o compartir.</p>
-            <div className="mt-4 space-y-3">
-              {getPhotoCoverageFromDraft(
-                (property?.property_images ?? []).map((image) => ({
-                  storage_path: image.storage_path,
-                  alt_text: image.alt_text ?? "",
-                })),
-              ).checks.map((item) => (
-                <div key={item.label} className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
-                  <span className="text-stone-800">{item.label}</span>
-                  <span className={`rounded-full px-3 py-1 text-xs font-medium ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
-                    {item.covered ? "Lista" : "Falta"}
-                  </span>
-                </div>
-              ))}
-            </div>
-            <div className="mt-5 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-600">
-              {mode === "edit" && property ? "Puedes seguir usando el módulo de galería de esta pantalla para subir, ordenar y definir portada." : "La galería se activa después del primer guardado."}
-            </div>
-          </SectionCard>
-        </div>
-
         <SectionCard>
           <p className="text-sm font-semibold text-stone-900">Publicación y revisión</p>
           <p className="mt-2 text-sm leading-6 text-stone-600">El resumen final queda visible en la misma página para evitar saltos y guardar con más confianza.</p>
@@ -1087,7 +1110,7 @@ function PropertyForm({
 
       <div className="sticky bottom-3 z-20 -mx-1 rounded-[1.6rem] border border-stone-200 bg-white/95 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0">
         <div className="text-sm text-stone-500">
-          {mode === "create" ? "La galería se habilita después del primer guardado." : "Los cambios se guardan sobre la misma ficha."}
+          {mode === "create" ? "Guarda primero la ficha y enseguida sube fotos para elegir portada cuanto antes." : "Los cambios se guardan sobre la misma ficha."}
         </div>
         <div className="mt-2 grid gap-2 sm:mt-0 sm:flex sm:flex-wrap sm:gap-3">
           <button type="submit" name="intent" value="draft" formNoValidate disabled={isFormSaving || isFormPending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] disabled:opacity-60">
