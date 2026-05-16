@@ -28,7 +28,7 @@ export default async function AdminPage() {
   const state = await getPlatformAdminState();
 
   if (state.kind === "no-session") {
-    redirect("/login");
+    redirect("/login?next=/admin");
   }
 
   if (state.kind === "forbidden") {

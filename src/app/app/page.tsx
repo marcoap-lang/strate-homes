@@ -56,7 +56,7 @@ export default async function AppPage() {
   const access = await getAdminAccessState();
 
   if (access.kind === "no-session") {
-    redirect("/login");
+    redirect("/login?next=/app");
   }
 
   return (

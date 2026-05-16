@@ -1,11 +1,18 @@
-export function getAuthRedirectUrl() {
+export function getSafeAuthNextPath(value?: string | null) {
+  if (value === "/admin") return "/admin";
+  if (value === "/app") return "/app";
+  return "/app";
+}
+
+export function getAuthRedirectUrl(nextPath = "/app") {
+  const safeNextPath = getSafeAuthNextPath(nextPath);
   const explicitUrl = process.env.NEXT_PUBLIC_APP_URL?.trim();
 
   if (explicitUrl) {
-    return `${explicitUrl.replace(/\/$/, "")}/app`;
+    return `${explicitUrl.replace(/\/$/, "")}${safeNextPath}`;
   }
 
-  return typeof window !== "undefined" ? `${window.location.origin}/app` : undefined;
+  return typeof window !== "undefined" ? `${window.location.origin}${safeNextPath}` : undefined;
 }
 
 export function getReadableAuthError(message: string) {

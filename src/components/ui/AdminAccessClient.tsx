@@ -11,7 +11,13 @@ const initialBootstrapState: BootstrapOwnerState = { success: false, message: ""
 
 type AuthMode = "login" | "register";
 
-export function AdminAccessClient() {
+export function AdminAccessClient({
+  postAuthRedirectPath = "/app",
+  allowRegistration = true,
+}: {
+  postAuthRedirectPath?: "/app" | "/admin";
+  allowRegistration?: boolean;
+}) {
   const { user, isLoading } = useSupabaseAuth();
   const { activeWorkspace, isLoading: workspaceLoading } = useActiveWorkspace();
   const supabase = useMemo(() => createSupabaseBrowserClient(), []);
@@ -30,9 +36,15 @@ export function AdminAccessClient() {
     setError(null);
     setMessage(null);
 
-    const redirectTo = getAuthRedirectUrl();
+    const redirectTo = getAuthRedirectUrl(postAuthRedirectPath);
 
     if (mode === "register") {
+      if (!allowRegistration) {
+        setError("Este acceso es solo para administradores internos ya creados.");
+        setIsSubmitting(false);
+        return;
+      }
+
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -58,7 +70,7 @@ export function AdminAccessClient() {
       });
 
       if (result.kind === "signed-in") {
-        window.location.href = "/app";
+        window.location.href = postAuthRedirectPath;
         return;
       }
 
@@ -83,7 +95,7 @@ export function AdminAccessClient() {
       return;
     }
 
-    window.location.href = "/app";
+    window.location.href = postAuthRedirectPath;
   }
 
   async function handleSignOut() {
@@ -110,13 +122,15 @@ export function AdminAccessClient() {
           >
             Iniciar sesión
           </button>
-          <button
-            type="button"
-            onClick={() => setMode("register")}
-            className={`flex-1 rounded-full px-4 py-2.5 transition ${mode === "register" ? "bg-white text-slate-950 shadow-sm" : "text-slate-600 hover:text-slate-950"}`}
-          >
-            Crear cuenta
-          </button>
+          {allowRegistration ? (
+            <button
+              type="button"
+              onClick={() => setMode("register")}
+              className={`flex-1 rounded-full px-4 py-2.5 transition ${mode === "register" ? "bg-white text-slate-950 shadow-sm" : "text-slate-600 hover:text-slate-950"}`}
+            >
+              Crear cuenta
+            </button>
+          ) : null}
         </div>
 
         <form onSubmit={handleAuth} className="mt-6 space-y-4">

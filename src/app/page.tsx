@@ -27,7 +27,7 @@ export default function Home() {
             <p className="mt-1 text-sm text-slate-700">Real estate operating system</p>
           </Link>
           <div className="flex items-center gap-3">
-            <Link href="/admin" className="hidden rounded-full border border-slate-300/70 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-white/65 hover:text-slate-950 md:inline-flex">
+            <Link href="/login?next=/admin" className="hidden rounded-full border border-slate-300/70 bg-transparent px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-white/65 hover:text-slate-950 md:inline-flex">
               Admin Strate
             </Link>
             <Link href="/login" className="rounded-full border border-slate-300 bg-white/70 px-4 py-2.5 text-sm font-medium text-slate-800 transition hover:bg-white">
@@ -56,7 +56,7 @@ export default function Home() {
               <Link href="/login" className="inline-flex justify-center rounded-full bg-[#d7ab5b] px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_40px_rgba(215,171,91,0.28)] transition hover:bg-[#c99a46]">
                 Entrar a la app
               </Link>
-              <Link href="/admin" className="inline-flex justify-center rounded-full border border-slate-300 bg-white/55 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-white sm:hidden">
+              <Link href="/login?next=/admin" className="inline-flex justify-center rounded-full border border-slate-300 bg-white/55 px-6 py-3.5 text-sm font-semibold text-slate-700 transition hover:bg-white sm:hidden">
                 Admin Strate
               </Link>
               <Link href="/properties" className="inline-flex justify-center rounded-full border border-slate-300 bg-white/75 px-6 py-3.5 text-sm font-semibold text-slate-900 transition hover:bg-white">
