@@ -136,7 +136,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
                     {heroImage ? <Image src={heroImage} alt={heroProperty?.title ?? (workspace.brand_name ?? workspace.name)} fill className="public-cinematic-image object-cover" unoptimized /> : null}
                     <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(10,8,6,0.06)_0%,rgba(10,8,6,0.20)_48%,rgba(10,8,6,0.64)_100%)]" />
                     <div className="absolute left-6 top-6 z-[3] rounded-full border border-white/14 bg-white/8 px-4 py-2 text-[11px] uppercase tracking-[0.28em] text-[#f8e9d5] backdrop-blur">
-                      Propiedad destacada
+                      Vista de la zona
                     </div>
                   </div>
                 </div>
