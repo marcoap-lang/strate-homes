@@ -63,6 +63,11 @@ export type WorkspaceBrandingState = {
   message: string;
 };
 
+export type AdCampaignRequestState = {
+  success: boolean;
+  message: string;
+};
+
 export type LeadDetailActionState = {
   success: boolean;
   message: string;
@@ -119,6 +124,11 @@ const INITIAL_PROPERTY_TOUR_DELETE_STATE: PropertyTourDeleteState = {
 };
 
 const INITIAL_WORKSPACE_BRANDING_STATE: WorkspaceBrandingState = {
+  success: false,
+  message: "",
+};
+
+const INITIAL_AD_CAMPAIGN_REQUEST_STATE: AdCampaignRequestState = {
   success: false,
   message: "",
 };
@@ -1055,6 +1065,14 @@ export async function updateWorkspaceBrandingAction(
         public_bio: normalizeNullable(formData.get("publicBio")),
         public_logo_url: normalizeNullable(formData.get("publicLogoUrl")),
         public_hero_url: normalizeNullable(formData.get("publicHeroUrl")),
+        public_services: normalizeNullable(formData.get("publicServices")),
+        public_trust_points: normalizeNullable(formData.get("publicTrustPoints")),
+        public_address: normalizeNullable(formData.get("publicAddress")),
+        public_maps_url: normalizeNullable(formData.get("publicMapsUrl")),
+        public_facebook_url: normalizeNullable(formData.get("publicFacebookUrl")),
+        public_instagram_url: normalizeNullable(formData.get("publicInstagramUrl")),
+        public_google_business_url: normalizeNullable(formData.get("publicGoogleBusinessUrl")),
+        public_privacy_url: normalizeNullable(formData.get("publicPrivacyUrl")),
       })
       .eq("id", activeWorkspace.workspaceId);
 
@@ -1082,6 +1100,55 @@ export async function updateWorkspaceBrandingAction(
     return {
       success: false,
       message: error instanceof Error ? getReadableWorkspaceError(error.message) : "No se pudo guardar el branding público.",
+    };
+  }
+}
+
+export async function createAdCampaignRequestAction(
+  _prevState: AdCampaignRequestState = INITIAL_AD_CAMPAIGN_REQUEST_STATE,
+  formData: FormData,
+): Promise<AdCampaignRequestState> {
+  void _prevState;
+  try {
+    const { supabase, activeWorkspace } = await getWorkspaceContext();
+    const channels = formData.getAll("channels").map((value) => value.toString()).filter(Boolean);
+    const objective = formData.get("objective")?.toString() || "leads";
+
+    if (!channels.length) return { success: false, message: "Selecciona al menos un canal de publicidad." };
+
+    const { data, error } = await supabase
+      .from("ad_campaign_requests")
+      .insert({
+        workspace_id: activeWorkspace.workspaceId,
+        requested_by_profile_id: activeWorkspace.profileId,
+        objective,
+        channels,
+        monthly_budget_mxn: normalizeNumber(formData.get("monthlyBudgetMxn")),
+        target_area: normalizeNullable(formData.get("targetArea")),
+        promoted_property_id: normalizeNullable(formData.get("promotedPropertyId")),
+        notes: normalizeNullable(formData.get("notes")),
+      })
+      .select("id")
+      .single();
+
+    if (error) return { success: false, message: error.message };
+
+    await recordActivityEvent({
+      supabase,
+      workspaceId: activeWorkspace.workspaceId,
+      actorProfileId: activeWorkspace.profileId,
+      eventType: "ad_campaign_requested",
+      entityType: "ad_campaign_request",
+      entityId: data?.id ?? null,
+      metadata: { objective, channels },
+    });
+
+    revalidateAdminSurfacePath("/admin/public");
+    return { success: true, message: "Solicitud enviada. Strate revisará objetivo, presupuesto y canales para armar la campaña." };
+  } catch (error) {
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : "No se pudo solicitar la campaña.",
     };
   }
 }

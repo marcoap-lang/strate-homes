@@ -87,6 +87,7 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
     ],
     Presencia: [
       { label: "Inmobiliaria", href: "/app/public" },
+      { label: "Publicidad", href: "/app/public#publicidad" },
       { label: "Perfiles comerciales", href: "/app/public/agents" },
       { label: "Inventario público", href: "/app/public/properties" },
       { label: "Ver sitio público", href: publicHome, external: true },

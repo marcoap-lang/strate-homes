@@ -11,7 +11,11 @@ export default async function AdminPublicBrandingPage() {
       {access.kind === "no-session" ? (
         <AdminAccessClient />
       ) : access.kind === "ready" ? (
-        <AdminPublicBrandingManager workspace={access.activeWorkspace} />
+        <AdminPublicBrandingManager
+          workspace={access.activeWorkspace}
+          properties={access.properties.map((property) => ({ id: property.id, title: property.title, status: property.status }))}
+          adCampaignRequests={access.adCampaignRequests}
+        />
       ) : (
         <AdminAccessClient />
       )}

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AnnouncementForm, AnnouncementToggleForm } from "@/components/ui/PlatformAdminForms";
+import { AdCampaignStatusForm, AnnouncementForm, AnnouncementToggleForm } from "@/components/ui/PlatformAdminForms";
 import { getPlanLabel } from "@/lib/commercial";
 import { getPlatformAdminState, type PlatformActivityEvent } from "@/lib/platform-admin";
 
@@ -23,6 +23,8 @@ function formatEventLabel(value: string) {
     workspace_owner_changed: "Owner actualizado",
     feature_flag_updated: "Feature flag",
     announcement_created: "Anuncio creado",
+    ad_campaign_requested: "Publicidad solicitada",
+    ad_campaign_status_updated: "Publicidad actualizada",
     workspace_deleted: "Organización eliminada",
   };
 
@@ -118,6 +120,7 @@ export default async function AdminPage({
             { label: "Leads", value: state.totals.leads },
             { label: "Followups", value: state.totals.openFollowups },
             { label: "Sin actividad", value: state.totals.staleAccounts },
+            { label: "Publicidad", value: state.totals.adRequests },
             { label: "Conversión 7d", value: state.totals.conversions7d },
             { label: "WhatsApp 7d", value: state.totals.whatsappClicks7d },
           ].map((item) => (
@@ -208,6 +211,28 @@ export default async function AdminPage({
                 <Link href="/admin/export/activity" className="rounded-full border border-white/10 px-3 py-2 text-xs font-semibold text-white/70">CSV</Link>
               </div>
               <div className="mt-5"><ActivityList activity={state.activity} /></div>
+            </article>
+
+            <article className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.22)] backdrop-blur">
+              <p className="text-xs uppercase tracking-[0.24em] text-white/42">Publicidad</p>
+              <h2 className="mt-2 text-2xl font-semibold">Solicitudes de campaña</h2>
+              <div className="mt-5 space-y-3">
+                {state.adCampaignRequests.map((request) => (
+                  <div key={request.id} className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <Link href={`/admin/workspaces/${request.workspace_id}`} className="text-sm font-semibold text-white transition hover:text-[#d7ab5b]">{request.workspace_name ?? "Inmobiliaria"}</Link>
+                        <p className="mt-1 text-xs text-white/45">{request.channels.join(", ") || "sin canal"} · {request.objective} · {request.status}</p>
+                        <p className="mt-1 text-xs text-white/45">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "presupuesto por definir"}</p>
+                      </div>
+                      <div className="rounded-2xl bg-white p-2 text-slate-950">
+                        <AdCampaignStatusForm request={request} />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {!state.adCampaignRequests.length ? <p className="text-sm text-white/50">Sin solicitudes de publicidad.</p> : null}
+              </div>
             </article>
 
             <article className="rounded-[2rem] border border-white/10 bg-white/[0.07] p-5 shadow-[0_30px_90px_rgba(0,0,0,0.22)] backdrop-blur">

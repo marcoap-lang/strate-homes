@@ -344,6 +344,41 @@ export async function updateWorkspaceFeatureFlagAction(_prevState: PlatformActio
   }
 }
 
+export async function updateAdCampaignRequestStatusAction(_prevState: PlatformActionState, formData: FormData): Promise<PlatformActionState> {
+  try {
+    const { supabase } = await assertPlatformAdmin();
+    const requestId = formData.get("requestId")?.toString();
+    const workspaceId = formData.get("workspaceId")?.toString();
+    const status = formData.get("status")?.toString();
+    const validStatuses = new Set(["requested", "reviewing", "active", "paused", "completed", "cancelled"]);
+
+    if (!requestId || !workspaceId || !status || !validStatuses.has(status)) {
+      return fail("Faltan datos para actualizar la campaña.");
+    }
+
+    const { error } = await supabase
+      .from("ad_campaign_requests")
+      .update({ status })
+      .eq("id", requestId)
+      .eq("workspace_id", workspaceId);
+
+    if (error) return fail(error.message);
+
+    await recordPlatformEvent({
+      workspaceId,
+      eventType: "ad_campaign_status_updated",
+      entityType: "ad_campaign_request",
+      entityId: requestId,
+      metadata: { status },
+    });
+
+    revalidatePlatform(workspaceId);
+    return ok("Campaña actualizada.");
+  } catch (error) {
+    return fail(error instanceof Error ? error.message : "No se pudo actualizar la campaña.");
+  }
+}
+
 export async function createAnnouncementAction(_prevState: PlatformActionState, formData: FormData): Promise<PlatformActionState> {
   try {
     const { supabase } = await assertPlatformAdmin();

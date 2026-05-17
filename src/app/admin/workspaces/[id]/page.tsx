@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import {
+  AdCampaignStatusForm,
   CompleteFollowupButton,
   FeatureFlagForm,
   OwnerChangeForm,
@@ -155,6 +156,26 @@ export default async function PlatformWorkspacePage({
                   </div>
                 ))}
                 {!state.leads.length ? <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Sin leads recibidos.</p> : null}
+              </div>
+            </Card>
+
+            <Card>
+              <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Publicidad</p>
+              <h2 className="mt-2 text-2xl font-semibold">Campañas solicitadas</h2>
+              <div className="mt-4 grid gap-3">
+                {state.adCampaignRequests.map((request) => (
+                  <div key={request.id} className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="font-semibold">{request.channels.join(", ") || "Canales pendientes"} · {request.objective}</p>
+                        <p className="mt-1 text-xs text-slate-500">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "presupuesto por definir"} · {request.target_area ?? "zona pendiente"}</p>
+                        {request.notes ? <p className="mt-2 text-sm leading-6 text-slate-600">{request.notes}</p> : null}
+                      </div>
+                      <AdCampaignStatusForm request={request} />
+                    </div>
+                  </div>
+                ))}
+                {!state.adCampaignRequests.length ? <p className="rounded-2xl border border-dashed border-slate-300 bg-slate-50 px-4 py-5 text-sm text-slate-500">Sin solicitudes de publicidad todavía.</p> : null}
               </div>
             </Card>
           </div>

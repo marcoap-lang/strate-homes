@@ -227,7 +227,7 @@ export default async function AppPage() {
                     Esto alimenta la página pública de la inmobiliaria y ayuda a que cada propiedad se vea confiable desde el primer contacto.
                   </p>
                   <div className="mt-5">
-                    <AdminPublicBrandingManager workspace={access.activeWorkspace} />
+                    <AdminPublicBrandingManager workspace={access.activeWorkspace} showAdvertising={false} />
                   </div>
                 </article>
               </section>

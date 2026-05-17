@@ -9,11 +9,12 @@ import {
   createWorkspaceNoteAction,
   deleteWorkspaceAction,
   toggleAnnouncementAction,
+  updateAdCampaignRequestStatusAction,
   updateWorkspaceFeatureFlagAction,
   updateWorkspaceStatusAction,
   updateWorkspaceSubscriptionAction,
 } from "@/app/admin/platform-actions";
-import type { PlatformFollowup, PlatformMember, PlatformSubscription } from "@/lib/platform-admin";
+import type { PlatformAdCampaignRequest, PlatformFollowup, PlatformMember, PlatformSubscription } from "@/lib/platform-admin";
 
 const initialState = { success: false, message: "" };
 
@@ -228,6 +229,29 @@ export function FeatureFlagForm({ workspaceId }: { workspaceId: string }) {
       </Field>
       <ActionMessage state={state} />
       <button disabled={pending} className={buttonClass}>{pending ? "Guardando..." : "Guardar flag"}</button>
+    </form>
+  );
+}
+
+export function AdCampaignStatusForm({ request }: { request: PlatformAdCampaignRequest }) {
+  const [state, action, pending] = useActionState(updateAdCampaignRequestStatusAction, initialState);
+
+  return (
+    <form action={action} className="flex flex-col gap-2 sm:flex-row sm:items-center">
+      <input type="hidden" name="requestId" value={request.id} />
+      <input type="hidden" name="workspaceId" value={request.workspace_id} />
+      <select name="status" defaultValue={request.status} className="rounded-full border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-800">
+        <option value="requested">Solicitada</option>
+        <option value="reviewing">En revisión</option>
+        <option value="active">Activa</option>
+        <option value="paused">Pausada</option>
+        <option value="completed">Completada</option>
+        <option value="cancelled">Cancelada</option>
+      </select>
+      <button disabled={pending} className="rounded-full bg-slate-950 px-3 py-2 text-xs font-semibold text-white transition hover:bg-slate-800 disabled:opacity-60">
+        {pending ? "..." : "Guardar"}
+      </button>
+      <ActionMessage state={state} />
     </form>
   );
 }

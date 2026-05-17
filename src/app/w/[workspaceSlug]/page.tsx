@@ -28,6 +28,15 @@ function formatPropertyTypeLabel(propertyType: string | null | undefined) {
   return "Propiedad";
 }
 
+function splitPublicLines(value: string | null | undefined, fallback: string[]) {
+  const lines = (value ?? "")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return lines.length ? lines : fallback;
+}
+
 export async function generateMetadata({ params }: { params: Promise<{ workspaceSlug: string }> }): Promise<Metadata> {
   const { workspaceSlug } = await params;
   const supabase = await createSupabaseServerClient();
@@ -54,7 +63,7 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
   const supabase = await createSupabaseServerClient();
   const { data: workspace } = await supabase
     .from("workspaces")
-    .select("id, name, slug, brand_name, public_phone, public_whatsapp, public_email, public_claim, public_bio, public_logo_url, public_hero_url")
+    .select("id, name, slug, brand_name, public_phone, public_whatsapp, public_email, public_claim, public_bio, public_logo_url, public_hero_url, public_services, public_trust_points, public_address, public_maps_url, public_facebook_url, public_instagram_url, public_google_business_url, public_privacy_url")
     .eq("slug", workspaceSlug)
     .maybeSingle();
 
@@ -68,6 +77,8 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
   const highlightedProperties = properties.slice(0, 6);
   const latestProperties = properties.slice(0, 3);
   const heroImage = workspace.public_hero_url ?? heroProperty?.coverImageUrl ?? null;
+  const serviceItems = splitPublicLines(workspace.public_services, ["Venta y renta residencial", "Asesoría para inversión", "Acompañamiento comercial de principio a cierre"]);
+  const trustItems = splitPublicLines(workspace.public_trust_points, ["Atención directa con asesores comerciales", "Inventario revisado antes de publicarse", "Seguimiento claro para cada interesado"]);
 
   return (
     <main className="min-h-screen bg-[#f4efe8] text-slate-950">
@@ -193,6 +204,47 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
         </div>
       </section>
 
+      <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-20">
+        <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
+          <article className="rounded-[2.6rem] border border-[#eadfce] bg-[#fbf7f1] p-7 shadow-[0_22px_70px_rgba(15,23,42,0.07)] lg:p-9">
+            <p className="text-sm uppercase tracking-[0.3em] text-[#8a6a43]">Cómo trabajamos</p>
+            <h2 className="mt-4 font-serif text-4xl font-semibold leading-[0.96] tracking-[-0.05em] text-[#17120e] sm:text-5xl">
+              Servicio inmobiliario con criterio, presencia y seguimiento.
+            </h2>
+            <div className="mt-8 grid gap-3 sm:grid-cols-3">
+              {serviceItems.slice(0, 6).map((item) => (
+                <div key={item} className="rounded-[1.6rem] border border-[#e4d6c2] bg-white px-4 py-5">
+                  <p className="text-sm font-semibold leading-6 text-[#17120e]">{item}</p>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="rounded-[2.6rem] bg-[#17120e] p-7 text-[#f5e7d5] shadow-[0_24px_80px_rgba(0,0,0,0.16)] lg:p-9">
+            <p className="text-sm uppercase tracking-[0.3em] text-[#c7aa84]">Confianza</p>
+            <h2 className="mt-4 font-serif text-4xl font-semibold leading-[0.98] tracking-[-0.05em] text-white">Antes de visitar, debe sentirse claro.</h2>
+            <div className="mt-8 space-y-3">
+              {trustItems.slice(0, 5).map((item) => (
+                <div key={item} className="rounded-[1.4rem] border border-white/10 bg-white/8 px-4 py-4">
+                  <p className="text-sm leading-7 text-[#ead9c2]">{item}</p>
+                </div>
+              ))}
+            </div>
+            {workspace.public_address || workspace.public_maps_url ? (
+              <div className="mt-6 rounded-[1.6rem] border border-white/10 bg-white/8 px-5 py-5">
+                <p className="text-xs uppercase tracking-[0.24em] text-[#c7aa84]">Zona de atención</p>
+                {workspace.public_address ? <p className="mt-3 text-sm leading-7 text-[#ead9c2]">{workspace.public_address}</p> : null}
+                {workspace.public_maps_url ? (
+                  <a href={workspace.public_maps_url} target="_blank" rel="noreferrer" className="mt-4 inline-flex rounded-full bg-[#d0a35b] px-5 py-3 text-sm font-medium text-[#1b1713] transition hover:bg-[#dfb066]">
+                    Abrir mapa
+                  </a>
+                ) : null}
+              </div>
+            ) : null}
+          </article>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-6 py-14 lg:px-8 lg:py-24">
         <div className="flex items-end justify-between gap-6">
           <div className="max-w-2xl">
@@ -260,6 +312,12 @@ export default async function WorkspacePublicHome({ params }: { params: Promise<
           {workspace.public_phone ? <p>Teléfono: {workspace.public_phone}</p> : null}
           {workspace.public_whatsapp ? <p>WhatsApp: {workspace.public_whatsapp}</p> : null}
           {workspace.public_email ? <p>Email: {workspace.public_email}</p> : null}
+          <div className="flex flex-wrap gap-3 pt-2">
+            {workspace.public_facebook_url ? <a href={workspace.public_facebook_url} target="_blank" rel="noreferrer" className="font-medium text-slate-800 underline-offset-4 hover:underline">Facebook</a> : null}
+            {workspace.public_instagram_url ? <a href={workspace.public_instagram_url} target="_blank" rel="noreferrer" className="font-medium text-slate-800 underline-offset-4 hover:underline">Instagram</a> : null}
+            {workspace.public_google_business_url ? <a href={workspace.public_google_business_url} target="_blank" rel="noreferrer" className="font-medium text-slate-800 underline-offset-4 hover:underline">Google Business</a> : null}
+            {workspace.public_privacy_url ? <a href={workspace.public_privacy_url} target="_blank" rel="noreferrer" className="font-medium text-slate-800 underline-offset-4 hover:underline">Aviso de privacidad</a> : null}
+          </div>
         </div>
         <PublicLegalDisclaimer />
       </footer>

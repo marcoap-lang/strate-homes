@@ -1,5 +1,6 @@
 import { createSupabaseServerClient } from "@/lib/supabase/server";
 import type { AgentOption, PropertyRecord, StandaloneAgentRecord, TeamMemberRecord } from "@/lib/admin-types";
+import { getServerActiveWorkspace } from "@/lib/workspace/server";
 
 export type LeadRecord = {
   id: string;
@@ -43,7 +44,16 @@ export type PropertyTourRecord = {
   lead: { full_name: string | null; phone: string | null } | null;
   properties: Array<{ id: string; title: string; slug: string; sort_order: number }>;
 };
-import { getServerActiveWorkspace } from "@/lib/workspace/server";
+export type AdCampaignRequestRecord = {
+  id: string;
+  objective: string;
+  channels: string[];
+  monthly_budget_mxn: number | null;
+  target_area: string | null;
+  status: string;
+  created_at: string;
+  property_title: string | null;
+};
 
 type JoinedLeadRecord = {
   id?: string;
@@ -117,6 +127,14 @@ export type AdminAccessState =
         publicBio: string | null | undefined;
         publicLogoUrl: string | null | undefined;
         publicHeroUrl: string | null | undefined;
+        publicServices: string | null | undefined;
+        publicTrustPoints: string | null | undefined;
+        publicAddress: string | null | undefined;
+        publicMapsUrl: string | null | undefined;
+        publicFacebookUrl: string | null | undefined;
+        publicInstagramUrl: string | null | undefined;
+        publicGoogleBusinessUrl: string | null | undefined;
+        publicPrivacyUrl: string | null | undefined;
       };
       subscription: {
         plan: string;
@@ -135,6 +153,7 @@ export type AdminAccessState =
       standaloneAgents: StandaloneAgentRecord[];
       leads: LeadRecord[];
       tours: PropertyTourRecord[];
+      adCampaignRequests: AdCampaignRequestRecord[];
     }
   | {
       kind: "first-access" | "no-workspace";
@@ -183,6 +202,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     { data: tours, error: toursError },
     { data: subscription },
     { data: conversionEvents },
+    { data: adCampaignRequests },
   ] = await Promise.all([
     supabase
       .from("properties")
@@ -380,6 +400,11 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .select("event_type, created_at")
       .eq("workspace_id", activeWorkspace.workspaceId)
       .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
+    supabase
+      .from("ad_campaign_requests")
+      .select("id, objective, channels, monthly_budget_mxn, target_area, status, created_at, properties:promoted_property_id(title)")
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .order("created_at", { ascending: false }),
   ]);
 
   if (propertiesError) throw propertiesError;
@@ -569,6 +594,26 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   });
 
+  const normalizedAdCampaignRequests: AdCampaignRequestRecord[] = ((adCampaignRequests ?? []) as Array<{
+    id: string;
+    objective: string;
+    channels: string[] | null;
+    monthly_budget_mxn: number | null;
+    target_area: string | null;
+    status: string;
+    created_at: string;
+    properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
+  }>).map((request) => ({
+    id: request.id,
+    objective: request.objective,
+    channels: request.channels ?? [],
+    monthly_budget_mxn: request.monthly_budget_mxn,
+    target_area: request.target_area,
+    status: request.status,
+    created_at: request.created_at,
+    property_title: firstJoined(request.properties)?.title ?? null,
+  }));
+
   return {
     kind: "ready",
     activeWorkspace: {
@@ -583,6 +628,14 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       publicBio: activeWorkspace.publicBio,
       publicLogoUrl: activeWorkspace.publicLogoUrl,
       publicHeroUrl: activeWorkspace.publicHeroUrl,
+      publicServices: activeWorkspace.publicServices,
+      publicTrustPoints: activeWorkspace.publicTrustPoints,
+      publicAddress: activeWorkspace.publicAddress,
+      publicMapsUrl: activeWorkspace.publicMapsUrl,
+      publicFacebookUrl: activeWorkspace.publicFacebookUrl,
+      publicInstagramUrl: activeWorkspace.publicInstagramUrl,
+      publicGoogleBusinessUrl: activeWorkspace.publicGoogleBusinessUrl,
+      publicPrivacyUrl: activeWorkspace.publicPrivacyUrl,
     },
     subscription: subscription
       ? {
@@ -603,5 +656,6 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     standaloneAgents,
     leads: normalizedLeads,
     tours: normalizedTours,
+    adCampaignRequests: normalizedAdCampaignRequests,
   };
 }

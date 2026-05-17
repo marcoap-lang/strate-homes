@@ -14,6 +14,14 @@ function getWorkspaceMeta(workspaces: unknown) {
       public_bio?: string | null;
       public_logo_url?: string | null;
       public_hero_url?: string | null;
+      public_services?: string | null;
+      public_trust_points?: string | null;
+      public_address?: string | null;
+      public_maps_url?: string | null;
+      public_facebook_url?: string | null;
+      public_instagram_url?: string | null;
+      public_google_business_url?: string | null;
+      public_privacy_url?: string | null;
     } | undefined;
   }
 
@@ -28,6 +36,14 @@ function getWorkspaceMeta(workspaces: unknown) {
     public_bio?: string | null;
     public_logo_url?: string | null;
     public_hero_url?: string | null;
+    public_services?: string | null;
+    public_trust_points?: string | null;
+    public_address?: string | null;
+    public_maps_url?: string | null;
+    public_facebook_url?: string | null;
+    public_instagram_url?: string | null;
+    public_google_business_url?: string | null;
+    public_privacy_url?: string | null;
   } | null) ?? undefined;
 }
 
@@ -66,7 +82,15 @@ export async function getClientWorkspaceMemberships(userId: string): Promise<Wor
           public_claim,
           public_bio,
           public_logo_url,
-          public_hero_url
+          public_hero_url,
+          public_services,
+          public_trust_points,
+          public_address,
+          public_maps_url,
+          public_facebook_url,
+          public_instagram_url,
+          public_google_business_url,
+          public_privacy_url
         )
       `,
     )
@@ -89,6 +113,14 @@ export async function getClientWorkspaceMemberships(userId: string): Promise<Wor
       publicBio: workspaceMeta?.public_bio ?? null,
       publicLogoUrl: workspaceMeta?.public_logo_url ?? null,
       publicHeroUrl: workspaceMeta?.public_hero_url ?? null,
+      publicServices: workspaceMeta?.public_services ?? null,
+      publicTrustPoints: workspaceMeta?.public_trust_points ?? null,
+      publicAddress: workspaceMeta?.public_address ?? null,
+      publicMapsUrl: workspaceMeta?.public_maps_url ?? null,
+      publicFacebookUrl: workspaceMeta?.public_facebook_url ?? null,
+      publicInstagramUrl: workspaceMeta?.public_instagram_url ?? null,
+      publicGoogleBusinessUrl: workspaceMeta?.public_google_business_url ?? null,
+      publicPrivacyUrl: workspaceMeta?.public_privacy_url ?? null,
       role: membership.role ?? null,
     };
   });
@@ -112,6 +144,14 @@ export async function getClientActiveWorkspace(userId: string) {
     publicBio: selectedMembership?.publicBio ?? null,
     publicLogoUrl: selectedMembership?.publicLogoUrl ?? null,
     publicHeroUrl: selectedMembership?.publicHeroUrl ?? null,
+    publicServices: selectedMembership?.publicServices ?? null,
+    publicTrustPoints: selectedMembership?.publicTrustPoints ?? null,
+    publicAddress: selectedMembership?.publicAddress ?? null,
+    publicMapsUrl: selectedMembership?.publicMapsUrl ?? null,
+    publicFacebookUrl: selectedMembership?.publicFacebookUrl ?? null,
+    publicInstagramUrl: selectedMembership?.publicInstagramUrl ?? null,
+    publicGoogleBusinessUrl: selectedMembership?.publicGoogleBusinessUrl ?? null,
+    publicPrivacyUrl: selectedMembership?.publicPrivacyUrl ?? null,
     role: selectedMembership?.role ?? null,
     memberships,
   };

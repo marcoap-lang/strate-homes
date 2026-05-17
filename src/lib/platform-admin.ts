@@ -125,6 +125,22 @@ export type PlatformFollowup = {
   assigned_email: string | null;
 };
 
+export type PlatformAdCampaignRequest = {
+  id: string;
+  workspace_id: string;
+  workspace_name: string | null;
+  workspace_slug: string | null;
+  requested_by_email: string | null;
+  objective: string;
+  channels: string[];
+  monthly_budget_mxn: number | null;
+  target_area: string | null;
+  property_title: string | null;
+  notes: string | null;
+  status: string;
+  created_at: string;
+};
+
 export type PlatformFeatureFlag = {
   workspace_id: string;
   flag_key: string;
@@ -161,11 +177,13 @@ export type PlatformAdminState =
         staleAccounts: number;
         conversions7d: number;
         whatsappClicks7d: number;
+        adRequests: number;
       };
       salesPipeline: Record<PlatformCommercialStatus, number>;
       workspaces: PlatformWorkspaceRow[];
       activity: PlatformActivityEvent[];
       announcements: PlatformAnnouncement[];
+      adCampaignRequests: PlatformAdCampaignRequest[];
     };
 
 export type PlatformWorkspaceDetailState =
@@ -187,6 +205,7 @@ export type PlatformWorkspaceDetailState =
       leads: PlatformLead[];
       notes: PlatformNote[];
       followups: PlatformFollowup[];
+      adCampaignRequests: PlatformAdCampaignRequest[];
       flags: PlatformFeatureFlag[];
       activity: PlatformActivityEvent[];
       platformAdmins: PlatformMember[];
@@ -217,6 +236,44 @@ function firstJoined<T>(value: T | T[] | null | undefined): T | null {
 
 function asObject(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? (value as Record<string, unknown>) : {};
+}
+
+function normalizeAdCampaignRequests(data: unknown[] | null | undefined): PlatformAdCampaignRequest[] {
+  return (data ?? []).map((item) => {
+    const request = item as {
+      id: string;
+      workspace_id: string;
+      objective: string;
+      channels?: string[] | null;
+      monthly_budget_mxn?: number | null;
+      target_area?: string | null;
+      notes?: string | null;
+      status: string;
+      created_at: string;
+      workspaces?: { name?: string | null; slug?: string | null } | Array<{ name?: string | null; slug?: string | null }> | null;
+      profiles?: { email?: string | null } | Array<{ email?: string | null }> | null;
+      properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
+    };
+    const workspace = firstJoined(request.workspaces);
+    const profile = firstJoined(request.profiles);
+    const property = firstJoined(request.properties);
+
+    return {
+      id: request.id,
+      workspace_id: request.workspace_id,
+      workspace_name: workspace?.name ?? null,
+      workspace_slug: workspace?.slug ?? null,
+      requested_by_email: profile?.email ?? null,
+      objective: request.objective,
+      channels: request.channels ?? [],
+      monthly_budget_mxn: request.monthly_budget_mxn ?? null,
+      target_area: request.target_area ?? null,
+      property_title: property?.title ?? null,
+      notes: request.notes ?? null,
+      status: request.status,
+      created_at: request.created_at,
+    };
+  });
 }
 
 function getDateHoursAgo(dateValue: string | null | undefined) {
@@ -492,10 +549,15 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
   if (context.kind === "forbidden") return { kind: "forbidden", email: context.email };
 
   const { supabase } = context;
-  const [{ data: workspaces }, activity, { data: announcements }] = await Promise.all([
+  const [{ data: workspaces }, activity, { data: announcements }, { data: adCampaignRequests }] = await Promise.all([
     supabase.from("workspaces").select("id, name, slug, brand_name, public_logo_url, public_whatsapp, is_active, created_at").order("created_at", { ascending: false }).limit(100),
     getPlatformActivity(supabase, { days: 30 }),
     supabase.from("platform_announcements").select("id, title, body, audience, is_active, starts_at, ends_at, created_at").order("created_at", { ascending: false }).limit(8),
+    supabase
+      .from("ad_campaign_requests")
+      .select("id, workspace_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title)")
+      .order("created_at", { ascending: false })
+      .limit(8),
   ]);
 
   let workspaceRows = await Promise.all((workspaces ?? []).map((workspace) => getWorkspaceRow(supabase, workspace)));
@@ -517,7 +579,7 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
   if (searchParams.alert === "no_activity") workspaceRows = workspaceRows.filter((workspace) => !workspace.last_activity_at || getDateHoursAgo(workspace.last_activity_at) > 24 * 14);
 
   const recentBoundary = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [users, properties, publishedProperties, leads, recentEvents, openFollowups, conversions7d, whatsappClicks7d] = await Promise.all([
+  const [users, properties, publishedProperties, leads, recentEvents, openFollowups, conversions7d, whatsappClicks7d, openAdRequests] = await Promise.all([
     getExactCount(supabase, "profiles"),
     getExactCount(supabase, "properties"),
     getExactCount(supabase, "properties", [{ column: "status", value: "active" }]),
@@ -526,6 +588,7 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
     getExactCount(supabase, "workspace_followups", [{ column: "status", value: "open" }]),
     getExactCount(supabase, "public_conversion_events", [{ column: "created_at", value: recentBoundary, operator: "gte" }]),
     getExactCount(supabase, "public_conversion_events", [{ column: "created_at", value: recentBoundary, operator: "gte" }, { column: "event_type", value: "whatsapp_click" }]),
+    getExactCount(supabase, "ad_campaign_requests", [{ column: "status", value: "requested" }]),
   ]);
   const salesPipeline = workspaceRows.reduce<Record<PlatformCommercialStatus, number>>((acc, workspace) => {
     const status = workspace.subscription?.commercial_status ?? "prospect";
@@ -547,11 +610,13 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
       staleAccounts: workspaceRows.filter((workspace) => !workspace.last_activity_at || getDateHoursAgo(workspace.last_activity_at) > 24 * 14).length,
       conversions7d,
       whatsappClicks7d,
+      adRequests: openAdRequests,
     },
     salesPipeline,
     workspaces: workspaceRows,
     activity: activity.slice(0, 12),
     announcements: (announcements ?? []) as PlatformAnnouncement[],
+    adCampaignRequests: normalizeAdCampaignRequests(adCampaignRequests as unknown[] | null),
   };
 }
 
@@ -577,6 +642,7 @@ export async function getPlatformWorkspaceDetail(workspaceId: string): Promise<P
     { data: leads },
     { data: notes },
     { data: followups },
+    { data: adCampaignRequests },
     { data: flags },
     activity,
     { data: platformAdmins },
@@ -588,6 +654,12 @@ export async function getPlatformWorkspaceDetail(workspaceId: string): Promise<P
     supabase.from("leads").select("id, full_name, phone, email, status, source_type, next_follow_up_at, last_contacted_at, created_at, agents:assigned_agent_id(display_name)").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(30),
     supabase.from("workspace_admin_notes").select("id, body, created_at, profiles:author_profile_id(full_name, email)").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(20),
     supabase.from("workspace_followups").select("id, title, due_at, status, completed_at, created_at, profiles:assigned_profile_id(full_name, email)").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(20),
+    supabase
+      .from("ad_campaign_requests")
+      .select("id, workspace_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title)")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(20),
     supabase.from("workspace_feature_flags").select("workspace_id, flag_key, enabled, metadata, updated_at").eq("workspace_id", workspaceId).order("flag_key", { ascending: true }),
     getPlatformActivity(supabase, { workspaceId }),
     supabase.from("platform_admins").select("profile_id, profiles:profile_id(full_name, email)"),
@@ -673,6 +745,7 @@ export async function getPlatformWorkspaceDetail(workspaceId: string): Promise<P
         assigned_email: assigned?.email ?? null,
       };
     }),
+    adCampaignRequests: normalizeAdCampaignRequests(adCampaignRequests as unknown[] | null),
     flags: (flags ?? []).map((flag) => ({ ...flag, metadata: asObject(flag.metadata) })) as PlatformFeatureFlag[],
     activity: activity.slice(0, 50),
     platformAdmins: (platformAdmins ?? []).map((admin): PlatformMember => {

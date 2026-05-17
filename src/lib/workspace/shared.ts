@@ -12,6 +12,14 @@ export type WorkspaceMembershipSummary = {
   publicBio?: string | null;
   publicLogoUrl?: string | null;
   publicHeroUrl?: string | null;
+  publicServices?: string | null;
+  publicTrustPoints?: string | null;
+  publicAddress?: string | null;
+  publicMapsUrl?: string | null;
+  publicFacebookUrl?: string | null;
+  publicInstagramUrl?: string | null;
+  publicGoogleBusinessUrl?: string | null;
+  publicPrivacyUrl?: string | null;
   role?: WorkspaceRole | null;
 };
 

@@ -3,9 +3,11 @@
 import Image from "next/image";
 import { useActionState, useRef, useState, useTransition } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
-import { updateWorkspaceBrandingAction, type WorkspaceBrandingState } from "@/app/admin/actions";
+import { createAdCampaignRequestAction, updateWorkspaceBrandingAction, type AdCampaignRequestState, type WorkspaceBrandingState } from "@/app/admin/actions";
+import type { AdCampaignRequestRecord } from "@/lib/admin-access";
 
 const initialState: WorkspaceBrandingState = { success: false, message: "" };
+const initialAdState: AdCampaignRequestState = { success: false, message: "" };
 const MAX_IMAGE_FILE_SIZE_MB = 8;
 
 type WorkspaceBrandingRecord = {
@@ -20,9 +22,95 @@ type WorkspaceBrandingRecord = {
   publicBio?: string | null;
   publicLogoUrl?: string | null;
   publicHeroUrl?: string | null;
+  publicServices?: string | null;
+  publicTrustPoints?: string | null;
+  publicAddress?: string | null;
+  publicMapsUrl?: string | null;
+  publicFacebookUrl?: string | null;
+  publicInstagramUrl?: string | null;
+  publicGoogleBusinessUrl?: string | null;
+  publicPrivacyUrl?: string | null;
 };
 
-export function AdminPublicBrandingManager({ workspace }: { workspace: WorkspaceBrandingRecord }) {
+function AdvertisingRequestManager({ properties, requests }: {
+  properties: Array<{ id: string; title: string; status: string }>;
+  requests: AdCampaignRequestRecord[];
+}) {
+  const [state, action, pending] = useActionState(createAdCampaignRequestAction, initialAdState);
+  const activeProperties = properties.filter((property) => property.status === "active");
+
+  return (
+    <section id="publicidad" className="rounded-[2rem] border border-[#eadfce] bg-[linear-gradient(135deg,#17120e_0%,#2c2117_100%)] p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.20)] sm:p-6">
+      <p className="text-xs uppercase tracking-[0.26em] text-[#d7ab5b]">Publicidad</p>
+      <h3 className="mt-3 text-3xl font-semibold tracking-tight">Comprar campañas para Facebook, Instagram y Google</h3>
+      <p className="mt-3 max-w-3xl text-sm leading-7 text-white/68">
+        Solicita una campaña y Strate la arma contigo: objetivo, zona, propiedad a empujar, presupuesto y canal. Por ahora es compra asistida, no autoservicio con tarjeta.
+      </p>
+
+      <form action={action} className="mt-6 grid gap-4 rounded-[1.6rem] border border-white/10 bg-white/8 p-4 backdrop-blur lg:grid-cols-2">
+        <label className="space-y-2 text-sm text-white/82">
+          <span className="block text-xs uppercase tracking-[0.2em] text-white/45">Objetivo</span>
+          <select name="objective" defaultValue="leads" className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-sm text-slate-950">
+            <option value="leads">Generar interesados</option>
+            <option value="whatsapp">Mensajes por WhatsApp</option>
+            <option value="traffic">Tráfico al sitio</option>
+            <option value="brand">Reconocimiento de marca</option>
+          </select>
+        </label>
+        <label className="space-y-2 text-sm text-white/82">
+          <span className="block text-xs uppercase tracking-[0.2em] text-white/45">Propiedad a promover</span>
+          <select name="promotedPropertyId" defaultValue="" className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-sm text-slate-950">
+            <option value="">Campaña general de la inmobiliaria</option>
+            {activeProperties.map((property) => <option key={property.id} value={property.id}>{property.title}</option>)}
+          </select>
+        </label>
+        <div className="space-y-3 rounded-2xl border border-white/10 bg-white/8 p-4 lg:col-span-2">
+          <p className="text-xs uppercase tracking-[0.2em] text-white/45">Canales</p>
+          <div className="flex flex-wrap gap-2">
+            {["Facebook", "Instagram", "Google"].map((channel) => (
+              <label key={channel} className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-4 py-2 text-sm text-white">
+                <input type="checkbox" name="channels" value={channel.toLowerCase()} className="size-4" />
+                {channel}
+              </label>
+            ))}
+          </div>
+        </div>
+        <label className="space-y-2 text-sm text-white/82">
+          <span className="block text-xs uppercase tracking-[0.2em] text-white/45">Presupuesto mensual sugerido</span>
+          <input name="monthlyBudgetMxn" type="number" placeholder="Ej. 5000" className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-sm text-slate-950" />
+        </label>
+        <label className="space-y-2 text-sm text-white/82">
+          <span className="block text-xs uppercase tracking-[0.2em] text-white/45">Zona objetivo</span>
+          <input name="targetArea" placeholder="Ej. Boca del Río, Veracruz, CDMX" className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-sm text-slate-950" />
+        </label>
+        <label className="space-y-2 text-sm text-white/82 lg:col-span-2">
+          <span className="block text-xs uppercase tracking-[0.2em] text-white/45">Notas</span>
+          <textarea name="notes" rows={3} placeholder="Qué quieres vender, perfil del comprador, fechas o restricciones." className="w-full rounded-2xl border border-white/10 bg-white px-4 py-3 text-sm text-slate-950" />
+        </label>
+        {state.message ? <p className={`rounded-2xl border px-4 py-3 text-sm lg:col-span-2 ${state.success ? "border-emerald-300 bg-emerald-50 text-emerald-800" : "border-rose-300 bg-rose-50 text-rose-800"}`}>{state.message}</p> : null}
+        <button disabled={pending} className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-semibold text-[#17120e] transition hover:bg-[#e2b86d] disabled:opacity-60">
+          {pending ? "Enviando..." : "Solicitar campaña"}
+        </button>
+      </form>
+
+      <div className="mt-5 grid gap-3 md:grid-cols-2">
+        {requests.slice(0, 4).map((request) => (
+          <article key={request.id} className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm">
+            <p className="font-semibold">{request.channels.join(", ") || "Canales pendientes"} · {request.status}</p>
+            <p className="mt-1 text-white/58">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "Presupuesto por definir"}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+export function AdminPublicBrandingManager({ workspace, properties = [], adCampaignRequests = [], showAdvertising = true }: {
+  workspace: WorkspaceBrandingRecord;
+  properties?: Array<{ id: string; title: string; status: string }>;
+  adCampaignRequests?: AdCampaignRequestRecord[];
+  showAdvertising?: boolean;
+}) {
   const [state, action, pending] = useActionState(updateWorkspaceBrandingAction, initialState);
   const [logoUrl, setLogoUrl] = useState(workspace.publicLogoUrl ?? "");
   const [heroUrl, setHeroUrl] = useState(workspace.publicHeroUrl ?? "");
@@ -152,6 +240,38 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
             <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Bio institucional</span>
             <textarea name="publicBio" rows={4} defaultValue={workspace.publicBio ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
           </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Servicios</span>
+            <textarea name="publicServices" rows={4} defaultValue={workspace.publicServices ?? ""} placeholder="Venta residencial&#10;Renta de propiedades&#10;Asesoría para inversión" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Confianza / experiencia</span>
+            <textarea name="publicTrustPoints" rows={4} defaultValue={workspace.publicTrustPoints ?? ""} placeholder="Atención personalizada&#10;Acompañamiento legal&#10;Inventario verificado" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Dirección / zona de atención</span>
+            <input name="publicAddress" defaultValue={workspace.publicAddress ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700 md:col-span-2">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Link de Google Maps</span>
+            <input name="publicMapsUrl" defaultValue={workspace.publicMapsUrl ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Facebook</span>
+            <input name="publicFacebookUrl" defaultValue={workspace.publicFacebookUrl ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Instagram</span>
+            <input name="publicInstagramUrl" defaultValue={workspace.publicInstagramUrl ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Google Business</span>
+            <input name="publicGoogleBusinessUrl" defaultValue={workspace.publicGoogleBusinessUrl ?? ""} className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
+          <label className="space-y-2 text-sm text-slate-700">
+            <span className="block text-xs uppercase tracking-[0.2em] text-slate-500">Aviso de privacidad</span>
+            <input name="publicPrivacyUrl" defaultValue={workspace.publicPrivacyUrl ?? ""} placeholder="URL a PDF o página legal" className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3.5 text-base sm:py-3 sm:text-sm text-slate-950" />
+          </label>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -187,6 +307,8 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
           {pending || isUploading ? "Guardando..." : "Guardar marca de la inmobiliaria"}
         </button>
       </form>
+
+      {showAdvertising ? <AdvertisingRequestManager properties={properties} requests={adCampaignRequests} /> : null}
     </div>
   );
 }
