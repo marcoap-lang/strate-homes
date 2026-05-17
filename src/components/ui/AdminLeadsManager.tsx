@@ -21,6 +21,14 @@ const leadStatuses = [
   { value: "lost", label: "Perdido" },
 ];
 
+const leadLanes = [
+  { key: "new", label: "Nuevos", statuses: ["new"] },
+  { key: "contact", label: "Por contactar", statuses: ["contacted", "interested"] },
+  { key: "visit", label: "Con visita", statuses: ["visited"] },
+  { key: "deal", label: "Negociación", statuses: ["negotiation"] },
+  { key: "done", label: "Cerrados", statuses: ["closed", "lost"] },
+];
+
 function formatWhatsAppUrl(phone?: string | null, message?: string) {
   const digits = (phone ?? "").replace(/\D/g, "");
   if (!digits) return null;
@@ -279,9 +287,9 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
   const openLeads = leads.filter((lead) => !["closed", "lost"].includes(lead.status));
   const overdueAlerts = leads.filter((lead) => getLeadAlert(lead)).length;
   const unassignedLeads = leads.filter((lead) => !lead.assigned_agent_id).length;
-  const byStatus = leadStatuses.map((status) => ({
-    ...status,
-    leads: leads.filter((lead) => lead.status === status.value),
+  const byLane = leadLanes.map((lane) => ({
+    ...lane,
+    leads: leads.filter((lead) => lane.statuses.includes(lead.status)),
   }));
   const sourceCounts = leads.reduce<Record<string, number>>((acc, lead) => {
     const label = getSourceLabel(lead.source_type);
@@ -301,10 +309,10 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
 
   return (
     <div className="space-y-6">
-      <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:p-6">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Clientes interesados</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Seguimiento comercial</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Asigna responsable, estado, próximo contacto, tareas e historial para que ningún interesado se enfríe.</p>
+      <div className="overflow-hidden rounded-[2rem] border border-slate-200 bg-[radial-gradient(circle_at_top_left,#fff8ec_0%,#ffffff_42%,#eef3f8_100%)] p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:p-6">
+        <p className="text-xs uppercase tracking-[0.24em] text-[#9b6f21]">Interesados</p>
+        <h3 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Seguimiento comercial que no deja enfriar oportunidades</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Cada contacto debe tener responsable, estado y siguiente movimiento. Lo importante aparece primero: alertas, WhatsApp y visitas.</p>
         <form action={autoAssignAction} className="mt-5 flex flex-col gap-3 rounded-2xl border border-slate-100 bg-slate-50 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-sm font-semibold text-slate-950">Repartir interesados</p>
@@ -339,12 +347,12 @@ export function AdminLeadsManager({ leads, properties, agents, workspaceSlug }: 
       </div>
 
       <div className="overflow-x-auto rounded-[1.5rem] border border-slate-200 bg-white p-4 shadow-[0_20px_60px_rgba(15,23,42,0.06)] sm:rounded-[2rem]">
-        <div className="grid min-w-[980px] grid-cols-7 gap-3">
-          {byStatus.map((column) => (
-            <article key={column.value} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
+        <div className="grid min-w-[880px] grid-cols-5 gap-3">
+          {byLane.map((column) => (
+            <article key={column.key} className="rounded-2xl border border-slate-100 bg-slate-50 p-3">
               <div className="flex items-center justify-between gap-2">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">{column.label}</p>
-                <span className={`rounded-full border px-2 py-0.5 text-xs font-semibold ${getStatusTone(column.value)}`}>{column.leads.length}</span>
+                <span className="rounded-full border border-slate-200 bg-white px-2 py-0.5 text-xs font-semibold text-slate-700">{column.leads.length}</span>
               </div>
               <div className="mt-3 space-y-2">
                 {column.leads.slice(0, 4).map((lead) => (

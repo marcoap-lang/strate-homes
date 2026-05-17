@@ -30,7 +30,7 @@ const primaryNavItems: PrimaryNavItem[] = [
     shortLabel: "Hoy",
     icon: "⌂",
     href: "/app",
-    description: "Pendientes, prioridades y visión general.",
+    description: "Prioridades comerciales de hoy.",
     match: (pathname) => pathname === "/app" || pathname === "/admin",
   },
   {
@@ -42,19 +42,19 @@ const primaryNavItems: PrimaryNavItem[] = [
     match: (pathname) => pathname.startsWith("/app/properties") || pathname.startsWith("/app/tours") || pathname.startsWith("/admin/properties") || pathname.startsWith("/admin/tours"),
   },
   {
-    label: "Clientes",
-    shortLabel: "Clientes",
+    label: "Interesados",
+    shortLabel: "Interés",
     icon: "◉",
     href: "/app/leads",
-    description: "Interesados, citas y seguimiento comercial.",
+    description: "Clientes potenciales, citas y seguimiento.",
     match: (pathname) => pathname.startsWith("/app/leads") || pathname.startsWith("/admin/leads"),
   },
   {
-    label: "Sitio",
-    shortLabel: "Sitio",
+    label: "Presencia",
+    shortLabel: "Marca",
     icon: "◇",
     href: "/app/public",
-    description: "Marca, inventario visible y vista pública.",
+    description: "Sitio público, marca y escaparate.",
     match: (pathname) => pathname.startsWith("/app/public") || pathname.startsWith("/admin/public"),
   },
   {
@@ -63,15 +63,7 @@ const primaryNavItems: PrimaryNavItem[] = [
     icon: "●",
     href: "/app/team",
     description: "Acceso interno y perfiles comerciales.",
-    match: (pathname) => pathname.startsWith("/app/team") || pathname.startsWith("/admin/team"),
-  },
-  {
-    label: "Suscripción",
-    shortLabel: "Plan",
-    icon: "◌",
-    href: "/app/subscription",
-    description: "Tipo de cuenta, asesores y usuarios internos.",
-    match: (pathname) => pathname.startsWith("/app/subscription"),
+    match: (pathname) => pathname.startsWith("/app/team") || pathname.startsWith("/app/subscription") || pathname.startsWith("/admin/team"),
   },
 ];
 
@@ -89,11 +81,11 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
       { label: "Nueva propiedad", href: "/app/properties/new" },
       { label: "Recorridos", href: "/app/tours" },
     ],
-    Clientes: [
+    Interesados: [
       { label: "Interesados", href: "/app/leads" },
       { label: "Recorridos", href: "/app/tours" },
     ],
-    Sitio: [
+    Presencia: [
       { label: "Inmobiliaria", href: "/app/public" },
       { label: "Perfiles comerciales", href: "/app/public/agents" },
       { label: "Inventario público", href: "/app/public/properties" },
@@ -102,10 +94,7 @@ function getSecondaryNavItems(workspaceSlug: string | null | undefined): Record<
     Equipo: [
       { label: "Usuarios y perfiles", href: "/app/team" },
       { label: "Inmobiliaria", href: "/app/public" },
-    ],
-    Suscripción: [
-      { label: "Plan y capacidad", href: "/app/subscription" },
-      { label: "Usuarios y perfiles", href: "/app/team" },
+      { label: "Cuenta", href: "/app/subscription" },
     ],
   };
 }
@@ -179,7 +168,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </select>
         ) : null}
 
-        <nav className="mt-3 grid grid-cols-6 gap-1.5">
+        <nav className="mt-3 grid grid-cols-5 gap-1.5">
           {primaryNavItems.map((item) => (
             <Link
               key={item.label}
@@ -270,6 +259,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               <div>
                 <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Sesión activa</p>
                 <p className="mt-2 text-sm font-medium text-slate-900">{user?.email ?? "Sin sesión cargada"}</p>
+                <Link href="/app/subscription" className="mt-3 inline-flex text-xs font-semibold text-slate-500 transition hover:text-slate-950">
+                  Ver cuenta y capacidad
+                </Link>
               </div>
               <button
                 type="button"

@@ -85,11 +85,12 @@ export default async function AppPage() {
           return (
             <div className="space-y-8">
               <section className={`grid gap-4 ${showInitialSetup ? "lg:grid-cols-[1.15fr_0.85fr]" : ""}`}>
-                <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-[linear-gradient(135deg,#07101f_0%,#172233_52%,#2c241b_100%)] p-6 text-white shadow-[0_22px_55px_rgba(15,23,42,0.18)]">
-                  <p className="text-xs uppercase tracking-[0.26em] text-white/45">Hoy en la inmobiliaria</p>
-                  <h2 className="mt-4 text-3xl font-semibold tracking-tight sm:text-4xl">Prioridades para vender con mejor seguimiento.</h2>
+                <article className="relative overflow-hidden rounded-[2.2rem] border border-white/60 bg-[radial-gradient(circle_at_18%_12%,rgba(215,171,91,0.34)_0%,transparent_30%),linear-gradient(135deg,#06101f_0%,#172234_48%,#2c2117_100%)] p-6 text-white shadow-[0_26px_70px_rgba(15,23,42,0.22)]">
+                  <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full border border-white/10 bg-white/5 blur-sm" />
+                  <p className="relative text-xs uppercase tracking-[0.30em] text-[#f0cf91]">Hoy en la inmobiliaria</p>
+                  <h2 className="relative mt-4 max-w-3xl text-3xl font-semibold tracking-tight sm:text-5xl sm:leading-[1.03]">Vende mejor sin perder interesados ni calidad visual.</h2>
                   <p className="mt-4 max-w-2xl text-sm leading-7 text-white/68">
-                    Revisa lo que mueve la operación diaria: publicar buenas fichas, atender interesados, asignar responsables y mantener el sitio público listo para compradores.
+                    Revisa lo que sí mueve la operación diaria: fichas bonitas, interesados atendidos, asesores claros y un sitio público que inspire confianza.
                   </p>
                   <div className="mt-6 flex flex-col gap-3 sm:flex-row">
                     <Link href="/app/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#c99a46]">
@@ -162,14 +163,19 @@ export default async function AppPage() {
                 </article>
 
                 <article className="rounded-[1.9rem] border border-[color:var(--admin-line)] bg-white p-6 shadow-[0_16px_35px_rgba(20,33,61,0.06)]">
-                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Administración</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">Plan, usuarios y capacidad</h3>
+                  <p className="text-xs uppercase tracking-[0.24em] text-slate-400">Escaparate público</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-slate-950">Cómo te ve un comprador</h3>
                   <p className="mt-2 text-sm leading-6 text-slate-600">
-                    Consulta el tipo de cuenta y la capacidad del equipo en una sección separada para no mezclarlo con las prioridades del día.
+                    Revisa la marca, logo, contacto y página pública sin mezclarlo con tareas administrativas.
                   </p>
-                  <Link href="/app/subscription" className="mt-5 inline-flex rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
-                    Ver suscripción
-                  </Link>
+                  <div className="mt-5 flex flex-wrap gap-3">
+                    <Link href="/app/public" className="rounded-full bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800">
+                      Pulir presencia
+                    </Link>
+                    <Link href={access.activeWorkspace.workspaceSlug ? `/w/${access.activeWorkspace.workspaceSlug}` : "/properties"} className="rounded-full border border-slate-200 bg-white px-5 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50">
+                      Ver sitio
+                    </Link>
+                  </div>
                 </article>
               </section>
 

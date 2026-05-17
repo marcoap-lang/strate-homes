@@ -192,6 +192,19 @@ function getPublicationScore(property: PropertyRecord) {
   };
 }
 
+function getOperationalStatusLabel(property: PropertyRecord) {
+  const publication = getPublicationScore(property);
+  if (property.status === "active") return "Publicada";
+  if (publication.score >= 85) return "Lista para publicar";
+  return "Borrador";
+}
+
+function getOperationalStatusClasses(label: string) {
+  if (label === "Publicada") return "bg-emerald-50 text-emerald-700";
+  if (label === "Lista para publicar") return "bg-amber-50 text-amber-800";
+  return "bg-slate-100 text-slate-600";
+}
+
 function formatImagePublicUrl(path: string) {
   const supabase = createSupabaseBrowserClient();
   const { data } = supabase.storage.from("property-images").getPublicUrl(path);
@@ -1268,6 +1281,10 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
   const [isRemovingImage, setIsRemovingImage] = useState(false);
   const [clientMessage, setClientMessage] = useState<string | null>(null);
   const [clientError, setClientError] = useState<string | null>(null);
+  const photoCoverage = getPhotoCoverageFromDraft(gallery);
+  const suggestedCover = gallery
+    .slice()
+    .sort((a, b) => scoreGalleryImageForCover(b) - scoreGalleryImageForCover(a))[0] ?? null;
 
   function normalizeGallery(nextGallery: GalleryImageDraft[]) {
     const coverIndex = nextGallery.findIndex((image) => image.is_cover);
@@ -1457,23 +1474,24 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
     <SectionCard>
       <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
         <div>
-          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Fotos de la propiedad</p>
-          <h3 className="mt-2 text-xl font-semibold text-stone-950">Galería visual</h3>
+          <p className="text-xs uppercase tracking-[0.2em] text-stone-500">Galería editorial</p>
+          <h3 className="mt-2 text-xl font-semibold text-stone-950">Fotos, portada y narrativa visual</h3>
           <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-            Sube fotos, elige portada y ajusta el orden. Sin checklist obligatorio.
+            Sube fotos, elige portada y revisa si la secuencia ya cuenta fachada, interior y espacios clave.
           </p>
         </div>
         <div className="flex flex-wrap gap-2 text-xs text-stone-500">
           <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2">{gallery.length} fotos</span>
+          <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2">{photoCoverage.completion}% cobertura</span>
           {gallery.some((image) => image.is_cover) ? <span className="rounded-full border border-emerald-200 bg-emerald-50 px-3 py-2 text-emerald-700">Portada lista</span> : <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-2">Sin portada</span>}
         </div>
       </div>
 
-      <div className="mt-6 rounded-3xl border border-dashed border-stone-300 bg-stone-50 p-4 sm:p-6">
+      <div className="mt-6 rounded-[1.8rem] border border-[#eadfce] bg-[linear-gradient(135deg,#fffaf2_0%,#f6efe4_100%)] p-4 sm:p-6">
         <div className="flex flex-col items-stretch justify-between gap-4 sm:flex-row sm:items-center">
           <div>
-            <p className="text-sm font-semibold text-stone-900">Agregar fotos</p>
-            <p className="mt-2 text-sm leading-6 text-stone-600">Acepta múltiples imágenes para construir la galería de una propiedad.</p>
+            <p className="text-sm font-semibold text-stone-900">Agregar fotos primero</p>
+            <p className="mt-2 text-sm leading-6 text-stone-600">Acepta múltiples imágenes. El sistema sugiere etiquetas y portada sin costo usando el nombre y contexto del archivo.</p>
           </div>
           <label className={`inline-flex w-full items-center justify-center rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46] sm:w-auto ${isUploading ? "pointer-events-none opacity-60" : "cursor-pointer"}`}>
             {isUploading ? "Subiendo..." : "Seleccionar fotos"}
@@ -1483,13 +1501,41 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
         <p className="mt-4 text-xs leading-5 text-stone-500">Máximo {MAX_PROPERTY_IMAGES} fotos · hasta {MAX_IMAGE_FILE_SIZE_MB} MB por archivo · optimización previa a la subida.</p>
       </div>
 
+      <div className="mt-5 grid gap-4 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="rounded-[1.5rem] border border-stone-200 bg-white p-4">
+          <p className="text-xs uppercase tracking-[0.22em] text-stone-500">Portada sugerida</p>
+          <p className="mt-2 text-sm leading-6 text-stone-600">
+            {suggestedCover ? `Mejor candidata: ${suggestedCover.alt_text || suggestedCover.suggestedLabel || "foto principal"}.` : "Sube fotos para sugerir una portada fuerte."}
+          </p>
+          {suggestedCover ? (
+            <button
+              type="button"
+              onClick={() => handleSelectCover(gallery.findIndex((image) => image.storage_path === suggestedCover.storage_path))}
+              className="mt-4 rounded-full bg-stone-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-stone-800"
+            >
+              Usar portada sugerida
+            </button>
+          ) : null}
+        </div>
+        <div className="rounded-[1.5rem] border border-stone-200 bg-stone-50 p-4">
+          <p className="text-xs uppercase tracking-[0.22em] text-stone-500">Checklist visual</p>
+          <div className="mt-3 grid gap-2 sm:grid-cols-5">
+            {photoCoverage.checks.map((item) => (
+              <span key={item.label} className={`rounded-full px-3 py-2 text-center text-xs font-semibold ${item.covered ? "bg-emerald-50 text-emerald-700" : "bg-white text-stone-500"}`}>
+                {item.label}
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       {clientMessage ? <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">{clientMessage}</p> : null}
       {clientError ? <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{clientError}</p> : null}
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {gallery.length ? (
           gallery.map((image, index) => (
-            <div key={`${image.storage_path}-${index}`} className="overflow-hidden rounded-[1.5rem] border border-stone-200 bg-white shadow-sm shadow-stone-200/30">
+            <div key={`${image.storage_path}-${index}`} className={`overflow-hidden rounded-[1.5rem] border bg-white shadow-sm shadow-stone-200/30 ${image.is_cover ? "border-[#d7ab5b]" : "border-stone-200"}`}>
               <div className="relative aspect-[4/3] bg-stone-100">
                 <Image src={image.previewUrl} alt={image.alt_text || `Foto ${index + 1}`} fill className="object-cover" unoptimized />
                 {image.is_cover ? (
@@ -1535,8 +1581,9 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
             </div>
           ))
         ) : (
-          <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500 md:col-span-2 xl:col-span-3">
-            Todavía no hay fotos cargadas. Empieza por fachada, sala y cocina para mejorar rápido la presentación.
+          <div className="rounded-[2rem] border border-dashed border-stone-300 bg-[radial-gradient(circle_at_top_left,#fff8ec_0%,#f8fafc_55%,#eef2f7_100%)] px-6 py-10 text-sm text-stone-600 md:col-span-2 xl:col-span-3">
+            <p className="text-lg font-semibold text-stone-950">La ficha todavía no tiene imagen protagonista.</p>
+            <p className="mt-2 max-w-2xl leading-7">Empieza por fachada, sala, cocina, recámara y baño. Con eso la propiedad ya puede verse como una ficha comercial seria.</p>
           </div>
         )}
       </div>
@@ -1553,11 +1600,12 @@ function PropertyImagesManager({ property }: { property: PropertyRecord }) {
 }
 
 export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties }: Pick<SharedProps, "workspaceName" | "workspaceSlug" | "properties">) {
+  const readyToPublishCount = properties.filter((property) => property.status !== "active" && getPublicationScore(property).score >= 85).length;
   return (
     <div className="space-y-6">
       <PropertiesHeader
-        title="Listado de propiedades"
-        description="Aquí vive el inventario real de la inmobiliaria. Desde esta vista priorizas lo existente y entras a editar cada propiedad por separado."
+        title="Inventario visual"
+        description="Prioriza propiedades por foto, portada, score de publicación e interesados. La meta es que cada ficha pueda compartirse con confianza."
         action={
           <Link href="/app/properties/new" className="rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-medium text-white transition hover:bg-[#c99a46]">
             Agregar propiedad
@@ -1579,8 +1627,8 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
           <p className="mt-3 text-2xl font-semibold text-stone-950">{properties.filter((property) => property.status === "active").length}</p>
         </SectionCard>
         <SectionCard>
-          <p className="text-sm text-stone-500">Con fotos</p>
-          <p className="mt-3 text-2xl font-semibold text-stone-950">{properties.filter((property) => property.property_images.length > 0).length}</p>
+          <p className="text-sm text-stone-500">Listas para publicar</p>
+          <p className="mt-3 text-2xl font-semibold text-stone-950">{readyToPublishCount}</p>
         </SectionCard>
       </div>
 
@@ -1589,6 +1637,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
           properties.map((property) => {
             const coverage = getPhotoCoverage(property);
             const publicationScore = getPublicationScore(property);
+            const operationalStatus = getOperationalStatusLabel(property);
             const interestedCount = property.lead_interests?.length ?? 0;
             const coverImage = property.property_images.find((image) => image.is_cover) ?? property.property_images[0] ?? null;
             const specsInline = [
@@ -1600,10 +1649,19 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
             return (
               <article key={property.id} className="overflow-hidden rounded-[1.5rem] border border-slate-200 bg-white shadow-[0_16px_40px_rgba(15,23,42,0.06)] sm:rounded-[2rem] sm:shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
                 <div className="relative h-48 bg-sky-50 sm:h-64">
-                  {coverImage ? <Image src={formatImagePublicUrl(coverImage.storage_path)} alt={coverImage.alt_text ?? property.title} fill className="object-cover" unoptimized /> : null}
+                  {coverImage ? (
+                    <Image src={formatImagePublicUrl(coverImage.storage_path)} alt={coverImage.alt_text ?? property.title} fill className="object-cover" unoptimized />
+                  ) : (
+                    <div className="flex h-full items-center justify-center bg-[radial-gradient(circle_at_20%_10%,#fff2d8_0%,#e8edf3_52%,#cfd8e3_100%)] px-6 text-center">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.26em] text-slate-500">Sin portada</p>
+                        <p className="mt-3 text-lg font-semibold text-slate-950">Agrega una imagen protagonista</p>
+                      </div>
+                    </div>
+                  )}
                   <div className="absolute left-4 top-4 flex items-center gap-2">
-                    <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${property.status === "active" ? "bg-emerald-50 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
-                      {property.status}
+                    <span className={`rounded-full px-3 py-1 text-[11px] uppercase tracking-[0.18em] ${getOperationalStatusClasses(operationalStatus)}`}>
+                      {operationalStatus}
                     </span>
                   </div>
                 </div>
@@ -1622,7 +1680,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                   <p className="text-lg font-medium text-slate-950">{property.currency_code} {property.price_amount?.toLocaleString("es-MX") ?? "—"}</p>
                   {specsInline ? <p className="text-sm text-slate-500">{specsInline}</p> : null}
                   <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
-                    <p>Cobertura visual: {coverage.completion}%</p>
+                    <p>Visual: {coverage.completion}%</p>
                     <p>Score publicación: {publicationScore.score}%</p>
                     <p>{interestedCount} interesados</p>
                   </div>
@@ -1642,7 +1700,7 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
                   </div>
                   <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
                     <Link href={`/app/properties/${property.id}`} className="rounded-full bg-[#d7ab5b] px-4 py-3 text-center text-sm font-medium text-white transition hover:bg-[#c99a46] sm:py-2">
-                      Editar
+                      Completar
                     </Link>
                     <Link href={`/app/properties/${property.id}/interested`} className="rounded-full border border-slate-200 bg-white px-4 py-3 text-center text-sm font-medium text-slate-700 transition hover:bg-slate-50 sm:py-2">
                       Ver interesados
@@ -1656,8 +1714,12 @@ export function AdminPropertiesIndex({ workspaceName, workspaceSlug, properties 
             );
           })
         ) : (
-          <div className="rounded-2xl border border-dashed border-stone-300 bg-stone-50 px-4 py-5 text-sm text-stone-500 md:col-span-2 xl:col-span-3">
-            Todavía no hay propiedades registradas. Empieza creando la primera desde “Agregar propiedad”.
+          <div className="rounded-[2rem] border border-dashed border-stone-300 bg-[radial-gradient(circle_at_top_left,#fff8ec_0%,#f8fafc_58%,#edf3f8_100%)] px-6 py-10 text-sm text-stone-600 md:col-span-2 xl:col-span-3">
+            <p className="text-2xl font-semibold text-stone-950">Tu inventario todavía está vacío.</p>
+            <p className="mt-3 max-w-2xl leading-7">Crea la primera propiedad, sube fotos y marca portada. A partir de ahí aparecerán score, vista pública e interesados.</p>
+            <Link href="/app/properties/new" className="mt-6 inline-flex rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#c99a46]">
+              Agregar primera propiedad
+            </Link>
           </div>
         )}
       </div>
@@ -1671,7 +1733,7 @@ export function AdminPropertyCreateView({ agents }: Pick<SharedProps, "agents">)
     <div className="space-y-6">
       <PropertiesHeader
         title="Agregar propiedad"
-        description="Crea una nueva propiedad en una vista enfocada y sin mezclarla con el inventario existente."
+        description="Empieza con la ficha mínima, guarda y pasa enseguida a fotos/portada. La experiencia está pensada para que la imagen guíe la publicación."
         action={
           <Link href="/app/properties" className="rounded-full border border-stone-300 px-5 py-3 text-center text-sm font-medium text-stone-700 transition hover:bg-stone-100">
             Volver al listado

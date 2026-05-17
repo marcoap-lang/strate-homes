@@ -81,9 +81,41 @@ export function AdminPublicBrandingManager({ workspace }: { workspace: Workspace
   return (
     <div className="space-y-6">
       <div className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-[0_20px_60px_rgba(15,23,42,0.06)]">
-        <p className="text-xs uppercase tracking-[0.2em] text-slate-500">Inmobiliaria</p>
-        <h3 className="mt-2 text-2xl font-semibold text-slate-950">Marca y presencia pública</h3>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Edita la cara pública del negocio: identidad comercial, hero y datos de contacto. Esta capa debe sentirse como sitio premium, no como dashboard.</p>
+        <p className="text-xs uppercase tracking-[0.24em] text-[#9b6f21]">Escaparate público</p>
+        <h3 className="mt-2 text-3xl font-semibold tracking-tight text-slate-950">Marca, contacto e imagen de la inmobiliaria</h3>
+        <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-600">Esta es la cara pública del negocio. El logo, la portada y el WhatsApp deben verse suficientemente claros para que un comprador confíe antes de escribir.</p>
+      </div>
+
+      <div className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <div className="overflow-hidden rounded-[2rem] border border-[#e7dccb] bg-[#17120e] text-white shadow-[0_24px_70px_rgba(15,23,42,0.18)]">
+          <div className="relative min-h-72">
+            {heroUrl ? <Image src={heroUrl} alt="Vista previa pública" fill className="object-cover opacity-55" unoptimized /> : <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_10%,#6f5a3a_0%,#201915_48%,#0f1117_100%)]" />}
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(12,10,8,0.82)_0%,rgba(12,10,8,0.38)_100%)]" />
+            <div className="absolute inset-x-0 bottom-0 p-6">
+              <div className="mb-6 flex h-20 w-32 items-center justify-center rounded-[1.4rem] border border-white/15 bg-white/86 p-3">
+                {logoUrl ? <Image src={logoUrl} alt="Logo" width={180} height={80} className="max-h-full w-auto object-contain" unoptimized /> : <span className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">Logo</span>}
+              </div>
+              <p className="text-xs uppercase tracking-[0.28em] text-[#d7ab5b]">Vista previa</p>
+              <h4 className="mt-3 max-w-lg text-3xl font-semibold leading-tight">{workspace.brandName ?? workspace.workspaceName ?? "Tu inmobiliaria"}</h4>
+              <p className="mt-3 max-w-xl text-sm leading-7 text-white/72">{workspace.publicClaim ?? "Claim comercial de la inmobiliaria"}</p>
+              {workspace.workspaceSlug ? <a href={`/w/${workspace.workspaceSlug}`} target="_blank" rel="noreferrer" className="mt-5 inline-flex rounded-full bg-[#d7ab5b] px-5 py-3 text-sm font-semibold text-[#17120e]">Abrir sitio público</a> : null}
+            </div>
+          </div>
+        </div>
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          {[
+            ["Marca de la inmobiliaria", workspace.brandName ? "Lista" : "Pendiente"],
+            ["Logo visible", logoUrl ? "Listo" : "Pendiente"],
+            ["Imagen de portada", heroUrl ? "Lista" : "Pendiente"],
+            ["WhatsApp comercial", workspace.publicWhatsapp || workspace.publicPhone ? "Listo" : "Pendiente"],
+          ].map(([label, status]) => (
+            <div key={label} className="rounded-[1.5rem] border border-slate-200 bg-white px-4 py-4">
+              <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{label}</p>
+              <p className={`mt-3 text-lg font-semibold ${status === "Listo" || status === "Lista" ? "text-emerald-700" : "text-amber-700"}`}>{status}</p>
+            </div>
+          ))}
+        </div>
       </div>
 
       <form action={action} className="rounded-[1.5rem] border border-slate-200 bg-white p-4 sm:rounded-[2rem] sm:p-6 shadow-sm shadow-slate-200/30 space-y-6">
