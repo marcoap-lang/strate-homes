@@ -201,23 +201,14 @@ export default async function PlatformWorkspacePage({
 
             <Card>
               <p className="text-xs uppercase tracking-[0.22em] text-slate-400">Soporte seguro</p>
+              <h2 className="mt-2 text-2xl font-semibold">Acciones de cuenta</h2>
               <div className="mt-4 space-y-5">
                 <OwnerChangeForm workspaceId={workspace.id} members={state.members} />
                 <WorkspaceStatusForm workspaceId={workspace.id} isActive={workspace.is_active} />
+                <WorkspaceDeleteForm workspaceId={workspace.id} workspaceName={workspace.brand_name ?? workspace.name} />
                 <div className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm text-slate-600">
                   Para recovery de usuario, pídele abrir `/login?next=/app`, elegir Recuperar y usar su correo.
                 </div>
-              </div>
-            </Card>
-
-            <Card className="border-rose-200 bg-rose-50/70">
-              <p className="text-xs uppercase tracking-[0.22em] text-rose-500">Zona de riesgo</p>
-              <h2 className="mt-2 text-2xl font-semibold text-rose-950">Eliminar cuenta de prueba</h2>
-              <p className="mt-2 text-sm leading-6 text-rose-800">
-                Esta acción es para limpiar organizaciones basura de las primeras pruebas. No edita inventario: elimina la organización completa.
-              </p>
-              <div className="mt-4">
-                <WorkspaceDeleteForm workspaceId={workspace.id} workspaceName={workspace.brand_name ?? workspace.name} />
               </div>
             </Card>
 
