@@ -12,6 +12,9 @@ export async function GET(request: NextRequest) {
   const source = url.searchParams.get("source");
   const path = url.searchParams.get("path");
   const target = url.searchParams.get("target");
+  const adCampaignRequestId = url.searchParams.get("adCampaignRequestId") ?? url.searchParams.get("ad_campaign");
+  const utmSource = url.searchParams.get("utm_source");
+  const utmCampaign = url.searchParams.get("utm_campaign");
 
   if (workspaceId && eventType && allowedEvents.has(eventType)) {
     const supabase = await createSupabaseServerClient();
@@ -19,9 +22,12 @@ export async function GET(request: NextRequest) {
       workspace_id: workspaceId,
       property_id: propertyId || null,
       agent_id: agentId || null,
+      ad_campaign_request_id: adCampaignRequestId || null,
       event_type: eventType,
       path,
       source,
+      utm_source: utmSource,
+      utm_campaign: utmCampaign,
       metadata: { target: target ? "external" : "internal" },
     });
   }

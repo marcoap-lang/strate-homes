@@ -95,10 +95,16 @@ export default async function WorkspacePropertyDetailPage({
   searchParams,
 }: {
   params: Promise<{ workspaceSlug: string; slug: string }>;
-  searchParams?: Promise<{ advisor?: string }>;
+  searchParams?: Promise<{ advisor?: string; utm_source?: string; utm_campaign?: string; ad_campaign?: string; adCampaignRequestId?: string }>;
 }) {
   const { workspaceSlug, slug } = await params;
-  const preferredAdvisorSlug = (await searchParams)?.advisor ?? null;
+  const resolvedSearchParams = await searchParams;
+  const preferredAdvisorSlug = resolvedSearchParams?.advisor ?? null;
+  const campaign = {
+    adCampaignRequestId: resolvedSearchParams?.ad_campaign ?? resolvedSearchParams?.adCampaignRequestId ?? null,
+    utmSource: resolvedSearchParams?.utm_source ?? null,
+    utmCampaign: resolvedSearchParams?.utm_campaign ?? null,
+  };
   const property = await getPublicPropertyBySlug(slug, workspaceSlug);
 
   if (!property) notFound();
@@ -110,7 +116,7 @@ export default async function WorkspacePropertyDetailPage({
   return (
     <>
       {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} /> : null}
-      <PublicPropertyDetailPage property={property} similarProperties={similarProperties} workspaceSlug={workspaceSlug} preferredAdvisorSlug={preferredAdvisorSlug} />
+      <PublicPropertyDetailPage property={property} similarProperties={similarProperties} workspaceSlug={workspaceSlug} preferredAdvisorSlug={preferredAdvisorSlug} campaign={campaign} />
     </>
   );
 }

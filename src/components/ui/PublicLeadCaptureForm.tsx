@@ -1,7 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { captureLeadFromPropertyAction, type LeadCaptureState } from "@/app/admin/actions";
 
 const initialState: LeadCaptureState = { success: false, message: "" };
@@ -9,6 +9,11 @@ const initialState: LeadCaptureState = { success: false, message: "" };
 export function PublicLeadCaptureForm({ propertyId, workspaceId }: { propertyId: string; workspaceId: string }) {
   const [state, action, pending] = useActionState(captureLeadFromPropertyAction, initialState);
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const utmSource = searchParams.get("utm_source") ?? "";
+  const utmCampaign = searchParams.get("utm_campaign") ?? "";
+  const adCampaignRequestId = searchParams.get("ad_campaign") ?? searchParams.get("adCampaignRequestId") ?? "";
+  const landingPath = `${pathname}${searchParams.toString() ? `?${searchParams.toString()}` : ""}`;
 
   return (
     <form action={action} className="space-y-4 rounded-[2rem] bg-white p-6 shadow-sm">
@@ -16,7 +21,10 @@ export function PublicLeadCaptureForm({ propertyId, workspaceId }: { propertyId:
       <input type="hidden" name="workspaceId" value={workspaceId} />
       <input type="hidden" name="sourceType" value="property_form" />
       <input type="hidden" name="sourceDetail" value="public_property_detail" />
-      <input type="hidden" name="landingPath" value={pathname} />
+      <input type="hidden" name="landingPath" value={landingPath} />
+      <input type="hidden" name="utmSource" value={utmSource} />
+      <input type="hidden" name="utmCampaign" value={utmCampaign} />
+      <input type="hidden" name="adCampaignRequestId" value={adCampaignRequestId} />
 
       <div>
         <p className="text-xs uppercase tracking-[0.28em] text-slate-500">Solicitar información</p>

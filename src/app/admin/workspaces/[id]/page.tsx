@@ -12,6 +12,7 @@ import {
   WorkspaceStatusForm,
 } from "@/components/ui/PlatformAdminForms";
 import { getPlanLabel } from "@/lib/commercial";
+import { buildWorkspacePropertyPath, getPublicBaseUrl } from "@/lib/public-links";
 import { getPlatformWorkspaceDetail } from "@/lib/platform-admin";
 
 function healthClass(score: number) {
@@ -26,6 +27,17 @@ function Card({ children, className = "" }: { children: React.ReactNode; classNa
 
 function titleize(value: string) {
   return value.replaceAll("_", " ");
+}
+
+function buildCampaignUrl(request: { id: string; channels: string[]; workspace_slug: string | null; property_slug: string | null }) {
+  const path = request.property_slug && request.workspace_slug ? buildWorkspacePropertyPath(request.workspace_slug, request.property_slug) : request.workspace_slug ? `/w/${request.workspace_slug}` : "/";
+  const url = new URL(`${getPublicBaseUrl()}${path}`);
+  const source = request.channels.includes("google") ? "google" : request.channels.includes("facebook") ? "facebook" : request.channels.includes("instagram") ? "instagram" : "paid";
+  url.searchParams.set("utm_source", source);
+  url.searchParams.set("utm_medium", source === "google" ? "paid_search" : "paid_social");
+  url.searchParams.set("utm_campaign", `strate_${request.id.slice(0, 8)}`);
+  url.searchParams.set("ad_campaign", request.id);
+  return url.toString();
 }
 
 export default async function PlatformWorkspacePage({
@@ -169,6 +181,8 @@ export default async function PlatformWorkspacePage({
                       <div>
                         <p className="font-semibold">{request.channels.join(", ") || "Canales pendientes"} · {request.objective}</p>
                         <p className="mt-1 text-xs text-slate-500">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "presupuesto por definir"} · {request.target_area ?? "zona pendiente"}</p>
+                        <p className="mt-2 text-xs text-slate-500">{request.visits_count} visitas · {request.whatsapp_clicks_count} WhatsApp · {request.lead_forms_count} formularios</p>
+                        <a href={buildCampaignUrl(request)} target="_blank" rel="noreferrer" className="mt-2 block break-all text-xs font-medium text-slate-700 underline-offset-4 hover:underline">{buildCampaignUrl(request)}</a>
                         {request.notes ? <p className="mt-2 text-sm leading-6 text-slate-600">{request.notes}</p> : null}
                       </div>
                       <AdCampaignStatusForm request={request} />

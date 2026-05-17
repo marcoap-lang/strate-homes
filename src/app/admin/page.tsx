@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AdCampaignStatusForm, AnnouncementForm, AnnouncementToggleForm } from "@/components/ui/PlatformAdminForms";
 import { getPlanLabel } from "@/lib/commercial";
+import { buildWorkspacePropertyPath, getPublicBaseUrl } from "@/lib/public-links";
 import { getPlatformAdminState, type PlatformActivityEvent } from "@/lib/platform-admin";
 
 function formatEventLabel(value: string) {
@@ -46,6 +47,17 @@ function commercialStatusLabel(value: string) {
     churn: "Churn",
   };
   return labels[value] ?? value;
+}
+
+function buildCampaignUrl(request: { id: string; channels: string[]; workspace_slug: string | null; property_slug: string | null }) {
+  const path = request.property_slug && request.workspace_slug ? buildWorkspacePropertyPath(request.workspace_slug, request.property_slug) : request.workspace_slug ? `/w/${request.workspace_slug}` : "/";
+  const url = new URL(`${getPublicBaseUrl()}${path}`);
+  const source = request.channels.includes("google") ? "google" : request.channels.includes("facebook") ? "facebook" : request.channels.includes("instagram") ? "instagram" : "paid";
+  url.searchParams.set("utm_source", source);
+  url.searchParams.set("utm_medium", source === "google" ? "paid_search" : "paid_social");
+  url.searchParams.set("utm_campaign", `strate_${request.id.slice(0, 8)}`);
+  url.searchParams.set("ad_campaign", request.id);
+  return url.toString();
 }
 
 function Forbidden({ email }: { email: string | null }) {
@@ -224,6 +236,8 @@ export default async function AdminPage({
                         <Link href={`/admin/workspaces/${request.workspace_id}`} className="text-sm font-semibold text-white transition hover:text-[#d7ab5b]">{request.workspace_name ?? "Inmobiliaria"}</Link>
                         <p className="mt-1 text-xs text-white/45">{request.channels.join(", ") || "sin canal"} · {request.objective} · {request.status}</p>
                         <p className="mt-1 text-xs text-white/45">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "presupuesto por definir"}</p>
+                        <p className="mt-2 text-xs text-white/60">{request.visits_count} visitas · {request.whatsapp_clicks_count} WhatsApp · {request.lead_forms_count} formularios</p>
+                        <a href={buildCampaignUrl(request)} target="_blank" rel="noreferrer" className="mt-2 block break-all text-xs text-[#d7ab5b] underline-offset-4 hover:underline">{buildCampaignUrl(request)}</a>
                       </div>
                       <div className="rounded-2xl bg-white p-2 text-slate-950">
                         <AdCampaignStatusForm request={request} />

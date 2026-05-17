@@ -135,10 +135,15 @@ export type PlatformAdCampaignRequest = {
   channels: string[];
   monthly_budget_mxn: number | null;
   target_area: string | null;
+  promoted_property_id: string | null;
   property_title: string | null;
+  property_slug: string | null;
   notes: string | null;
   status: string;
   created_at: string;
+  visits_count: number;
+  whatsapp_clicks_count: number;
+  lead_forms_count: number;
 };
 
 export type PlatformFeatureFlag = {
@@ -247,16 +252,19 @@ function normalizeAdCampaignRequests(data: unknown[] | null | undefined): Platfo
       channels?: string[] | null;
       monthly_budget_mxn?: number | null;
       target_area?: string | null;
+      promoted_property_id?: string | null;
       notes?: string | null;
       status: string;
       created_at: string;
       workspaces?: { name?: string | null; slug?: string | null } | Array<{ name?: string | null; slug?: string | null }> | null;
       profiles?: { email?: string | null } | Array<{ email?: string | null }> | null;
-      properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
+      properties?: { title?: string | null; slug?: string | null } | Array<{ title?: string | null; slug?: string | null }> | null;
+      public_conversion_events?: Array<{ event_type?: string | null }> | null;
     };
     const workspace = firstJoined(request.workspaces);
     const profile = firstJoined(request.profiles);
     const property = firstJoined(request.properties);
+    const conversionEvents = request.public_conversion_events ?? [];
 
     return {
       id: request.id,
@@ -268,10 +276,15 @@ function normalizeAdCampaignRequests(data: unknown[] | null | undefined): Platfo
       channels: request.channels ?? [],
       monthly_budget_mxn: request.monthly_budget_mxn ?? null,
       target_area: request.target_area ?? null,
+      promoted_property_id: request.promoted_property_id ?? null,
       property_title: property?.title ?? null,
+      property_slug: property?.slug ?? null,
       notes: request.notes ?? null,
       status: request.status,
       created_at: request.created_at,
+      visits_count: conversionEvents.filter((event) => event.event_type === "property_view").length,
+      whatsapp_clicks_count: conversionEvents.filter((event) => event.event_type === "whatsapp_click").length,
+      lead_forms_count: conversionEvents.filter((event) => event.event_type === "lead_form_submit").length,
     };
   });
 }
@@ -555,7 +568,7 @@ export async function getPlatformAdminState(searchParams: { q?: string; health?:
     supabase.from("platform_announcements").select("id, title, body, audience, is_active, starts_at, ends_at, created_at").order("created_at", { ascending: false }).limit(8),
     supabase
       .from("ad_campaign_requests")
-      .select("id, workspace_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title)")
+      .select("id, workspace_id, promoted_property_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title, slug), public_conversion_events(event_type)")
       .order("created_at", { ascending: false })
       .limit(8),
   ]);
@@ -656,7 +669,7 @@ export async function getPlatformWorkspaceDetail(workspaceId: string): Promise<P
     supabase.from("workspace_followups").select("id, title, due_at, status, completed_at, created_at, profiles:assigned_profile_id(full_name, email)").eq("workspace_id", workspaceId).order("created_at", { ascending: false }).limit(20),
     supabase
       .from("ad_campaign_requests")
-      .select("id, workspace_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title)")
+      .select("id, workspace_id, promoted_property_id, objective, channels, monthly_budget_mxn, target_area, notes, status, created_at, workspaces:workspace_id(name, slug), profiles:requested_by_profile_id(email), properties:promoted_property_id(title, slug), public_conversion_events(event_type)")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: false })
       .limit(20),

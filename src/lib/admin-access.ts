@@ -52,7 +52,12 @@ export type AdCampaignRequestRecord = {
   target_area: string | null;
   status: string;
   created_at: string;
+  promoted_property_id: string | null;
   property_title: string | null;
+  property_slug: string | null;
+  visits_count: number;
+  whatsapp_clicks_count: number;
+  lead_forms_count: number;
 };
 
 type JoinedLeadRecord = {
@@ -203,6 +208,7 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     { data: subscription },
     { data: conversionEvents },
     { data: adCampaignRequests },
+    { data: adCampaignConversionEvents },
   ] = await Promise.all([
     supabase
       .from("properties")
@@ -402,9 +408,14 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
       .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
     supabase
       .from("ad_campaign_requests")
-      .select("id, objective, channels, monthly_budget_mxn, target_area, status, created_at, properties:promoted_property_id(title)")
+      .select("id, promoted_property_id, objective, channels, monthly_budget_mxn, target_area, status, created_at, properties:promoted_property_id(title, slug)")
       .eq("workspace_id", activeWorkspace.workspaceId)
       .order("created_at", { ascending: false }),
+    supabase
+      .from("public_conversion_events")
+      .select("ad_campaign_request_id, event_type")
+      .eq("workspace_id", activeWorkspace.workspaceId)
+      .not("ad_campaign_request_id", "is", null),
   ]);
 
   if (propertiesError) throw propertiesError;
@@ -594,25 +605,45 @@ export async function getAdminAccessState(): Promise<AdminAccessState> {
     };
   });
 
+  const campaignEventCounts = new Map<string, { visits: number; whatsapp: number; leads: number }>();
+  (adCampaignConversionEvents ?? []).forEach((event) => {
+    if (!event.ad_campaign_request_id) return;
+    const current = campaignEventCounts.get(event.ad_campaign_request_id) ?? { visits: 0, whatsapp: 0, leads: 0 };
+    if (event.event_type === "property_view") current.visits += 1;
+    if (event.event_type === "whatsapp_click") current.whatsapp += 1;
+    if (event.event_type === "lead_form_submit") current.leads += 1;
+    campaignEventCounts.set(event.ad_campaign_request_id, current);
+  });
+
   const normalizedAdCampaignRequests: AdCampaignRequestRecord[] = ((adCampaignRequests ?? []) as Array<{
     id: string;
+    promoted_property_id: string | null;
     objective: string;
     channels: string[] | null;
     monthly_budget_mxn: number | null;
     target_area: string | null;
     status: string;
     created_at: string;
-    properties?: { title?: string | null } | Array<{ title?: string | null }> | null;
-  }>).map((request) => ({
-    id: request.id,
-    objective: request.objective,
-    channels: request.channels ?? [],
-    monthly_budget_mxn: request.monthly_budget_mxn,
-    target_area: request.target_area,
-    status: request.status,
-    created_at: request.created_at,
-    property_title: firstJoined(request.properties)?.title ?? null,
-  }));
+    properties?: { title?: string | null; slug?: string | null } | Array<{ title?: string | null; slug?: string | null }> | null;
+  }>).map((request) => {
+    const property = firstJoined(request.properties);
+    const counts = campaignEventCounts.get(request.id) ?? { visits: 0, whatsapp: 0, leads: 0 };
+    return {
+      id: request.id,
+      objective: request.objective,
+      channels: request.channels ?? [],
+      monthly_budget_mxn: request.monthly_budget_mxn,
+      target_area: request.target_area,
+      status: request.status,
+      created_at: request.created_at,
+      promoted_property_id: request.promoted_property_id ?? null,
+      property_title: property?.title ?? null,
+      property_slug: property?.slug ?? null,
+      visits_count: counts.visits,
+      whatsapp_clicks_count: counts.whatsapp,
+      lead_forms_count: counts.leads,
+    };
+  });
 
   return {
     kind: "ready",

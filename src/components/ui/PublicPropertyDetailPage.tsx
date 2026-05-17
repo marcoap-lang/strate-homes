@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { PublicBrandHeader } from "@/components/ui/PublicBrandHeader";
+import { PublicConversionTracker } from "@/components/ui/PublicConversionTracker";
 import { PublicLeadCaptureForm } from "@/components/ui/PublicLeadCaptureForm";
 import { PublicLegalDisclaimer } from "@/components/ui/PublicLegalDisclaimer";
 import { PublicShareActions } from "@/components/ui/PublicShareActions";
@@ -20,6 +21,7 @@ function buildConversionUrl({
   eventType,
   path,
   target,
+  campaign,
 }: {
   workspaceId?: string | null;
   propertyId?: string | null;
@@ -27,6 +29,11 @@ function buildConversionUrl({
   eventType: string;
   path: string;
   target?: string | null;
+  campaign?: {
+    adCampaignRequestId?: string | null;
+    utmSource?: string | null;
+    utmCampaign?: string | null;
+  };
 }) {
   if (!workspaceId) return target ?? "#";
   const params = new URLSearchParams({
@@ -38,6 +45,9 @@ function buildConversionUrl({
   if (propertyId) params.set("propertyId", propertyId);
   if (agentId) params.set("agentId", agentId);
   if (target) params.set("target", target);
+  if (campaign?.adCampaignRequestId) params.set("adCampaignRequestId", campaign.adCampaignRequestId);
+  if (campaign?.utmSource) params.set("utm_source", campaign.utmSource);
+  if (campaign?.utmCampaign) params.set("utm_campaign", campaign.utmCampaign);
   return `/api/public-conversions?${params.toString()}`;
 }
 
@@ -46,11 +56,17 @@ export function PublicPropertyDetailPage({
   similarProperties,
   workspaceSlug,
   preferredAdvisorSlug,
+  campaign,
 }: {
   property: PublicProperty;
   similarProperties: PublicProperty[];
   workspaceSlug?: string | null;
   preferredAdvisorSlug?: string | null;
+  campaign?: {
+    adCampaignRequestId?: string | null;
+    utmSource?: string | null;
+    utmCampaign?: string | null;
+  };
 }) {
   const gallery = property.images;
   const cover = gallery[0] ?? null;
@@ -99,6 +115,7 @@ export function PublicPropertyDetailPage({
         eventType: "whatsapp_click",
         path: `${propertyBasePath}/${property.slug}`,
         target: whatsappUrl,
+        campaign,
       })
     : null;
   const highlights = [
@@ -121,6 +138,7 @@ export function PublicPropertyDetailPage({
 
   return (
     <main className="min-h-screen bg-[#f4efe8] px-6 pb-28 pt-10 text-slate-950 md:pb-10 lg:px-8">
+      <PublicConversionTracker workspaceId={property.workspaceId} propertyId={property.id} agentId={contactEntity?.id ?? null} />
       <PublicBrandHeader
         brandName={property.workspaceBrandName ?? property.workspaceName ?? "Strate Homes"}
         logoUrl={property.workspaceLogoUrl}

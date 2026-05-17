@@ -5,6 +5,7 @@ import { useActionState, useRef, useState, useTransition } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
 import { createAdCampaignRequestAction, updateWorkspaceBrandingAction, type AdCampaignRequestState, type WorkspaceBrandingState } from "@/app/admin/actions";
 import type { AdCampaignRequestRecord } from "@/lib/admin-access";
+import { buildWorkspacePropertyPath, getPublicBaseUrl } from "@/lib/public-links";
 
 const initialState: WorkspaceBrandingState = { success: false, message: "" };
 const initialAdState: AdCampaignRequestState = { success: false, message: "" };
@@ -32,12 +33,46 @@ type WorkspaceBrandingRecord = {
   publicPrivacyUrl?: string | null;
 };
 
-function AdvertisingRequestManager({ properties, requests }: {
+function getCampaignSource(request: AdCampaignRequestRecord) {
+  if (request.channels.includes("google")) return "google";
+  if (request.channels.includes("facebook")) return "facebook";
+  if (request.channels.includes("instagram")) return "instagram";
+  return request.channels[0] ?? "paid";
+}
+
+function buildCampaignUrl(request: AdCampaignRequestRecord, workspaceSlug?: string | null) {
+  const path = request.property_slug
+    ? buildWorkspacePropertyPath(workspaceSlug, request.property_slug)
+    : workspaceSlug
+      ? `/w/${workspaceSlug}`
+      : "/";
+  const url = new URL(`${getPublicBaseUrl()}${path}`);
+  const source = getCampaignSource(request);
+  url.searchParams.set("utm_source", source);
+  url.searchParams.set("utm_medium", source === "google" ? "paid_search" : "paid_social");
+  url.searchParams.set("utm_campaign", `strate_${request.id.slice(0, 8)}`);
+  url.searchParams.set("ad_campaign", request.id);
+  return url.toString();
+}
+
+function AdvertisingRequestManager({ properties, requests, workspaceSlug }: {
   properties: Array<{ id: string; title: string; status: string }>;
   requests: AdCampaignRequestRecord[];
+  workspaceSlug?: string | null;
 }) {
   const [state, action, pending] = useActionState(createAdCampaignRequestAction, initialAdState);
+  const [copiedCampaignId, setCopiedCampaignId] = useState<string | null>(null);
   const activeProperties = properties.filter((property) => property.status === "active");
+
+  async function copyCampaignUrl(request: AdCampaignRequestRecord) {
+    try {
+      await navigator.clipboard.writeText(buildCampaignUrl(request, workspaceSlug));
+      setCopiedCampaignId(request.id);
+      window.setTimeout(() => setCopiedCampaignId(null), 1800);
+    } catch {
+      setCopiedCampaignId(null);
+    }
+  }
 
   return (
     <section id="publicidad" className="rounded-[2rem] border border-[#eadfce] bg-[linear-gradient(135deg,#17120e_0%,#2c2117_100%)] p-5 text-white shadow-[0_24px_70px_rgba(15,23,42,0.20)] sm:p-6">
@@ -98,6 +133,14 @@ function AdvertisingRequestManager({ properties, requests }: {
           <article key={request.id} className="rounded-2xl border border-white/10 bg-white/8 px-4 py-3 text-sm">
             <p className="font-semibold">{request.channels.join(", ") || "Canales pendientes"} · {request.status}</p>
             <p className="mt-1 text-white/58">{request.property_title ?? "Campaña general"} · {request.monthly_budget_mxn ? `$${request.monthly_budget_mxn.toLocaleString("es-MX")} MXN` : "Presupuesto por definir"}</p>
+            <div className="mt-3 grid gap-2 rounded-2xl border border-white/10 bg-black/16 p-3">
+              <p className="text-xs uppercase tracking-[0.2em] text-white/40">Resultados</p>
+              <p className="text-white/78">{request.visits_count} visitas · {request.whatsapp_clicks_count} WhatsApp · {request.lead_forms_count} formularios</p>
+              <input readOnly value={buildCampaignUrl(request, workspaceSlug)} className="w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-xs text-white/78 outline-none" />
+              <button type="button" onClick={() => copyCampaignUrl(request)} className="w-fit rounded-full bg-white px-4 py-2 text-xs font-semibold text-slate-950 transition hover:bg-white/90">
+                {copiedCampaignId === request.id ? "Link copiado" : "Copiar link de campaña"}
+              </button>
+            </div>
           </article>
         ))}
       </div>
@@ -308,7 +351,7 @@ export function AdminPublicBrandingManager({ workspace, properties = [], adCampa
         </button>
       </form>
 
-      {showAdvertising ? <AdvertisingRequestManager properties={properties} requests={adCampaignRequests} /> : null}
+      {showAdvertising ? <AdvertisingRequestManager properties={properties} requests={adCampaignRequests} workspaceSlug={workspace.workspaceSlug} /> : null}
     </div>
   );
 }

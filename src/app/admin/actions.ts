@@ -157,27 +157,36 @@ async function recordPublicConversionEvent({
   workspaceId,
   propertyId,
   agentId = null,
+  adCampaignRequestId = null,
   eventType,
   path,
   source,
+  utmSource,
+  utmCampaign,
   metadata = {},
 }: {
   supabase: Awaited<ReturnType<typeof createSupabaseServerClient>>;
   workspaceId: string;
   propertyId?: string | null;
   agentId?: string | null;
+  adCampaignRequestId?: string | null;
   eventType: "property_view" | "whatsapp_click" | "lead_form_submit" | "advisor_click" | "demo_request";
   path?: string | null;
   source?: string | null;
+  utmSource?: string | null;
+  utmCampaign?: string | null;
   metadata?: Record<string, unknown>;
 }) {
   const { error } = await supabase.from("public_conversion_events").insert({
     workspace_id: workspaceId,
     property_id: propertyId ?? null,
     agent_id: agentId,
+    ad_campaign_request_id: adCampaignRequestId,
     event_type: eventType,
     path: path ?? null,
     source: source ?? null,
+    utm_source: utmSource ?? null,
+    utm_campaign: utmCampaign ?? null,
     metadata,
   });
 
@@ -634,6 +643,9 @@ export async function captureLeadFromPropertyAction(
     const sourceType = normalizeNullable(formData.get("sourceType")) ?? "property_form";
     const sourceDetail = normalizeNullable(formData.get("sourceDetail"));
     const landingPath = normalizeNullable(formData.get("landingPath"));
+    const utmSource = normalizeNullable(formData.get("utmSource"));
+    const utmCampaign = normalizeNullable(formData.get("utmCampaign"));
+    const adCampaignRequestId = normalizeNullable(formData.get("adCampaignRequestId"));
 
     if (!propertyId || !workspaceId) {
       return { success: false, message: "No pudimos relacionar tu mensaje con la propiedad." };
@@ -654,8 +666,9 @@ export async function captureLeadFromPropertyAction(
         source_type: sourceType,
         source_detail: sourceDetail,
         landing_path: landingPath,
-        utm_source: normalizeNullable(formData.get("utmSource")),
-        utm_campaign: normalizeNullable(formData.get("utmCampaign")),
+        utm_source: utmSource,
+        utm_campaign: utmCampaign,
+        ad_campaign_request_id: adCampaignRequestId,
         status: "new",
       })
       .select("id")
@@ -682,7 +695,7 @@ export async function captureLeadFromPropertyAction(
       eventType: "lead_received",
       entityType: "lead",
       entityId: lead.id,
-      metadata: { source_type: sourceType, source_detail: sourceDetail, property_id: propertyId },
+      metadata: { source_type: sourceType, source_detail: sourceDetail, property_id: propertyId, ad_campaign_request_id: adCampaignRequestId, utm_source: utmSource, utm_campaign: utmCampaign },
     });
 
     await recordPublicConversionEvent({
@@ -692,6 +705,9 @@ export async function captureLeadFromPropertyAction(
       eventType: "lead_form_submit",
       path: landingPath,
       source: sourceType,
+      adCampaignRequestId,
+      utmSource,
+      utmCampaign,
       metadata: { lead_id: lead.id, source_detail: sourceDetail },
     });
 
