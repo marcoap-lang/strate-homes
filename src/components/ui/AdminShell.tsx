@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { createSupabaseBrowserClient } from "@/lib/supabase/browser";
+import { PWAInstallPrompt } from "@/components/ui/PWAInstallPrompt";
 import { useSupabaseAuth } from "@/components/providers/SupabaseAuthProvider";
 import { useActiveWorkspace } from "@/components/providers/WorkspaceProvider";
 import { getPublicBaseUrl } from "@/lib/public-links";
@@ -187,6 +188,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
             </Link>
           ))}
         </nav>
+        <div className="mt-3">
+          <PWAInstallPrompt compact />
+        </div>
       </div>
 
       <div className="mx-auto grid max-w-[1480px] gap-4 px-3 py-4 sm:px-5 sm:py-6 xl:grid-cols-[320px_1fr] xl:gap-6 xl:px-8 xl:py-8">
@@ -271,6 +275,9 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
               >
                 Salir
               </button>
+            </div>
+            <div className="mt-4">
+              <PWAInstallPrompt />
             </div>
           </div>
         </aside>
