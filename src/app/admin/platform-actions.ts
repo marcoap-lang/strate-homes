@@ -35,6 +35,10 @@ function normalizeJson(value: FormDataEntryValue | null) {
   }
 }
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value && typeof value === "object" && !Array.isArray(value));
+}
+
 async function recordPlatformEvent({
   workspaceId,
   eventType,
@@ -229,25 +233,21 @@ export async function deleteWorkspaceAction(_prevState: PlatformActionState, for
 
     if (!workspaceId || confirm !== "ELIMINAR") return fail("Escribe ELIMINAR para borrar esta organización.");
 
-    const { data: workspace, error: workspaceError } = await supabase
-      .from("workspaces")
-      .select("id, name, brand_name, slug")
-      .eq("id", workspaceId)
-      .maybeSingle();
-
-    if (workspaceError) return fail(workspaceError.message);
-    if (!workspace) return fail("No encontré esa organización.");
-
-    const { error } = await supabase.from("workspaces").delete().eq("id", workspaceId);
+    const { data, error } = await supabase.rpc("delete_workspace_as_platform_admin", {
+      target_workspace_id: workspaceId,
+    });
     if (error) return fail(error.message);
+
+    const result = isRecord(data) ? data : {};
+    if (result.deleted !== true) return fail("No se eliminó la organización. Puede que ya no exista o falte aplicar la migración.");
 
     await recordPlatformEvent({
       eventType: "workspace_deleted",
       entityType: "workspace",
       entityId: workspaceId,
       metadata: {
-        name: workspace.brand_name ?? workspace.name,
-        slug: workspace.slug,
+        name: typeof result.name === "string" ? result.name : null,
+        slug: typeof result.slug === "string" ? result.slug : null,
       },
     });
 
