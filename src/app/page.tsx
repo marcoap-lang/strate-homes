@@ -49,6 +49,9 @@ export default function Home() {
             <p className="mt-1 hidden text-sm text-[#4d4236] sm:block">Presencia, operacion y pauta inmobiliaria</p>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            <Link href="/install" className="rounded-full border border-[#d8c9b4] bg-transparent px-3 py-2.5 text-sm font-medium text-[#6d5c49] transition hover:bg-white/60 hover:text-[#15110d] sm:px-4">
+              Instalar
+            </Link>
             <Link href="/login?next=/admin" className="rounded-full border border-[#d8c9b4] bg-transparent px-3 py-2.5 text-sm font-medium text-[#6d5c49] transition hover:bg-white/60 hover:text-[#15110d] sm:px-4">
               Admin
             </Link>
