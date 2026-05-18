@@ -1179,7 +1179,7 @@ function PropertyForm({
         </p>
       ) : null}
 
-      <div className="sticky bottom-3 z-20 -mx-1 rounded-[1.6rem] border border-stone-200 bg-white/95 p-3 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur sm:static sm:mx-0 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 sm:rounded-none sm:border-0 sm:bg-transparent sm:p-0 sm:shadow-none sm:backdrop-blur-0">
+      <div className="mt-8 rounded-[1.6rem] border border-stone-200 bg-white p-4 sm:flex sm:flex-wrap sm:items-center sm:justify-between sm:gap-3 lg:rounded-none lg:border-0 lg:bg-transparent lg:p-0">
         <div className="text-sm text-stone-500">
           {mode === "create" ? "Guarda primero la ficha y enseguida sube fotos para elegir portada cuanto antes." : "Los cambios se guardan sobre la misma ficha."}
         </div>
